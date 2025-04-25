@@ -1,1 +1,47 @@
-/* You can add global styles to this file, and also import other style files */
+@import "bootstrap/dist/css/bootstrap.min.css";
+@import "bootstrap-icons/font/bootstrap-icons.css";
+
+@font-face {
+  font-family: font;
+  src: url(./app/fonts/fira.ttf);
+}
+
+:root {
+  --primary-color: #202020;
+  --secondary-color: #212123;
+  --tertiary-color: #0c0c0c;
+  --hover-color: #ffffff0b;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+span,
+p,
+input,
+textarea,
+select,
+button {
+  margin: 0.2rem;
+  font-family: font;
+  font-weight: bold;
+  color: white;
+}
+i {
+  font-size: 2rem;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.1s ease;
+}
+i:hover {
+  background-color: var(--hover-color);
+  transition: background-color 0s;
+}
+body,
+html {
+  padding: 0;
+  margin: 0;
+}
