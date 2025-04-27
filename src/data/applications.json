@@ -1,0 +1,12 @@
+[
+  { "application": "Explorer", "icon": "bi-folder" },
+  { "application": "Terminal", "icon": "bi-terminal" },
+  { "application": "Settings", "icon": "bi-gear" },
+  { "application": "Calendar", "icon": "bi-calendar" },
+  { "application": "Calculator", "icon": "bi-calculator" },
+  { "application": "Notepad", "icon": "bi-file-earmark-text" },
+  { "application": "Photos", "icon": "bi-image" },
+  { "application": "Music", "icon": "bi-music-note" },
+  { "application": "Video Player", "icon": "bi-film" },
+  { "application": "Web Browser", "icon": "bi-globe" }
+]

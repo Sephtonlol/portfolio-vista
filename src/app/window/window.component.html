@@ -1,0 +1,20 @@
+<div id="window" class="window">
+  <div class="window-header">
+    <div class="window-titlebar">
+      <i class="bi {{ windowData.icon }}"></i>
+      <span>{{ windowData.application }}</span>
+    </div>
+    <div class="window-controls">
+      <i class="bi bi-dash" (click)="minimizeWindow()"></i>
+      @if(isMaximized) {
+      <i class="bi bi-fullscreen-exit" (click)="unmaximizeWindow()"></i>
+      } @else {
+      <i class="bi bi-square" (click)="maximizeWindow()"></i>
+      }
+      <i class="bi bi-x" (click)="closeWindow()"></i>
+    </div>
+  </div>
+  <div class="window-content">
+    <!-- Your content here -->
+  </div>
+</div>

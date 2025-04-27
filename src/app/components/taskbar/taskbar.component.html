@@ -1,6 +1,12 @@
 <app-start-menu [class.show-start-menu]="showStartMenu" class="start-menu" />
 
 <div class="taskbar-inner">
-  <i class="bi bi-windows" (click)="toggleStartMenu()"></i
-  ><i class="bi bi-folder"></i><i class="bi bi-terminal"></i>
+  <i class="bi bi-microsoft" (click)="toggleStartMenu()"></i>
+  @for(application of applications; track application){
+
+  <i
+    class="bi {{ application.icon }}"
+    (click)="newWindow(application.application, application.icon)"
+  ></i>
+  }
 </div>

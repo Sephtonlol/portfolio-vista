@@ -1,0 +1,41 @@
+.window {
+  position: absolute;
+  width: 400px;
+  height: 300px;
+  border: 1px solid #ccc;
+  background-color: #f0f0f0;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+.window-header {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.window-titlebar {
+  display: flex;
+  i {
+    font-size: 1.2rem;
+  }
+}
+.window-controls {
+  display: flex;
+}
+
+.window-content {
+  padding: 10px;
+  height: calc(100% - 40px); /* Adjust based on header height */
+  overflow: auto;
+}
+i {
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  width: 32px;
+}
+.bi-fullscreen-exit,
+.bi-square {
+  font-size: 1rem;
+}
