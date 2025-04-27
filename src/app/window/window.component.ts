@@ -1,6 +1,8 @@
 import { AfterViewInit, Component, ElementRef, Input } from '@angular/core';
 import interact from 'interactjs';
 import { Window } from '../interfaces/window.interface';
+import { WindowManagerService } from '../services/window-manager.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-window',
@@ -11,21 +13,40 @@ import { Window } from '../interfaces/window.interface';
 export class WindowComponent implements AfterViewInit {
   @Input() windowData!: Window;
 
-  isMinimized = false;
   isMaximized = false;
   lastPosition = { x: 0, y: 0 };
   lastSize = { width: 400, height: 300 };
 
   static currentZIndex = 1;
 
-  constructor(private el: ElementRef) {}
+  private focusSub!: Subscription;
+  private minimizeSub!: Subscription;
+
+  constructor(
+    private el: ElementRef,
+    private windowManagerService: WindowManagerService
+  ) {}
 
   ngAfterViewInit() {
     const windowEl = this.el.nativeElement.querySelector('.window');
 
+    this.focusSub = this.windowManagerService.focus$.subscribe((focusedApp) => {
+      if (focusedApp === this.windowData.application) {
+        WindowComponent.currentZIndex++;
+        windowEl.style.zIndex = WindowComponent.currentZIndex.toString();
+        this.windowData.minimized = false;
+      }
+    });
+
+    this.minimizeSub = this.windowManagerService.minimize$.subscribe(
+      (minimizeApp) => {
+        if (minimizeApp === this.windowData.application) {
+          this.windowData.minimized = true;
+        }
+      }
+    );
     windowEl.addEventListener('mousedown', () => {
-      WindowComponent.currentZIndex++;
-      windowEl.style.zIndex = WindowComponent.currentZIndex.toString();
+      this.windowManagerService.focusWindow(this.windowData.application);
     });
 
     interact(windowEl)
@@ -75,7 +96,7 @@ export class WindowComponent implements AfterViewInit {
   }
 
   minimizeWindow() {
-    this.isMinimized = true;
+    this.windowManagerService.minimizeWindow(this.windowData.application);
   }
 
   maximizeWindow() {
@@ -117,6 +138,7 @@ export class WindowComponent implements AfterViewInit {
   }
 
   closeWindow() {
-    // Remove the window from the array or hide it
+    this.focusSub.unsubscribe();
+    this.windowManagerService.closeWindow(this.windowData.application);
   }
 }

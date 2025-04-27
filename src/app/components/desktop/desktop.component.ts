@@ -12,7 +12,7 @@ import { Window } from '../../interfaces/window.interface';
 export class DesktopComponent {
   windows: Window[] = [];
   constructor(private windowManagerService: WindowManagerService) {
-    this.windowManagerService.items$.subscribe((windows) => {
+    this.windowManagerService.windows$.subscribe((windows) => {
       this.windows = windows;
     });
   }

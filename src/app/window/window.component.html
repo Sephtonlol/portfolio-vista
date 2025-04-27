@@ -1,4 +1,4 @@
-<div id="window" class="window">
+<div id="window" class="window" [class.window-minized]="windowData.minimized">
   <div class="window-header">
     <div class="window-titlebar">
       <i class="bi {{ windowData.icon }}"></i>
@@ -6,11 +6,10 @@
     </div>
     <div class="window-controls">
       <i class="bi bi-dash" (click)="minimizeWindow()"></i>
-      @if(isMaximized) {
-      <i class="bi bi-fullscreen-exit" (click)="unmaximizeWindow()"></i>
-      } @else {
-      <i class="bi bi-square" (click)="maximizeWindow()"></i>
-      }
+      <i
+        class="{{ isMaximized ? 'bi-fullscreen-exit' : 'bi-square' }}"
+        (click)="isMaximized ? unmaximizeWindow() : maximizeWindow()"
+      ></i>
       <i class="bi bi-x" (click)="closeWindow()"></i>
     </div>
   </div>

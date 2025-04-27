@@ -3,10 +3,16 @@
 <div class="taskbar-inner">
   <i class="bi bi-microsoft" (click)="toggleStartMenu()"></i>
   @for(application of applications; track application){
-
   <i
     class="bi {{ application.icon }}"
-    (click)="newWindow(application.application, application.icon)"
+    [class.opened-application]="
+      windowManagerService.isOpened(application.application)
+    "
+    (click)="
+      windowManagerService.isOpened(application.application)
+        ? toggleWindow(application.application)
+        : newWindow(application.application, application.icon)
+    "
   ></i>
   }
 </div>

@@ -2,7 +2,6 @@
   position: absolute;
   width: 400px;
   height: 300px;
-  border: 1px solid #ccc;
   background-color: #f0f0f0;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
@@ -23,11 +22,13 @@
 .window-controls {
   display: flex;
 }
-
 .window-content {
   padding: 10px;
-  height: calc(100% - 40px); /* Adjust based on header height */
+  height: calc(100% - 40px);
   overflow: auto;
+}
+.window-minized {
+  display: none;
 }
 i {
   align-items: center;

@@ -24,3 +24,6 @@ i {
   opacity: 1;
   bottom: 3.5rem;
 }
+.opened-application {
+  background-color: var(--hover-color);
+}

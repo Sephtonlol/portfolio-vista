@@ -14,8 +14,8 @@ export class TaskbarComponent {
   showStartMenu = false;
   windows: Window[] = [];
   applications: Window[] = applications as Window[];
-  constructor(private windowManagerService: WindowManagerService) {
-    this.windowManagerService.items$.subscribe((windows) => {
+  constructor(public windowManagerService: WindowManagerService) {
+    this.windowManagerService.windows$.subscribe((windows) => {
       this.windows = windows;
     });
   }
@@ -25,9 +25,16 @@ export class TaskbarComponent {
   }
 
   newWindow(application: string, icon: string) {
-    this.windowManagerService.addItem({
+    this.windowManagerService.addWindow({
       application,
       icon,
+      opened: true,
+      minimized: false,
     });
+  }
+  toggleWindow(application: string) {
+    if (this.windowManagerService.isMinized(application))
+      this.windowManagerService.focusWindow(application);
+    else this.windowManagerService.minimizeWindow(application);
   }
 }
