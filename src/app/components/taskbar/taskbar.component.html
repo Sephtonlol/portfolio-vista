@@ -1,4 +1,8 @@
-<app-start-menu [class.show-start-menu]="showStartMenu" class="start-menu" />
+<app-start-menu
+  [class.show-start-menu]="showStartMenu"
+  class="start-menu"
+  (closeStartMenu)="toggleStartMenu()"
+/>
 
 <div class="taskbar-inner">
   <i class="bi bi-microsoft" (click)="toggleStartMenu()"></i>

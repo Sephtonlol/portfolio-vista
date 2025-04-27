@@ -7,12 +7,17 @@
 </div>
 <div class="applications">
   <span>Applications</span>
-  <div class="application">
-    <i class="bi bi-folder"> </i>
-    <p>Explorer</p>
+  @for(application of applications; track application){
+  <div
+    class="application"
+    (click)="
+      windowManagerService.isOpened(application.application)
+        ? toggleWindow(application.application)
+        : newWindow(application.application, application.icon)
+    "
+  >
+    <i class="bi {{ application.icon }}"> </i>
+    <p>{{ application.application }}</p>
   </div>
-  <div class="application">
-    <i class="bi bi-terminal"> </i>
-    <p>Terminal</p>
-  </div>
+  }
 </div>

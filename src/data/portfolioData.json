@@ -1,0 +1,17 @@
+{
+  "name": "root",
+  "type": "directory",
+  "children": [
+    {
+      "name": "projects",
+      "type": "directory",
+      "children": [
+        {
+          "name": "readMe",
+          "type": "txt",
+          "content": "This is a readme file for the projects directory. It contains information about the projects contained within this directory."
+        }
+      ]
+    }
+  ]
+}

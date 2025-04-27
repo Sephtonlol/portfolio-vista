@@ -27,3 +27,12 @@ i {
 .opened-application {
   background-color: var(--hover-color);
 }
+.opened-application::after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: white;
+  z-index: -1;
+  border-radius: 6px;
+}

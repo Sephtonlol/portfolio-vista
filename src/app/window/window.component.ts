@@ -3,10 +3,11 @@ import interact from 'interactjs';
 import { Window } from '../interfaces/window.interface';
 import { WindowManagerService } from '../services/window-manager.service';
 import { Subscription } from 'rxjs';
+import { TerminalComponent } from '../components/windows/terminal/terminal.component';
 
 @Component({
   selector: 'app-window',
-  imports: [],
+  imports: [TerminalComponent],
   templateUrl: './window.component.html',
   styleUrl: './window.component.css',
 })
@@ -15,7 +16,7 @@ export class WindowComponent implements AfterViewInit {
 
   isMaximized = false;
   lastPosition = { x: 0, y: 0 };
-  lastSize = { width: 400, height: 300 };
+  lastSize = { width: 500, height: 350 };
 
   static currentZIndex = 1;
 
@@ -69,7 +70,7 @@ export class WindowComponent implements AfterViewInit {
       })
       .resizable({
         edges: { top: true, left: true, bottom: true, right: true },
-        margin: 4,
+        margin: 6,
         modifiers: [
           interact.modifiers.restrictSize({
             min: { width: 300, height: 75 },

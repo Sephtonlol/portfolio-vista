@@ -1,1 +1,22 @@
-<p>terminal works!</p>
+<div class="output">
+  @for (line of output; track line) {
+  <p>{{ line }}</p>
+  } @empty {
+  <p class="empty">Terminal</p>
+  <p class="empty">Copyright (C) Alexander Wu. All rights reserved.</p>
+  }
+</div>
+
+<div class="input-line">
+  <span class="prompt">
+    portfolio&#64;user:~{{
+      currentPath.length ? "/" + currentPath.join("/") : ""
+    }}$
+  </span>
+  <input
+    [(ngModel)]="command"
+    (keydown.enter)="handleCommand()"
+    type="text"
+    autofocus
+  />
+</div>

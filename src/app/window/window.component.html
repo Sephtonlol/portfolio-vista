@@ -14,6 +14,7 @@
     </div>
   </div>
   <div class="window-content">
-    <!-- Your content here -->
+    @if(windowData.application.toLowerCase() === 'terminal') {
+    <app-terminal />}
   </div>
 </div>
