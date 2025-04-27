@@ -23,6 +23,7 @@ i {
 span {
   font-size: 0.8rem;
   opacity: 0.9;
+  user-select: none;
 }
 
 .applications {

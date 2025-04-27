@@ -3,6 +3,32 @@
   "type": "directory",
   "children": [
     {
+      "name": "aboutMe",
+      "type": "directory",
+      "children": [
+        {
+          "name": "passion",
+          "type": "txt",
+          "content": "This is a readme file for the projects directory. It contains information about the projects contained within this directory."
+        },
+        {
+          "name": "skills",
+          "type": "txt",
+          "content": "This is a readme file for the projects directory. It contains information about the projects contained within this directory."
+        },
+        {
+          "name": "education",
+          "type": "txt",
+          "content": "This is a readme file for the projects directory. It contains information about the projects contained within this directory."
+        },
+        {
+          "name": "experience",
+          "type": "txt",
+          "content": "This is a readme file for the projects directory. It contains information about the projects contained within this directory."
+        }
+      ]
+    },
+    {
       "name": "projects",
       "type": "directory",
       "children": [

@@ -35,7 +35,11 @@ export class TerminalComponent {
     const input = this.command.trim();
     if (!input) return;
 
-    this.output.push(`> ${input}`);
+    this.output.push(
+      `portfolio@user:~${
+        this.currentPath.length ? '/' + this.currentPath.join('/') : ''
+      }$ ${input}`
+    );
 
     const [cmd, ...args] = input.split(' ');
 
@@ -66,7 +70,7 @@ export class TerminalComponent {
 
   list() {
     const items = this.currentDir.children?.map((child) => child.name) || [];
-    this.output.push(items.length ? items.join('    ') : '(empty)');
+    this.output.push(items.length ? items.join(' | ') : '(empty)');
   }
 
   changeDirectory(folder: string) {

@@ -15,7 +15,7 @@ export class WindowComponent implements AfterViewInit {
   @Input() windowData!: Window;
 
   isMaximized = false;
-  lastPosition = { x: 0, y: 0 };
+  lastPosition = { x: 100, y: 50 };
   lastSize = { width: 500, height: 350 };
 
   static currentZIndex = 1;
@@ -57,9 +57,9 @@ export class WindowComponent implements AfterViewInit {
           move: (event) => {
             const target = event.target;
             const x =
-              (parseFloat(target.getAttribute('data-x')!) || 0) + event.dx;
+              (parseFloat(target.getAttribute('data-x')!) || 100) + event.dx;
             const y =
-              (parseFloat(target.getAttribute('data-y')!) || 0) + event.dy;
+              (parseFloat(target.getAttribute('data-y')!) || 50) + event.dy;
 
             target.style.transform = `translate(${x}px, ${y}px)`;
             target.setAttribute('data-x', x.toString());
@@ -70,7 +70,7 @@ export class WindowComponent implements AfterViewInit {
       })
       .resizable({
         edges: { top: true, left: true, bottom: true, right: true },
-        margin: 6,
+        margin: 4,
         modifiers: [
           interact.modifiers.restrictSize({
             min: { width: 300, height: 75 },
