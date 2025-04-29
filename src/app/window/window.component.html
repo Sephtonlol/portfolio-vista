@@ -13,8 +13,8 @@
       <i class="bi bi-x" (click)="closeWindow()"></i>
     </div>
   </div>
-  <div class="window-content">
+  <div class="window-content" #windowContent>
     @if(windowData.application.toLowerCase() === 'terminal') {
-    <app-terminal />}
+    <app-terminal (requestScrollToBottom)="scrollToBottom()" />}
   </div>
 </div>

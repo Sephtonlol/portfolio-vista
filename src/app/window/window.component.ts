@@ -1,4 +1,10 @@
-import { AfterViewInit, Component, ElementRef, Input } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  Input,
+  ViewChild,
+} from '@angular/core';
 import interact from 'interactjs';
 import { Window } from '../interfaces/window.interface';
 import { WindowManagerService } from '../services/window-manager.service';
@@ -12,6 +18,7 @@ import { TerminalComponent } from '../components/windows/terminal/terminal.compo
   styleUrl: './window.component.css',
 })
 export class WindowComponent implements AfterViewInit {
+  @ViewChild('windowContent') container!: ElementRef;
   @Input() windowData!: Window;
 
   isMaximized = false;
@@ -141,5 +148,9 @@ export class WindowComponent implements AfterViewInit {
   closeWindow() {
     this.focusSub.unsubscribe();
     this.windowManagerService.closeWindow(this.windowData.application);
+  }
+  scrollToBottom(): void {
+    const scrollContainer = this.container.nativeElement;
+    scrollContainer.scrollTop = scrollContainer.scrollHeight;
   }
 }

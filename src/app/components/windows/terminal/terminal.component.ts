@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { FileNode } from '../../../interfaces/file.interface';
 import portfolio from '../../../../data/portfolioData.json';
 import { FormsModule } from '@angular/forms';
@@ -10,6 +10,7 @@ import { FormsModule } from '@angular/forms';
   imports: [FormsModule],
 })
 export class TerminalComponent {
+  @Output() requestScrollToBottom = new EventEmitter<void>();
   filesystem: FileNode = portfolio as FileNode;
 
   currentPath: string[] = [];
@@ -66,6 +67,7 @@ export class TerminalComponent {
     }
 
     this.command = '';
+    this.scrollToBottom();
   }
 
   list() {
@@ -120,5 +122,10 @@ export class TerminalComponent {
     this.output.push('- start <file>: Start a file/application');
     this.output.push('- help: Show this help message');
     this.output.push('- clear: Clear the terminal');
+  }
+  scrollToBottom() {
+    setTimeout(() => {
+      this.requestScrollToBottom.emit();
+    }, 1);
   }
 }
