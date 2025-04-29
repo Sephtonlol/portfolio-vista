@@ -5,18 +5,26 @@
 />
 
 <div class="taskbar-inner">
-  <i class="bi bi-ubuntu" (click)="toggleStartMenu()"></i>
-  @for(application of applications; track application){
-  <i
-    class="bi {{ application.icon }}"
-    [class.opened-application]="
-      windowManagerService.isOpened(application.application)
-    "
-    (click)="
-      windowManagerService.isOpened(application.application)
-        ? toggleWindow(application.application)
-        : newWindow(application.application, application.icon)
-    "
-  ></i>
-  }
+  <div class="applications">
+    <i class="bi bi-ubuntu" (click)="toggleStartMenu()"></i>
+    @for(application of applications; track application){
+    <i
+      class="bi {{ application.icon }}"
+      [class.opened-application]="
+        windowManagerService.isOpened(application.application)
+      "
+      (click)="
+        windowManagerService.isOpened(application.application)
+          ? toggleWindow(application.application)
+          : newWindow(application.application, application.icon)
+      "
+    ></i>
+    }
+  </div>
+  <div class="taskbar-right">
+    <div class="date-time-container">
+      <span>{{ time }}</span>
+      <span>{{ date }}</span>
+    </div>
+  </div>
 </div>

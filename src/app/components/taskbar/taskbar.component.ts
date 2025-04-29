@@ -11,12 +11,31 @@ import applications from '../../../data/applications.json';
   styleUrl: './taskbar.component.css',
 })
 export class TaskbarComponent {
+  time = '';
+  date = '';
+
   showStartMenu = false;
   windows: Window[] = [];
   applications: Window[] = applications as Window[];
   constructor(public windowManagerService: WindowManagerService) {
     this.windowManagerService.windows$.subscribe((windows) => {
       this.windows = windows;
+    });
+    this.updateDateTime();
+    setInterval(() => this.updateDateTime(), 1000);
+  }
+
+  private updateDateTime() {
+    const now = new Date();
+    this.time = now.toLocaleString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+    this.date = now.toLocaleString('en-US', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
     });
   }
 
@@ -34,7 +53,7 @@ export class TaskbarComponent {
   }
   toggleWindow(application: string) {
     if (this.windowManagerService.isMinized(application))
-      this.windowManagerService.focusWindow(application);
+      this.windowManagerService.focusWindow(application, true);
     else this.windowManagerService.minimizeWindow(application);
   }
 }

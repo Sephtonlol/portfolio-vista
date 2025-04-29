@@ -1,17 +1,12 @@
-@if(acceptedWarning){
+<app-desktop [class.show-content]="acceptedWarning" />
 
-<app-desktop />
+<app-taskbar [class.show-content]="acceptedWarning" />
 
-<app-taskbar />
-}
 <div class="warning" [class.show-warning]="!acceptedWarning">
   <p class="main-warning">
     For the best experience, it's recommended to use fullscreen mode (F11).
   </p>
-  <p class="sub-warning">
-    While it can still function in normal mode, some features or layouts may not
-    work as intended.
-  </p>
+  <p class="sub-warning">Some features or layouts may not work as intended.</p>
   <button class="btn btn-secondary" (click)="acceptedWarning = true">
     <p>Next</p>
   </button>

@@ -1,10 +1,4 @@
-import {
-  AfterViewInit,
-  Component,
-  ElementRef,
-  Input,
-  ViewChild,
-} from '@angular/core';
+import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import interact from 'interactjs';
 import { Window } from '../interfaces/window.interface';
 import { WindowManagerService } from '../services/window-manager.service';
@@ -18,13 +12,15 @@ import { ExplorerComponent } from '../components/windows/explorer/explorer.compo
   templateUrl: './window.component.html',
   styleUrl: './window.component.css',
 })
-export class WindowComponent implements AfterViewInit {
+export class WindowComponent implements OnInit {
   @ViewChild('windowContent') container!: ElementRef;
   @Input() windowData!: Window;
 
   isMaximized = false;
   lastPosition = { x: 100, y: 50 };
   lastSize = { width: 500, height: 350 };
+
+  windowEl!: HTMLElement;
 
   static currentZIndex = 1;
 
@@ -36,13 +32,17 @@ export class WindowComponent implements AfterViewInit {
     private windowManagerService: WindowManagerService
   ) {}
 
-  ngAfterViewInit() {
-    const windowEl = this.el.nativeElement.querySelector('.window');
+  ngOnInit() {
+    this.windowEl = this.el.nativeElement.querySelector('.window');
+    console.log('stuff ', this.lastPosition, this.lastSize);
 
     this.focusSub = this.windowManagerService.focus$.subscribe((focusedApp) => {
-      if (focusedApp === this.windowData.application) {
+      if (focusedApp?.application === this.windowData.application) {
         WindowComponent.currentZIndex++;
-        windowEl.style.zIndex = WindowComponent.currentZIndex.toString();
+        this.windowEl.style.zIndex = WindowComponent.currentZIndex.toString();
+        if (focusedApp.unminimize) {
+          this.applyLast();
+        }
         this.windowData.minimized = false;
       }
     });
@@ -50,15 +50,17 @@ export class WindowComponent implements AfterViewInit {
     this.minimizeSub = this.windowManagerService.minimize$.subscribe(
       (minimizeApp) => {
         if (minimizeApp === this.windowData.application) {
+          this.saveLast();
+          this.windowEl.style.transform = `translate(50%, 100%)`;
           this.windowData.minimized = true;
         }
       }
     );
-    windowEl.addEventListener('mousedown', () => {
+    this.windowEl.addEventListener('mousedown', () => {
       this.windowManagerService.focusWindow(this.windowData.application);
     });
 
-    interact(windowEl)
+    interact(this.windowEl)
       .draggable({
         allowFrom: '.window-header',
         listeners: {
@@ -110,22 +112,13 @@ export class WindowComponent implements AfterViewInit {
 
   maximizeWindow() {
     if (!this.isMaximized) {
-      const windowEl = this.el.nativeElement.querySelector('.window');
-      // Save last position and size
-      this.lastPosition = {
-        x: parseFloat(windowEl.getAttribute('data-x')!) || 0,
-        y: parseFloat(windowEl.getAttribute('data-y')!) || 0,
-      };
-      this.lastSize = {
-        width: windowEl.offsetWidth,
-        height: windowEl.offsetHeight,
-      };
-      interact(windowEl).draggable(false);
-      interact(windowEl).resizable({ enabled: false });
+      this.saveLast();
+      interact(this.windowEl).draggable(false);
+      interact(this.windowEl).resizable({ enabled: false });
 
-      windowEl.style.transform = `translate(0px, 0px)`;
-      windowEl.style.width = '100vw';
-      windowEl.style.height = 'calc(100vh - 3.5rem)';
+      this.windowEl.style.transform = `translate(0px, 0px)`;
+      this.windowEl.style.width = '100vw';
+      this.windowEl.style.height = 'calc(100vh - 3.5rem)';
 
       this.isMaximized = true;
     }
@@ -133,25 +126,36 @@ export class WindowComponent implements AfterViewInit {
 
   unmaximizeWindow() {
     if (this.isMaximized) {
-      const windowEl = this.el.nativeElement.querySelector('.window');
+      this.applyLast();
 
-      windowEl.style.transform = `translate(${this.lastPosition.x}px, ${this.lastPosition.y}px)`;
-      windowEl.style.width = `${this.lastSize.width}px`;
-      windowEl.style.height = `${this.lastSize.height}px`;
-
-      interact(windowEl).draggable(true);
-      interact(windowEl).resizable({ enabled: true });
+      interact(this.windowEl).draggable(true);
+      interact(this.windowEl).resizable({ enabled: true });
 
       this.isMaximized = false;
     }
   }
 
   closeWindow() {
-    this.focusSub.unsubscribe();
     this.windowManagerService.closeWindow(this.windowData.application);
   }
   scrollToBottom(): void {
     const scrollContainer = this.container.nativeElement;
     scrollContainer.scrollTop = scrollContainer.scrollHeight;
+  }
+  saveLast() {
+    this.lastPosition = {
+      x: parseFloat(this.windowEl.getAttribute('data-x')!) || 100,
+      y: parseFloat(this.windowEl.getAttribute('data-y')!) || 50,
+    };
+    this.lastSize = {
+      width: this.windowEl.offsetWidth,
+      height: this.windowEl.offsetHeight,
+    };
+  }
+  applyLast() {
+    console.log('applyLast', this.lastPosition, this.lastSize);
+    this.windowEl.style.transform = `translate(${this.lastPosition.x}px, ${this.lastPosition.y}px)`;
+    this.windowEl.style.width = `${this.lastSize.width}px`;
+    this.windowEl.style.height = `${this.lastSize.height}px`;
   }
 }

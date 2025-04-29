@@ -6,20 +6,34 @@
   justify-content: space-between;
   background-color: var(--background-color);
 }
+app-desktop,
+app-taskbar {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1.2s ease;
+}
 .warning {
   transform: translate(-50%, -50%);
-  top: 50%;
+  top: 55%;
+
   left: 50%;
   text-align: center;
   position: absolute;
   width: 100%;
   opacity: 0;
   pointer-events: none;
+  transition: all 1.2s ease;
 }
 .sub-warning {
   opacity: 0.7;
 }
-.show-warning {
+.show-warning,
+.show-content {
   opacity: 1;
   pointer-events: all;
+}
+.show-content {
+}
+.show-warning {
+  top: 50%;
 }

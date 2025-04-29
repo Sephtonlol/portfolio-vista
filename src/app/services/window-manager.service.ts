@@ -9,7 +9,10 @@ export class WindowManagerService {
   private windowsSource = new BehaviorSubject<Window[]>([]);
   windows$ = this.windowsSource.asObservable();
 
-  private focusSource = new BehaviorSubject<string | null>(null);
+  private focusSource = new BehaviorSubject<{
+    application: string;
+    unminimize: boolean | null;
+  } | null>(null);
   focus$ = this.focusSource.asObservable();
 
   private minimizeSource = new BehaviorSubject<string | null>(null);
@@ -20,8 +23,8 @@ export class WindowManagerService {
     this.windowsSource.next([...currentItems, window]);
   }
 
-  focusWindow(application: string) {
-    this.focusSource.next(application);
+  focusWindow(application: string, unminimize = false) {
+    this.focusSource.next({ application, unminimize });
   }
 
   isOpened(appName: string): boolean {

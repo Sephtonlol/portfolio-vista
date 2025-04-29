@@ -11,6 +11,18 @@
   z-index: 1;
   position: relative;
   border-top: 2px solid var(--hover-color);
+  justify-content: space-between;
+}
+.taskbar-right {
+}
+.date-time-container {
+  display: flex;
+  flex-direction: column;
+  span {
+    margin: 0;
+    text-align: end;
+    font-weight: normal;
+  }
 }
 i {
   padding: 0 0.5rem;
@@ -22,7 +34,7 @@ i {
   position: absolute;
   opacity: 0;
   left: 0;
-  bottom: 0rem;
+  bottom: -5rem;
   transition: all 0.2s;
   pointer-events: none;
 }
