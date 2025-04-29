@@ -10,10 +10,11 @@ import { Window } from '../interfaces/window.interface';
 import { WindowManagerService } from '../services/window-manager.service';
 import { Subscription } from 'rxjs';
 import { TerminalComponent } from '../components/windows/terminal/terminal.component';
+import { ExplorerComponent } from '../components/windows/explorer/explorer.component';
 
 @Component({
   selector: 'app-window',
-  imports: [TerminalComponent],
+  imports: [TerminalComponent, ExplorerComponent],
   templateUrl: './window.component.html',
   styleUrl: './window.component.css',
 })

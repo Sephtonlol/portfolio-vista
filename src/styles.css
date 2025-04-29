@@ -7,6 +7,7 @@
 }
 
 :root {
+  --background-color: #1e1e1e;
   --primary-color: #202020;
   --secondary-color: #212123;
   --tertiary-color: #0c0c0c;
@@ -48,6 +49,7 @@ html {
 }
 ::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: #1e1e1e;

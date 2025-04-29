@@ -14,7 +14,10 @@
     </div>
   </div>
   <div class="window-content" #windowContent>
-    @if(windowData.application.toLowerCase() === 'terminal') {
-    <app-terminal (requestScrollToBottom)="scrollToBottom()" />}
+    @if(windowData.application === 'Terminal') {
+    <app-terminal (requestScrollToBottom)="scrollToBottom()" />
+    } @else if(windowData.application === 'Explorer') {
+    <app-explorer />
+    }
   </div>
 </div>
