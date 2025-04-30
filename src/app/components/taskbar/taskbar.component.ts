@@ -52,8 +52,14 @@ export class TaskbarComponent {
     });
   }
   toggleWindow(application: string) {
-    if (this.windowManagerService.isMinized(application))
-      this.windowManagerService.focusWindow(application, true);
-    else this.windowManagerService.minimizeWindow(application);
+    if (this.windowManagerService.isMinized(application)) {
+      setTimeout(() => {
+        this.windowManagerService.focusWindow(application, true);
+      }, 50);
+    } else {
+      setTimeout(() => {
+        this.windowManagerService.minimizeWindow(application);
+      }, 50);
+    }
   }
 }

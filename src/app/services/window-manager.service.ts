@@ -12,6 +12,7 @@ export class WindowManagerService {
   private focusSource = new BehaviorSubject<{
     application: string;
     unminimize: boolean | null;
+    drag: boolean | null;
   } | null>(null);
   focus$ = this.focusSource.asObservable();
 
@@ -23,8 +24,8 @@ export class WindowManagerService {
     this.windowsSource.next([...currentItems, window]);
   }
 
-  focusWindow(application: string, unminimize = false) {
-    this.focusSource.next({ application, unminimize });
+  focusWindow(application: string, unminimize = false, drag = false) {
+    this.focusSource.next({ application, unminimize, drag });
   }
 
   isOpened(appName: string): boolean {

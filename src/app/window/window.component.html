@@ -1,4 +1,9 @@
-<div id="window" class="window" [class.window-minized]="windowData.minimized">
+<div
+  id="window"
+  class="window"
+  [class.window-minized]="windowData.minimized"
+  [class.no-transition]="!shouldAnimate"
+>
   <div class="window-header">
     <div class="window-titlebar">
       <i class="bi {{ windowData.icon }}"></i>
@@ -13,7 +18,12 @@
       <i class="bi bi-x" (click)="closeWindow()"></i>
     </div>
   </div>
-  <div class="window-content" #windowContent>
+
+  <div
+    class="window-content"
+    #windowContent
+    [class.no-overflow]="shouldAnimate"
+  >
     @if(windowData.application === 'Terminal') {
     <app-terminal (requestScrollToBottom)="scrollToBottom()" />
     } @else if(windowData.application === 'Explorer') {

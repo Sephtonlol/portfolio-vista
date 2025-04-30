@@ -19,6 +19,9 @@ export class WindowComponent implements OnInit {
   isMaximized = false;
   lastPosition = { x: 100, y: 50 };
   lastSize = { width: 500, height: 350 };
+  shouldAnimate = true;
+
+  transitionDelay = 200;
 
   windowEl!: HTMLElement;
 
@@ -38,10 +41,16 @@ export class WindowComponent implements OnInit {
       if (focusedApp?.application === this.windowData.application) {
         WindowComponent.currentZIndex++;
         this.windowEl.style.zIndex = WindowComponent.currentZIndex.toString();
+        this.shouldAnimate = true;
         if (focusedApp.unminimize) {
           this.applyLast();
+          console.log(this.lastPosition);
           this.windowData.minimized = false;
         }
+        this.shouldAnimate = !focusedApp.drag;
+        setTimeout(() => {
+          this.shouldAnimate = false;
+        }, this.transitionDelay);
       }
     });
 
@@ -49,18 +58,35 @@ export class WindowComponent implements OnInit {
       (minimizeApp) => {
         if (minimizeApp === this.windowData.application) {
           this.saveLast();
-          this.windowEl.style.transform = `translate(50%, 100%)`;
+          this.shouldAnimate = true;
+          this.windowEl.style.transform = `translate(50vw, 100vh)`;
+          this.windowEl.style.width = `100px`;
+          this.windowEl.style.height = `50px`;
           this.windowData.minimized = true;
+          setTimeout(() => {
+            this.shouldAnimate = false;
+          }, this.transitionDelay);
         }
       }
     );
-    this.windowEl.addEventListener('mousedown', () => {
-      this.windowManagerService.focusWindow(this.windowData.application);
+    this.windowEl.addEventListener('mousedown', (event: MouseEvent) => {
+      const header = this.windowEl.querySelector('.window-header');
+      const controls = this.windowEl.querySelector('.window-controls');
+
+      const isHeader = header?.contains(event.target as Node) ?? false;
+      const isControlButton = controls?.contains(event.target as Node) ?? false;
+
+      this.windowManagerService.focusWindow(
+        this.windowData.application,
+        false,
+        isHeader && !isControlButton
+      );
     });
 
     interact(this.windowEl)
       .draggable({
         allowFrom: '.window-header',
+        ignoreFrom: '.window-controls, .window-controls *, .window-header i',
         listeners: {
           move: (event) => {
             const target = event.target;
@@ -111,28 +137,28 @@ export class WindowComponent implements OnInit {
   }
 
   maximizeWindow() {
-    if (!this.isMaximized) {
-      this.saveLast();
-      interact(this.windowEl).draggable(false);
-      interact(this.windowEl).resizable({ enabled: false });
+    this.shouldAnimate = true;
+    this.saveLast();
+    interact(this.windowEl).draggable(false);
+    interact(this.windowEl).resizable({ enabled: false });
 
-      this.windowEl.style.transform = `translate(0px, 0px)`;
-      this.windowEl.style.width = '100vw';
-      this.windowEl.style.height = 'calc(100vh - 3.5rem)';
+    this.windowEl.style.transform = `translate(0px, 0px)`;
+    this.windowEl.style.width = '100vw';
+    this.windowEl.style.height = 'calc(100vh - 3.5rem)';
 
-      this.isMaximized = true;
-    }
+    this.isMaximized = true;
+    setTimeout(() => {
+      this.shouldAnimate = false;
+    }, this.transitionDelay);
   }
 
   unmaximizeWindow() {
-    if (this.isMaximized) {
-      this.applyLast();
+    this.applyLast();
 
-      interact(this.windowEl).draggable(true);
-      interact(this.windowEl).resizable({ enabled: true });
+    interact(this.windowEl).draggable(true);
+    interact(this.windowEl).resizable({ enabled: true });
 
-      this.isMaximized = false;
-    }
+    this.isMaximized = false;
   }
 
   closeWindow() {
