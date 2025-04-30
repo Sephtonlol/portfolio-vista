@@ -34,16 +34,14 @@ export class WindowComponent implements OnInit {
 
   ngOnInit() {
     this.windowEl = this.el.nativeElement.querySelector('.window');
-    console.log('stuff ', this.lastPosition, this.lastSize);
-
     this.focusSub = this.windowManagerService.focus$.subscribe((focusedApp) => {
       if (focusedApp?.application === this.windowData.application) {
         WindowComponent.currentZIndex++;
         this.windowEl.style.zIndex = WindowComponent.currentZIndex.toString();
         if (focusedApp.unminimize) {
           this.applyLast();
+          this.windowData.minimized = false;
         }
-        this.windowData.minimized = false;
       }
     });
 
@@ -104,6 +102,8 @@ export class WindowComponent implements OnInit {
           },
         },
       });
+
+    this.windowManagerService.focusWindow(this.windowData.application, true);
   }
 
   minimizeWindow() {
@@ -153,7 +153,6 @@ export class WindowComponent implements OnInit {
     };
   }
   applyLast() {
-    console.log('applyLast', this.lastPosition, this.lastSize);
     this.windowEl.style.transform = `translate(${this.lastPosition.x}px, ${this.lastPosition.y}px)`;
     this.windowEl.style.width = `${this.lastSize.width}px`;
     this.windowEl.style.height = `${this.lastSize.height}px`;
