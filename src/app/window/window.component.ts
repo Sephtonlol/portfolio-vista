@@ -43,8 +43,11 @@ export class WindowComponent implements OnInit {
         this.windowEl.style.zIndex = WindowComponent.currentZIndex.toString();
         this.shouldAnimate = true;
         if (focusedApp.unminimize) {
-          this.applyLast();
-          console.log(this.lastPosition);
+          if (this.isMaximized) {
+            this.windowEl.style.transform = `translate(0px, 0px)`;
+            this.windowEl.style.width = '100vw';
+            this.windowEl.style.height = 'calc(100vh - 3.5rem)';
+          } else this.applyLast();
           this.windowData.minimized = false;
         }
         this.shouldAnimate = !focusedApp.drag;
@@ -57,7 +60,7 @@ export class WindowComponent implements OnInit {
     this.minimizeSub = this.windowManagerService.minimize$.subscribe(
       (minimizeApp) => {
         if (minimizeApp === this.windowData.application) {
-          this.saveLast();
+          if (!this.isMaximized) this.saveLast();
           this.shouldAnimate = true;
           this.windowEl.style.transform = `translate(50vw, 100vh)`;
           this.windowEl.style.width = `100px`;
