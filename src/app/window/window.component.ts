@@ -16,10 +16,11 @@ export class WindowComponent implements OnInit {
   @ViewChild('windowContent') container!: ElementRef;
   @Input() windowData!: Window;
 
+  maximizing = false;
   isMaximized = false;
   lastPosition = { x: 100, y: 50 };
   lastSize = { width: 500, height: 350 };
-  shouldAnimate = true;
+  shouldAnimate = false;
 
   transitionDelay = 200 + 10;
 
@@ -110,6 +111,7 @@ export class WindowComponent implements OnInit {
             }
 
             this.shouldAnimate = false;
+            this.maximizing = !this.isMaximized && event.client.y < 25;
           },
           end: (event) => {
             dragStarted = false;
