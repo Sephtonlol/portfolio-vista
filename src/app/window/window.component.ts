@@ -21,7 +21,8 @@ export class WindowComponent implements OnInit {
   lastPosition = { x: 100, y: 50 };
   lastSize = { width: 500, height: 350 };
   shouldAnimate = true;
-  animationRunning = false;
+
+  isAnimating = false;
 
   windowEl!: HTMLElement;
 
@@ -56,11 +57,16 @@ export class WindowComponent implements OnInit {
     this.minimizeSub = this.windowManagerService.minimize$.subscribe(
       (minimizeApp) => {
         if (minimizeApp === this.windowData.application) {
+          this.isAnimating = true;
           if (!this.isMaximized) this.saveLast();
           this.windowEl.style.transform = `translate(50vw, 100vh)`;
           this.windowEl.style.width = `100px`;
           this.windowEl.style.height = `50px`;
           this.windowData.minimized = true;
+
+          setTimeout(() => {
+            this.isAnimating = false;
+          }, 200);
         }
       }
     );
@@ -196,6 +202,9 @@ export class WindowComponent implements OnInit {
       x: parseFloat(this.windowEl.getAttribute('data-x')!) || 100,
       y: parseFloat(this.windowEl.getAttribute('data-y')!) || 50,
     };
+
+    if (this.isAnimating) return;
+
     this.lastSize = {
       width: this.windowEl.offsetWidth,
       height: this.windowEl.offsetHeight,
