@@ -22,8 +22,6 @@ export class WindowComponent implements OnInit {
   lastSize = { width: 500, height: 350 };
   shouldAnimate = true;
 
-  transitionDelay = 200 + 10;
-
   windowEl!: HTMLElement;
 
   static currentZIndex = 1;
@@ -169,7 +167,6 @@ export class WindowComponent implements OnInit {
     this.windowEl.style.height = 'calc(100vh - 3.5rem)';
 
     this.isMaximized = true;
-    setTimeout(() => {}, this.transitionDelay);
   }
 
   unmaximizeWindow() {
