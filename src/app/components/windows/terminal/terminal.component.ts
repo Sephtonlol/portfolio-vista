@@ -2,6 +2,7 @@ import { Component, EventEmitter, Output } from '@angular/core';
 import { FileNode } from '../../../interfaces/file.interface';
 import portfolio from '../../../../data/portfolioData.json';
 import { FormsModule } from '@angular/forms';
+import { WindowManagerService } from '../../../services/window-manager.service';
 
 @Component({
   selector: 'app-terminal',
@@ -16,6 +17,8 @@ export class TerminalComponent {
   currentPath: string[] = [];
   output: string[] = [];
   command: string = '';
+
+  constructor(private windowManagerService: WindowManagerService) {}
 
   get currentDir(): FileNode {
     let dir = this.filesystem;
@@ -51,14 +54,24 @@ export class TerminalComponent {
       case 'cd':
         this.changeDirectory(args[0]);
         break;
-      case 'start':
-        this.startApplication(args[0]);
+      case 'pwd':
+        this.output.push('/' + this.currentPath.join('/'));
+        break;
+      case 'echo':
+        this.output.push(args.join(' '));
+        break;
+      case 'open':
+        this.openFile(args[0]);
         break;
       case 'help':
-        this.help();
+        this.showHelp();
         break;
       case 'clear':
         this.output = [];
+        break;
+      case 'exit':
+        this.windowManagerService.closeWindow('Terminal');
+
         break;
       default:
         this.output.push(
@@ -71,10 +84,12 @@ export class TerminalComponent {
   }
 
   list() {
-    const items = this.currentDir.children?.map((child) => child.name) || [];
+    const items =
+      this.currentDir.children?.map((child) =>
+        child.type === 'directory' ? child.name : `${child.name}.${child.type}`
+      ) || [];
     this.output.push(items.length ? items.join(' | ') : '(empty)');
   }
-
   changeDirectory(folder: string) {
     if (!folder) {
       this.output.push('cd: missing folder name');
@@ -99,30 +114,51 @@ export class TerminalComponent {
     }
   }
 
-  startApplication(fileName: string) {
+  openFile(fileName: string) {
     if (!fileName) {
-      this.output.push('start: missing file name');
+      this.output.push('open: missing file name');
       return;
     }
 
-    const found = this.currentDir.children?.find(
+    const file = this.currentDir.children?.find(
       (child) => child.name === fileName
     );
-    if (found) {
-      this.output.push(`Starting ${fileName}...`);
-    } else {
-      this.output.push(`start: file or directory "${fileName}" not found`);
+    if (!file) {
+      this.output.push(`open: file "${fileName}" not found`);
+      return;
+    }
+
+    switch (file.type) {
+      case 'md':
+        this.output.push(`--- ${file.name} ---`);
+        this.output.push(file.content || '(empty)');
+        break;
+      case 'png':
+        this.output.push(`Image viewer opened: ${file.name}`);
+        break;
+      case 'mp3':
+        this.output.push(`Playing audio: ${file.name}`);
+        break;
+      case 'mp4':
+        this.output.push(`Playing video: ${file.name}`);
+        break;
+      default:
+        this.output.push(`open: unsupported file type "${file.type}"`);
     }
   }
 
-  help() {
+  showHelp() {
     this.output.push('Available commands:');
-    this.output.push('- ls: List files and directories');
+    this.output.push('- ls: List directory contents');
     this.output.push('- cd <folder>: Change directory');
-    this.output.push('- start <file>: Start a file/application');
-    this.output.push('- help: Show this help message');
-    this.output.push('- clear: Clear the terminal');
+    this.output.push('- pwd: Show current path');
+    this.output.push('- echo <text>: Print text');
+    this.output.push('- open <file>: Open md, image, or media file');
+    this.output.push('- help: Show this help');
+    this.output.push('- clear: Clear terminal output');
+    this.output.push('- exit: Close terminal session');
   }
+
   scrollToBottom() {
     setTimeout(() => {
       this.requestScrollToBottom.emit();

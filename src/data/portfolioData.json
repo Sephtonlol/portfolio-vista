@@ -8,22 +8,22 @@
       "children": [
         {
           "name": "passion",
-          "type": "txt",
+          "type": "md",
           "content": "This is a readme file for the projects directory. It contains information about the projects contained within this directory."
         },
         {
           "name": "skills",
-          "type": "txt",
+          "type": "md",
           "content": "This is a readme file for the projects directory. It contains information about the projects contained within this directory."
         },
         {
           "name": "education",
-          "type": "txt",
+          "type": "md",
           "content": "This is a readme file for the projects directory. It contains information about the projects contained within this directory."
         },
         {
           "name": "experience",
-          "type": "txt",
+          "type": "md",
           "content": "This is a readme file for the projects directory. It contains information about the projects contained within this directory."
         }
       ]
@@ -34,7 +34,7 @@
       "children": [
         {
           "name": "readMe",
-          "type": "txt",
+          "type": "md",
           "content": "This is a readme file for the projects directory. It contains information about the projects contained within this directory."
         }
       ]

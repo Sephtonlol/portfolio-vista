@@ -2,7 +2,7 @@ import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import interact from 'interactjs';
 import { Window } from '../interfaces/window.interface';
 import { WindowManagerService } from '../services/window-manager.service';
-import { Subscription } from 'rxjs';
+import { Subscription, timeout } from 'rxjs';
 import { TerminalComponent } from '../components/windows/terminal/terminal.component';
 import { ExplorerComponent } from '../components/windows/explorer/explorer.component';
 
@@ -21,6 +21,7 @@ export class WindowComponent implements OnInit {
   lastPosition = { x: 100, y: 50 };
   lastSize = { width: 500, height: 350 };
   shouldAnimate = true;
+  animationRunning = false;
 
   windowEl!: HTMLElement;
 
@@ -36,6 +37,7 @@ export class WindowComponent implements OnInit {
 
   ngOnInit() {
     this.windowEl = this.el.nativeElement.querySelector('.window');
+
     this.focusSub = this.windowManagerService.focus$.subscribe((focusedApp) => {
       if (focusedApp?.application === this.windowData.application) {
         WindowComponent.currentZIndex++;
@@ -86,7 +88,6 @@ export class WindowComponent implements OnInit {
           move: (event) => {
             const target = event.target;
 
-            // Unmaximize on first drag
             if (this.isMaximized && !dragStarted) {
               dragStarted = true;
               this.unmaximizeWindow();
@@ -97,7 +98,6 @@ export class WindowComponent implements OnInit {
               target.setAttribute('data-x', x.toString());
               target.setAttribute('data-y', y.toString());
             } else {
-              // Normal drag behavior
               const x =
                 (parseFloat(target.getAttribute('data-x')!) || 100) + event.dx;
               const y =
@@ -134,9 +134,11 @@ export class WindowComponent implements OnInit {
         ],
         listeners: {
           move: (event) => {
+            this.shouldAnimate = false;
+
             const target = event.target;
-            let x = parseFloat(target.getAttribute('data-x')!) || 0;
-            let y = parseFloat(target.getAttribute('data-y')!) || 0;
+            let x = parseFloat(target.getAttribute('data-x')!) || 100;
+            let y = parseFloat(target.getAttribute('data-y')!) || 50;
 
             target.style.width = `${event.rect.width}px`;
             target.style.height = `${event.rect.height}px`;
@@ -147,6 +149,11 @@ export class WindowComponent implements OnInit {
             target.style.transform = `translate(${x}px, ${y}px)`;
             target.setAttribute('data-x', x.toString());
             target.setAttribute('data-y', y.toString());
+          },
+          end: (event) => {
+            setTimeout(() => {
+              this.shouldAnimate = true;
+            }, 0);
           },
         },
       });
