@@ -172,6 +172,7 @@ export class WindowComponent implements OnInit {
   }
 
   maximizeWindow() {
+    this.isAnimating = true;
     this.saveLast();
     interact(this.windowEl).resizable({ enabled: false });
 
@@ -180,6 +181,9 @@ export class WindowComponent implements OnInit {
     this.windowEl.style.height = 'calc(100vh - 3.5rem)';
 
     this.isMaximized = true;
+    setTimeout(() => {
+      this.isAnimating = false;
+    }, 200);
   }
 
   unmaximizeWindow() {
