@@ -2,7 +2,7 @@
   position: absolute;
   width: 500px;
   height: 350px;
-  background-color: #f0f0f0;
+  background-color: var(--background-color);
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
   transform: translate(100px, 50px);
   transition: all 0.2s ease;
