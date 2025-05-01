@@ -20,7 +20,7 @@ export class WindowComponent implements OnInit {
   isMaximized = false;
   lastPosition = { x: 100, y: 50 };
   lastSize = { width: 500, height: 350 };
-  shouldAnimate = false;
+  shouldAnimate = true;
 
   transitionDelay = 200 + 10;
 
