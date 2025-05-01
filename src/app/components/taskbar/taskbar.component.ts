@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, HostListener } from '@angular/core';
 import { StartMenuComponent } from '../start-menu/start-menu.component';
 import { WindowManagerService } from '../../services/window-manager.service';
 import { Window } from '../../interfaces/window.interface';
@@ -17,12 +17,26 @@ export class TaskbarComponent {
   showStartMenu = false;
   windows: Window[] = [];
   applications: Window[] = applications as Window[];
-  constructor(public windowManagerService: WindowManagerService) {
+  constructor(
+    public windowManagerService: WindowManagerService,
+    private eRef: ElementRef
+  ) {
     this.windowManagerService.windows$.subscribe((windows) => {
       this.windows = windows;
     });
     this.updateDateTime();
     setInterval(() => this.updateDateTime(), 1000);
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    const clickedInsideStartMenu = target.closest('.start-menu');
+    const clickedStartButton = target.closest('.start-button');
+
+    if (!clickedInsideStartMenu && !clickedStartButton && this.showStartMenu) {
+      this.showStartMenu = false;
+    }
   }
 
   private updateDateTime() {

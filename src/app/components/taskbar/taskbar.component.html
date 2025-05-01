@@ -6,7 +6,7 @@
 
 <div class="taskbar-inner">
   <div class="applications">
-    <i class="bi bi-ubuntu" (click)="toggleStartMenu()"></i>
+    <i class="bi bi-ubuntu start-button" (click)="toggleStartMenu()"></i>
     @for(application of applications; track application){
     <i
       class="bi {{ application.icon }}"
