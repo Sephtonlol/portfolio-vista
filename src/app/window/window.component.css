@@ -63,3 +63,18 @@ i {
   width: 100vw;
   height: calc(100vh - 3.5rem);
 }
+@keyframes scaleIn {
+  from {
+    transform: scale(0.9) translate(99.9px, 50px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translate(100px, 50px);
+    opacity: 1;
+  }
+}
+
+.animate-in {
+  align-items: center;
+  animation: scaleIn 200ms ease-out;
+}

@@ -38,7 +38,6 @@ export class WindowComponent implements OnInit {
 
   ngOnInit() {
     this.windowEl = this.el.nativeElement.querySelector('.window');
-
     this.focusSub = this.windowManagerService.focus$.subscribe((focusedApp) => {
       if (focusedApp?.application === this.windowData.application) {
         WindowComponent.currentZIndex++;
