@@ -4,7 +4,10 @@
   [class.window-minized]="windowData.minimized"
   [class.no-transition]="!shouldAnimate"
 >
-  <div class="window-header">
+  <div
+    class="window-header"
+    (dblclick)="isMaximized ? unmaximizeWindow() : maximizeWindow()"
+  >
     <div class="window-titlebar">
       <i class="bi {{ windowData.icon }}"></i>
       <span>{{ windowData.application }}</span>
