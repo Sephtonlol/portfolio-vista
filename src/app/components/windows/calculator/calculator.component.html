@@ -1,0 +1,40 @@
+<div class="calculator">
+  <div class="display">
+    <div class="expression">{{ expression }}</div>
+  </div>
+
+  <div class="row-4">
+    <button (click)="clearEntry()">CE</button>
+    <button (click)="clear()">C</button>
+    <button (click)="back()">⌫</button>
+    <button (click)="op('/')">÷</button>
+
+    <button (click)="press('7')">7</button>
+    <button (click)="press('8')">8</button>
+    <button (click)="press('9')">9</button>
+    <button (click)="op('*')">×</button>
+
+    <button (click)="press('4')">4</button>
+    <button (click)="press('5')">5</button>
+    <button (click)="press('6')">6</button>
+    <button (click)="op('-')">−</button>
+
+    <button (click)="press('1')">1</button>
+    <button (click)="press('2')">2</button>
+    <button (click)="press('3')">3</button>
+    <button (click)="op('+')">+</button>
+
+    <button class="zero" (click)="toggleSign()">+/-</button>
+    <button class="zero" (click)="press('0')">0</button>
+    <button (click)="press('.')">.</button>
+    <button (click)="calc()">=</button>
+  </div>
+</div>
+<div class="history">
+  <p>History</p>
+  @for(item of history; track $index){
+  <h6>
+    {{ item }}
+  </h6>
+  }
+</div>

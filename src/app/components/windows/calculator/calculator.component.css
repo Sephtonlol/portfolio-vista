@@ -1,0 +1,62 @@
+:host {
+  display: flex;
+  height: 100%;
+}
+.calculator {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.display {
+  background: #222;
+  color: white;
+  padding: 10px;
+  min-height: 50px;
+  font-size: 1.2rem;
+  text-align: right;
+  margin: 0.2rem 0.1rem;
+}
+
+.expression {
+  font-size: 1.5rem;
+  margin-top: 5px;
+}
+
+.history {
+  min-width: 20%;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: end;
+  h6 {
+    font-weight: normal;
+  }
+  P {
+    align-self: flex-start;
+  }
+}
+.row-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  height: 100%;
+}
+button {
+  flex: 1;
+  font-size: 1.75rem;
+  padding: 5px;
+  background: var(--secondary-color);
+  cursor: pointer;
+  border: none;
+  font-weight: normal;
+  margin: 0.1rem;
+}
+
+button:hover {
+  background: var(--hover-color);
+}
+
+.zero {
+  grid-column: span 1;
+}

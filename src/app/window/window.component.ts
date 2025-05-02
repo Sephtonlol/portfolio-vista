@@ -2,13 +2,14 @@ import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import interact from 'interactjs';
 import { Window } from '../interfaces/window.interface';
 import { WindowManagerService } from '../services/window-manager.service';
-import { Subscription, timeout } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { TerminalComponent } from '../components/windows/terminal/terminal.component';
 import { ExplorerComponent } from '../components/windows/explorer/explorer.component';
+import { CalculatorComponent } from '../components/windows/calculator/calculator.component';
 
 @Component({
   selector: 'app-window',
-  imports: [TerminalComponent, ExplorerComponent],
+  imports: [TerminalComponent, ExplorerComponent, CalculatorComponent],
   templateUrl: './window.component.html',
   styleUrl: './window.component.css',
 })
@@ -19,10 +20,9 @@ export class WindowComponent implements OnInit {
   maximizing = false;
   isMaximized = false;
   lastPosition = { x: 100, y: 50 };
-  lastSize = { width: 500, height: 350 };
+  lastSize = { width: 600, height: 500 };
   shouldAnimate = true;
-
-  isAnimating = false;
+  minimumSize = { width: 300, height: 175 };
 
   windowEl!: HTMLElement;
 
@@ -37,6 +37,8 @@ export class WindowComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    if (this.windowData.application === 'Calculator')
+      this.minimumSize = { width: 300, height: 400 };
     this.windowEl = this.el.nativeElement.querySelector('.window');
     this.focusSub = this.windowManagerService.focus$.subscribe((focusedApp) => {
       if (focusedApp?.application === this.windowData.application) {
@@ -56,16 +58,11 @@ export class WindowComponent implements OnInit {
     this.minimizeSub = this.windowManagerService.minimize$.subscribe(
       (minimizeApp) => {
         if (minimizeApp === this.windowData.application) {
-          this.isAnimating = true;
           if (!this.isMaximized) this.saveLast();
           this.windowEl.style.transform = `translate(50vw, 100vh)`;
           this.windowEl.style.width = `100px`;
           this.windowEl.style.height = `50px`;
           this.windowData.minimized = true;
-
-          setTimeout(() => {
-            this.isAnimating = false;
-          }, 200);
         }
       }
     );
@@ -134,7 +131,7 @@ export class WindowComponent implements OnInit {
         margin: 4,
         modifiers: [
           interact.modifiers.restrictSize({
-            min: { width: 300, height: 75 },
+            min: this.minimumSize,
           }),
         ],
         listeners: {
@@ -171,7 +168,6 @@ export class WindowComponent implements OnInit {
   }
 
   maximizeWindow() {
-    this.isAnimating = true;
     this.saveLast();
     interact(this.windowEl).resizable({ enabled: false });
 
@@ -180,9 +176,6 @@ export class WindowComponent implements OnInit {
     this.windowEl.style.height = 'calc(100vh - 3.5rem)';
 
     this.isMaximized = true;
-    setTimeout(() => {
-      this.isAnimating = false;
-    }, 200);
   }
 
   unmaximizeWindow() {
@@ -205,9 +198,6 @@ export class WindowComponent implements OnInit {
       x: parseFloat(this.windowEl.getAttribute('data-x')!) || 100,
       y: parseFloat(this.windowEl.getAttribute('data-y')!) || 50,
     };
-
-    if (this.isAnimating) return;
-
     this.lastSize = {
       width: this.windowEl.offsetWidth,
       height: this.windowEl.offsetHeight,
