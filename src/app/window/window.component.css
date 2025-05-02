@@ -1,7 +1,5 @@
 .window {
   position: absolute;
-  /* width: 500px;
-  height: 350px; */
   width: fit-content;
   height: fit-content;
   background-color: var(--background-color);
