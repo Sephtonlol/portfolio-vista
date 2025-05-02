@@ -35,6 +35,7 @@ i {
   bottom: -5rem;
   transition: all 0.2s;
   pointer-events: none;
+  visibility: hidden;
 }
 .show-start-menu {
   opacity: 1;
