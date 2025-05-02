@@ -1,6 +1,7 @@
 <div class="calculator">
   <div class="display">
-    <div class="expression">{{ expression }}</div>
+    <div class="expression">{{ topDisplay }}</div>
+    <span class="result">{{ display }}</span>
   </div>
 
   <div class="row-4">
@@ -26,15 +27,19 @@
 
     <button class="zero" (click)="toggleSign()">+/-</button>
     <button class="zero" (click)="press('0')">0</button>
-    <button (click)="press('.')">.</button>
+    <button (click)="pressDot()">.</button>
     <button (click)="calc()">=</button>
   </div>
 </div>
 <div class="history">
+  @if(history.length) {
+  <i class="bi bi-trash3 clear-history" (click)="clearHistory()"></i>}
   <p>History</p>
   @for(item of history; track $index){
   <h6>
     {{ item }}
   </h6>
+  }@empty {
+  <h6>There's no history yet.</h6>
   }
 </div>

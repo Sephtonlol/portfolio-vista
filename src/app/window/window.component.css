@@ -1,7 +1,9 @@
 .window {
   position: absolute;
-  width: 500px;
-  height: 350px;
+  /* width: 500px;
+  height: 350px; */
+  width: fit-content;
+  height: fit-content;
   background-color: var(--background-color);
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
   transform: translate(100px, 50px);
@@ -45,9 +47,6 @@ i {
 }
 .no-transition {
   transition: none !important;
-}
-.no-overflow {
-  overflow-x: hidden !important;
 }
 .maximizing {
   position: absolute;

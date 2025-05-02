@@ -22,11 +22,7 @@
     </div>
   </div>
 
-  <div
-    class="window-content"
-    #windowContent
-    [class.no-overflow]="shouldAnimate"
-  >
+  <div class="window-content" #windowContent>
     @if(windowData.application === 'Terminal') {
     <app-terminal (requestScrollToBottom)="scrollToBottom()" />
     } @else if(windowData.application === 'Explorer') {

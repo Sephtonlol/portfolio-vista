@@ -2,7 +2,7 @@ import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import interact from 'interactjs';
 import { Window } from '../interfaces/window.interface';
 import { WindowManagerService } from '../services/window-manager.service';
-import { Subscription } from 'rxjs';
+import { min, Subscription } from 'rxjs';
 import { TerminalComponent } from '../components/windows/terminal/terminal.component';
 import { ExplorerComponent } from '../components/windows/explorer/explorer.component';
 import { CalculatorComponent } from '../components/windows/calculator/calculator.component';
@@ -19,10 +19,11 @@ export class WindowComponent implements OnInit {
 
   maximizing = false;
   isMaximized = false;
-  lastPosition = { x: 100, y: 50 };
-  lastSize = { width: 600, height: 500 };
-  shouldAnimate = true;
   minimumSize = { width: 300, height: 175 };
+  initialSize = { width: 450, height: 250 };
+  lastPosition = { x: 100, y: 50 };
+  lastSize = this.initialSize;
+  shouldAnimate = true;
 
   windowEl!: HTMLElement;
 
@@ -37,16 +38,24 @@ export class WindowComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    if (this.windowData.application === 'Calculator')
-      this.minimumSize = { width: 300, height: 400 };
     this.windowEl = this.el.nativeElement.querySelector('.window');
+    const size =
+      this.windowData.application === 'Calculator'
+        ? (this.minimumSize = this.lastSize = { width: 375, height: 400 })
+        : this.initialSize;
+
+    setTimeout(() => {
+      this.windowEl.style.width = `${size.width}px`;
+      this.windowEl.style.height = `${size.height}px`;
+    }, 0);
+
     this.focusSub = this.windowManagerService.focus$.subscribe((focusedApp) => {
       if (focusedApp?.application === this.windowData.application) {
         WindowComponent.currentZIndex++;
         this.windowEl.style.zIndex = WindowComponent.currentZIndex.toString();
         if (focusedApp.unminimize) {
           if (this.isMaximized) {
-            this.windowEl.style.transform = `translate(0px, 0px)`;
+            this.windowEl.style.transform = `translate(0px, 0px) scale(1, 1)`;
             this.windowEl.style.width = '100vw';
             this.windowEl.style.height = 'calc(100vh - 3.5rem)';
           } else this.applyLast();
@@ -59,9 +68,7 @@ export class WindowComponent implements OnInit {
       (minimizeApp) => {
         if (minimizeApp === this.windowData.application) {
           if (!this.isMaximized) this.saveLast();
-          this.windowEl.style.transform = `translate(50vw, 100vh)`;
-          this.windowEl.style.width = `100px`;
-          this.windowEl.style.height = `50px`;
+          this.windowEl.style.transform = `translate(50vw, 100vh) scale(0, 0)`;
           this.windowData.minimized = true;
         }
       }
@@ -120,6 +127,7 @@ export class WindowComponent implements OnInit {
               this.shouldAnimate = true;
               if (!this.isMaximized && event.client.y < 25) {
                 this.maximizeWindow();
+                this.maximizing = false;
               }
             }, 0);
           },

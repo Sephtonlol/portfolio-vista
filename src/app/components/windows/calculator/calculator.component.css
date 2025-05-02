@@ -9,32 +9,46 @@
 }
 
 .display {
-  background: #222;
+  background: var(--primary-color);
   color: white;
-  padding: 10px;
+  padding: 2px;
   min-height: 50px;
-  font-size: 1.2rem;
-  text-align: right;
+  font-size: 2rem;
   margin: 0.2rem 0.1rem;
+  display: flex;
+  align-items: start;
+  justify-content: end;
+  position: relative;
 }
 
 .expression {
-  font-size: 1.5rem;
-  margin-top: 5px;
+  font-size: 1rem;
+  position: absolute;
+  top: 0;
+  left: 10px;
 }
 
 .history {
-  min-width: 20%;
+  min-width: 125px;
+  width: 20%;
   overflow: auto;
   display: flex;
   flex-direction: column;
-  align-items: end;
+  position: relative;
   h6 {
     font-weight: normal;
+    font-size: 0.9rem;
   }
-  P {
-    align-self: flex-start;
-  }
+}
+.clear-history {
+  position: absolute;
+  bottom: 10px;
+  right: 5px;
+  font-size: 1rem;
+  padding: 0 0.25rem;
+  margin: 0 0.125rem;
+  border-radius: 6px;
+  cursor: pointer;
 }
 .row-4 {
   display: grid;

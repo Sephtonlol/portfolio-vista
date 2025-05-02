@@ -6,53 +6,97 @@ import { Component } from '@angular/core';
   styleUrls: ['./calculator.component.css'],
 })
 export class CalculatorComponent {
-  expression = '';
+  display = '';
+  topDisplay = '';
   history: string[] = [];
 
-  press(char: string) {
-    this.expression += char;
+  private current = '';
+  private previous = '';
+  private operator = '';
+
+  press(num: string) {
+    this.current += num;
+    this.display = this.current;
   }
 
-  op(operator: string) {
-    if (!this.expression) return;
-    const last = this.expression.slice(-1);
-    if ('+-*/'.includes(last)) {
-      this.expression = this.expression.slice(0, -1);
+  op(op: string) {
+    if (!this.current) return;
+
+    if (this.previous && this.operator) {
+      this.calc();
     }
-    this.expression += operator;
+
+    this.operator = op;
+    this.previous = this.current;
+    this.current = '';
+
+    this.topDisplay = `${this.previous} ${this.operator}`;
   }
 
   clear() {
-    this.expression = '';
+    this.current = '';
+    this.previous = '';
+    this.operator = '';
+    this.display = '';
+    this.topDisplay = '';
   }
 
   clearEntry() {
-    const match = this.expression.match(/(\d+\.?\d*)$/);
-    if (match) {
-      this.expression = this.expression.slice(0, -match[0].length);
-    }
+    this.current = '';
+    this.display = '';
   }
 
   back() {
-    this.expression = this.expression.slice(0, -1);
+    this.current = this.current.slice(0, -1);
+    this.display = this.current;
   }
 
   toggleSign() {
-    const match = this.expression.match(/(\d+\.?\d*)$/);
-    if (!match) return;
-    const num = match[0];
-    const toggled = (-+num).toString();
-    this.expression = this.expression.slice(0, -num.length) + toggled;
+    if (!this.current) return;
+    this.current = (-parseFloat(this.current)).toString();
+    this.display = this.current;
+  }
+
+  pressDot() {
+    if (!this.current.includes('.')) {
+      this.current += this.current ? '.' : '0.';
+      this.display = this.current;
+    }
+  }
+
+  clearHistory() {
+    this.history = [];
   }
 
   calc() {
-    try {
-      const safeExpr = this.expression.replace(/(\d+\.?\d*)/g, '$1');
-      const result = Function(`return ${safeExpr}`)();
-      this.history.unshift(`${this.expression} = ${result}`);
-      this.expression = result.toString();
-    } catch {
-      this.expression = 'Error';
+    if (!this.operator || !this.previous || !this.current) return;
+
+    const a = parseFloat(this.previous);
+    const b = parseFloat(this.current);
+    let result = 0;
+
+    switch (this.operator) {
+      case '+':
+        result = a + b;
+        break;
+      case '-':
+        result = a - b;
+        break;
+      case '*':
+        result = a * b;
+        break;
+      case '/':
+        result = b !== 0 ? a / b : NaN;
+        break;
     }
+
+    this.history.unshift(
+      `${this.previous} ${this.operator} ${this.current} = ${result}`
+    );
+    this.display = result.toString();
+    this.topDisplay = '';
+    this.current = result.toString();
+    this.previous = '';
+    this.operator = '';
   }
 }
