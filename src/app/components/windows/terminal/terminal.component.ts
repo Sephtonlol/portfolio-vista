@@ -63,6 +63,9 @@ export class TerminalComponent {
       case 'open':
         this.openFile(args[0]);
         break;
+      case 'cat':
+        this.cat(args[0]);
+        break;
       case 'help':
         this.showHelp();
         break;
@@ -121,7 +124,7 @@ export class TerminalComponent {
     }
 
     const file = this.currentDir.children?.find(
-      (child) => child.name === fileName
+      (child) => `${child.name}.${child.type}` === fileName
     );
     if (!file) {
       this.output.push(`open: file "${fileName}" not found`);
@@ -130,8 +133,7 @@ export class TerminalComponent {
 
     switch (file.type) {
       case 'md':
-        this.output.push(`--- ${file.name} ---`);
-        this.output.push(file.content || '(empty)');
+        this.output.push(`Text editor opened: ${file.name}`);
         break;
       case 'png':
         this.output.push(`Image viewer opened: ${file.name}`);
@@ -147,6 +149,27 @@ export class TerminalComponent {
     }
   }
 
+  cat(fileName: string) {
+    if (!fileName) {
+      this.output.push('cat: missing file name');
+      return;
+    }
+
+    const file = this.currentDir.children?.find(
+      (child) => `${child.name}.${child.type}` === fileName
+    );
+    if (!file) {
+      this.output.push(`cat: file "${fileName}" not found`);
+      return;
+    }
+
+    if (file.type === 'md') {
+      this.output.push(file.content || 'No content available.');
+    } else {
+      this.output.push(`cat: "${fileName}" is not a text file`);
+    }
+  }
+
   showHelp() {
     this.output.push('Available commands:');
     this.output.push('- ls: List directory contents');
@@ -154,6 +177,7 @@ export class TerminalComponent {
     this.output.push('- pwd: Show current path');
     this.output.push('- echo <text>: Print text');
     this.output.push('- open <file>: Open md, image, or media file');
+    this.output.push('- cat <textFiles>: Preview text files');
     this.output.push('- help: Show this help');
     this.output.push('- clear: Clear terminal output');
     this.output.push('- exit: Close terminal session');

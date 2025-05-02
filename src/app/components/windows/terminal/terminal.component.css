@@ -1,11 +1,11 @@
 :host {
-  min-width: 100%;
+  width: 100%;
   min-height: 100%;
-  width: fit-content;
   height: fit-content;
   background-color: var(--tertiary-color);
   display: flex;
   flex-direction: column;
+  text-wrap: wrap;
 }
 input {
   background-color: #0000;

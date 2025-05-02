@@ -8,6 +8,7 @@
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
   transform: translate(100px, 50px);
   transition: all 0.2s ease;
+  padding: 0 5px 5px 5px;
 }
 .window-header {
   background-color: var(--primary-color);
@@ -30,6 +31,7 @@
 .window-content {
   height: calc(100% - 40px);
   overflow: auto;
+  overflow-x: hidden;
 }
 .window-minized {
   pointer-events: none;
