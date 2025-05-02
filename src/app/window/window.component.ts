@@ -2,14 +2,20 @@ import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import interact from 'interactjs';
 import { Window } from '../interfaces/window.interface';
 import { WindowManagerService } from '../services/window-manager.service';
-import { min, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { TerminalComponent } from '../components/windows/terminal/terminal.component';
 import { ExplorerComponent } from '../components/windows/explorer/explorer.component';
 import { CalculatorComponent } from '../components/windows/calculator/calculator.component';
+import { NotepadComponent } from '../components/windows/notepad/notepad.component';
 
 @Component({
   selector: 'app-window',
-  imports: [TerminalComponent, ExplorerComponent, CalculatorComponent],
+  imports: [
+    TerminalComponent,
+    ExplorerComponent,
+    CalculatorComponent,
+    NotepadComponent,
+  ],
   templateUrl: './window.component.html',
   styleUrl: './window.component.css',
 })

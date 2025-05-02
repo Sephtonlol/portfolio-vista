@@ -1,0 +1,17 @@
+:host {
+  display: flex;
+  height: 100%;
+  width: 100%;
+}
+textarea {
+  resize: none;
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0.5rem;
+  background-color: var(--background-color);
+  border: none !important;
+}
+textarea:focus {
+  outline: none;
+}
