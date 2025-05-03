@@ -65,6 +65,7 @@ button {
   border: none;
   font-weight: normal;
   margin: 0.1rem;
+  user-select: none;
 }
 
 button:hover {
