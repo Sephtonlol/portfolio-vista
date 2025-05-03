@@ -18,6 +18,9 @@ export class TerminalComponent {
   output: string[] = [];
   command: string = '';
 
+  commandHistory: string[] = [];
+  historyIndex: number = -1;
+
   constructor(private windowManagerService: WindowManagerService) {}
 
   get currentDir(): FileNode {
@@ -38,6 +41,9 @@ export class TerminalComponent {
   handleCommand() {
     const input = this.command.trim();
     if (!input) return;
+
+    this.commandHistory.push(input);
+    this.historyIndex = this.commandHistory.length;
 
     this.output.push(
       `portfolio@user:~${
@@ -181,6 +187,25 @@ export class TerminalComponent {
     this.output.push('- help: Show this help');
     this.output.push('- clear: Clear terminal output');
     this.output.push('- exit: Close terminal session');
+  }
+
+  handleKey(event: KeyboardEvent) {
+    if (event.key === 'ArrowUp') {
+      if (this.historyIndex > 0) {
+        this.historyIndex--;
+        this.command = this.commandHistory[this.historyIndex];
+        event.preventDefault();
+      }
+    } else if (event.key === 'ArrowDown') {
+      if (this.historyIndex < this.commandHistory.length - 1) {
+        this.historyIndex++;
+        this.command = this.commandHistory[this.historyIndex];
+      } else {
+        this.historyIndex = this.commandHistory.length;
+        this.command = '';
+      }
+      event.preventDefault();
+    }
   }
 
   scrollToBottom() {
