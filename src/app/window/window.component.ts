@@ -102,16 +102,18 @@ export class WindowComponent implements OnInit {
         listeners: {
           move: (event) => {
             const target = event.target;
-
+            if (!this.isMaximized && !dragStarted) this.saveLast();
             if (this.isMaximized && !dragStarted) {
-              dragStarted = true;
               this.unmaximizeWindow();
               const x = event.client.x - this.lastSize.width / 2;
               const y = event.client.y - 15;
 
               target.style.transform = `translate(${x}px, ${y}px)`;
+
               target.setAttribute('data-x', x.toString());
               target.setAttribute('data-y', y.toString());
+              this.windowEl.style.width = `${this.lastSize.width}px`;
+              this.windowEl.style.height = `${this.lastSize.height}px`;
             } else {
               const x =
                 (parseFloat(target.getAttribute('data-x')!) || 100) + event.dx;
@@ -122,6 +124,7 @@ export class WindowComponent implements OnInit {
               target.setAttribute('data-x', x.toString());
               target.setAttribute('data-y', y.toString());
             }
+            if (!dragStarted) dragStarted = true;
 
             this.shouldAnimate = false;
             this.maximizing = !this.isMaximized && event.client.y < 25;
@@ -132,7 +135,7 @@ export class WindowComponent implements OnInit {
             setTimeout(() => {
               this.shouldAnimate = true;
               if (!this.isMaximized && event.client.y < 25) {
-                this.maximizeWindow();
+                this.maximizeWindow(false);
                 this.maximizing = false;
               }
             }, 0);
@@ -181,8 +184,8 @@ export class WindowComponent implements OnInit {
     this.windowManagerService.minimizeWindow(this.windowData.application);
   }
 
-  maximizeWindow() {
-    this.saveLast();
+  maximizeWindow(saveLast = true) {
+    if (saveLast) this.saveLast();
     interact(this.windowEl).resizable({ enabled: false });
 
     this.windowEl.style.transform = `translate(0px, 0px)`;
@@ -222,5 +225,7 @@ export class WindowComponent implements OnInit {
     this.windowEl.style.transform = `translate(${this.lastPosition.x}px, ${this.lastPosition.y}px)`;
     this.windowEl.style.width = `${this.lastSize.width}px`;
     this.windowEl.style.height = `${this.lastSize.height}px`;
+    this.windowEl.setAttribute('data-x', this.lastPosition.x.toString());
+    this.windowEl.setAttribute('data-y', this.lastPosition.y.toString());
   }
 }
