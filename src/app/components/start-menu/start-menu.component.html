@@ -7,16 +7,12 @@
 </div>
 <div class="applications">
   <span>Applications</span>
-  @for(application of applications; track application){
+  @for(application of applications; track $index){
   <div
     class="application"
-    (click)="
-      windowManagerService.isOpened(application.application)
-        ? toggleWindow(application.application)
-        : newWindow(application.application, application.icon)
-    "
+    (click)="newWindow(application.application, application.icon)"
   >
-    <i class="bi {{ application.icon }}"> </i>
+    <i class="bi {{ application.icon }}"></i>
     <p>{{ application.application }}</p>
   </div>
   }

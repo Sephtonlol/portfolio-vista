@@ -5,9 +5,8 @@ import { WindowManagerService } from '../../services/window-manager.service';
 
 @Component({
   selector: 'app-start-menu',
-  imports: [],
   templateUrl: './start-menu.component.html',
-  styleUrl: './start-menu.component.css',
+  styleUrls: ['./start-menu.component.css'],
 })
 export class StartMenuComponent {
   applications: Window[] = applications as Window[];
@@ -23,12 +22,6 @@ export class StartMenuComponent {
       opened: true,
       minimized: false,
     });
-    this.closeStartMenu.emit();
-  }
-  toggleWindow(application: string) {
-    if (this.windowManagerService.isMinized(application))
-      this.windowManagerService.focusWindow(application);
-    else this.windowManagerService.minimizeWindow(application);
     this.closeStartMenu.emit();
   }
 }

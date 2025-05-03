@@ -13,6 +13,9 @@
   border-top: 2px solid var(--hover-color);
   justify-content: space-between;
 }
+.applications {
+  display: flex;
+}
 .date-time-container {
   display: flex;
   flex-direction: column;
@@ -55,4 +58,49 @@ i {
   background-color: white;
   z-index: -1;
   border-radius: 6px;
+}
+.application-outer {
+  position: relative;
+}
+.taskbar-popup {
+  position: absolute;
+  bottom: 3.5rem;
+  width: max-content;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  transform: translateY(0.5rem);
+  transition: all 0.2s ease;
+  background-color: var(--background-color);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  i {
+    font-size: 0.9rem;
+    padding: 0;
+  }
+  i:hover {
+    background-color: #00000000;
+  }
+}
+.taskbar-popup-item {
+  padding: 0 0.25rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.taskbar-popup-item:hover {
+  transition: all 0s;
+  background-color: var(--hover-color);
+  cursor: pointer;
+}
+.show-taskbar-popup {
+  opacity: 1;
+  pointer-events: all;
+  visibility: visible;
+  transform: translateY(-0.5rem);
 }

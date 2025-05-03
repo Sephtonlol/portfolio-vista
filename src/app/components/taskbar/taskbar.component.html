@@ -2,25 +2,49 @@
   [class.show-start-menu]="showStartMenu"
   class="start-menu"
   (closeStartMenu)="toggleStartMenu()"
-/>
+></app-start-menu>
 
 <div class="taskbar-inner">
   <div class="applications">
     <i class="bi bi-ubuntu start-button" (click)="toggleStartMenu()"></i>
-    @for(application of applications; track application){
-    <i
-      class="bi {{ application.icon }}"
-      [class.opened-application]="
-        windowManagerService.isOpened(application.application)
-      "
-      (click)="
-        windowManagerService.isOpened(application.application)
-          ? toggleWindow(application.application)
-          : newWindow(application.application, application.icon)
-      "
-    ></i>
+
+    @for (entry of groupedApps; track entry[0]) {
+    <div class="application-outer">
+      <i
+        class="bi {{ entry[1][0].icon }}"
+        [class.opened-application]="isAnyInstanceOpen(entry[1])"
+        (click)="
+          $event.stopPropagation();
+          entry[1].length > 1
+            ? toggleContextMenu(entry[0], $event)
+            : toggleWindow(entry[1][0].id!)
+        "
+        (contextmenu)="
+          $event.preventDefault(); toggleContextMenu(entry[0], $event)
+        "
+      ></i>
+
+      <div
+        class="taskbar-popup"
+        [class.show-taskbar-popup]="contextMenuApp === entry[0]"
+      >
+        @for (win of entry[1]; track win.id) {
+        <div class="taskbar-popup-item" (click)="toggleWindow(win.id || '')">
+          <i class="bi {{ win.icon }}"></i>
+          <span>{{ win.application }} #{{ win.index + 1 }}</span>
+        </div>
+        }
+        <div
+          class="taskbar-popup-item"
+          (click)="newWindow(entry[1][0].application, entry[1][0].icon)"
+        >
+          <span>New window</span>
+        </div>
+      </div>
+    </div>
     }
   </div>
+
   <div class="taskbar-right">
     <div class="date-time-container">
       <span>{{ time }}</span>

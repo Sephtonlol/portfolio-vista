@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FileNode } from '../../../interfaces/file.interface';
 import portfolio from '../../../../data/portfolioData.json';
 import { FormsModule } from '@angular/forms';
@@ -12,6 +12,8 @@ import { WindowManagerService } from '../../../services/window-manager.service';
 })
 export class TerminalComponent {
   @Output() requestScrollToBottom = new EventEmitter<void>();
+  @Input() id!: string | undefined;
+
   filesystem: FileNode = portfolio as FileNode;
 
   currentPath: string[] = [];
@@ -79,7 +81,7 @@ export class TerminalComponent {
         this.output = [];
         break;
       case 'exit':
-        this.windowManagerService.closeWindow('Terminal');
+        this.windowManagerService.closeWindow(this.id || '');
 
         break;
       default:
@@ -139,6 +141,15 @@ export class TerminalComponent {
 
     switch (file.type) {
       case 'md':
+        this.windowManagerService.addWindow({
+          application: 'Notepad',
+          icon: 'bi-file-earmark-text',
+          data: {
+            title: file.name,
+            content: file.content || 'No content available.',
+            type: 'text',
+          },
+        });
         this.output.push(`Text editor opened: ${file.name}`);
         break;
       case 'png':

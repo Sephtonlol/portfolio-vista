@@ -1,4 +1,10 @@
-import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  Input,
+  ViewChild,
+} from '@angular/core';
 import interact from 'interactjs';
 import { Window } from '../interfaces/window.interface';
 import { WindowManagerService } from '../services/window-manager.service';
@@ -10,6 +16,7 @@ import { NotepadComponent } from '../components/windows/notepad/notepad.componen
 
 @Component({
   selector: 'app-window',
+  standalone: true,
   imports: [
     TerminalComponent,
     ExplorerComponent,
@@ -19,9 +26,10 @@ import { NotepadComponent } from '../components/windows/notepad/notepad.componen
   templateUrl: './window.component.html',
   styleUrl: './window.component.css',
 })
-export class WindowComponent implements OnInit {
+export class WindowComponent implements AfterViewInit {
   @ViewChild('windowContent') container!: ElementRef;
   @Input() windowData!: Window;
+  @Input() id!: string | undefined;
 
   maximizing = false;
   isMaximized = false;
@@ -43,8 +51,8 @@ export class WindowComponent implements OnInit {
     private windowManagerService: WindowManagerService
   ) {}
 
-  ngOnInit() {
-    this.windowEl = this.el.nativeElement.querySelector('.window');
+  ngAfterViewInit() {
+    this.windowEl = this.el.nativeElement.querySelector(`.window-${this.id}`);
     const size =
       this.windowData.application === 'Calculator'
         ? (this.minimumSize = this.lastSize = { width: 375, height: 400 })
@@ -55,39 +63,44 @@ export class WindowComponent implements OnInit {
       this.windowEl.style.height = `${size.height}px`;
     }, 0);
 
-    this.focusSub = this.windowManagerService.focus$.subscribe((focusedApp) => {
-      if (focusedApp?.application === this.windowData.application) {
+    this.focusSub = this.windowManagerService.focus$.subscribe((focused) => {
+      if (focused?.id === this.id) {
         WindowComponent.currentZIndex++;
         this.windowEl.style.zIndex = WindowComponent.currentZIndex.toString();
-        if (focusedApp.unminimize) {
+
+        if (focused && focused.unminimize) {
           if (this.isMaximized) {
             this.windowEl.style.transform = `translate(0px, 0px) scale(1, 1)`;
             this.windowEl.style.width = '100vw';
             this.windowEl.style.height = 'calc(100vh - 3.5rem)';
-          } else this.applyLast();
-          this.windowData.minimized = false;
+          } else {
+            this.applyLast();
+          }
+          setTimeout(() => {
+            this.windowData.minimized = false;
+          });
         }
       }
     });
 
     this.minimizeSub = this.windowManagerService.minimize$.subscribe(
-      (minimizeApp) => {
-        if (minimizeApp === this.windowData.application) {
+      (minimizedIndex) => {
+        if (minimizedIndex === this.id) {
           if (!this.isMaximized) this.saveLast();
           this.windowEl.style.transform = `translate(50vw, 100vh) scale(0, 0)`;
           this.windowData.minimized = true;
         }
       }
     );
+
     this.windowEl.addEventListener('mousedown', (event: MouseEvent) => {
       const header = this.windowEl.querySelector('.window-header');
       const controls = this.windowEl.querySelector('.window-controls');
-
       const isHeader = header?.contains(event.target as Node) ?? false;
       const isControlButton = controls?.contains(event.target as Node) ?? false;
 
       this.windowManagerService.focusWindow(
-        this.windowData.application,
+        this.id || '',
         false,
         isHeader && !isControlButton
       );
@@ -109,7 +122,6 @@ export class WindowComponent implements OnInit {
               const y = event.client.y - 15;
 
               target.style.transform = `translate(${x}px, ${y}px)`;
-
               target.setAttribute('data-x', x.toString());
               target.setAttribute('data-y', y.toString());
               this.windowEl.style.width = `${this.lastSize.width}px`;
@@ -131,7 +143,6 @@ export class WindowComponent implements OnInit {
           },
           end: (event) => {
             dragStarted = false;
-
             setTimeout(() => {
               this.shouldAnimate = true;
               if (!this.isMaximized && event.client.y < 25) {
@@ -154,7 +165,6 @@ export class WindowComponent implements OnInit {
         listeners: {
           move: (event) => {
             this.shouldAnimate = false;
-
             const target = event.target;
             let x = parseFloat(target.getAttribute('data-x')!) || 100;
             let y = parseFloat(target.getAttribute('data-y')!) || 50;
@@ -169,7 +179,7 @@ export class WindowComponent implements OnInit {
             target.setAttribute('data-x', x.toString());
             target.setAttribute('data-y', y.toString());
           },
-          end: (event) => {
+          end: () => {
             setTimeout(() => {
               this.shouldAnimate = true;
             }, 0);
@@ -177,21 +187,19 @@ export class WindowComponent implements OnInit {
         },
       });
 
-    this.windowManagerService.focusWindow(this.windowData.application, true);
+    this.windowManagerService.focusWindow(this.id || '', true);
   }
 
   minimizeWindow() {
-    this.windowManagerService.minimizeWindow(this.windowData.application);
+    this.windowManagerService.minimizeWindow(this.id || '');
   }
 
   maximizeWindow(saveLast = true) {
     if (saveLast) this.saveLast();
     interact(this.windowEl).resizable({ enabled: false });
-
     this.windowEl.style.transform = `translate(0px, 0px)`;
     this.windowEl.style.width = '100vw';
     this.windowEl.style.height = 'calc(100vh - 3.5rem)';
-
     this.isMaximized = true;
   }
 
@@ -199,17 +207,18 @@ export class WindowComponent implements OnInit {
     this.applyLast();
     interact(this.windowEl).draggable(true);
     interact(this.windowEl).resizable({ enabled: true });
-
     this.isMaximized = false;
   }
 
   closeWindow() {
-    this.windowManagerService.closeWindow(this.windowData.application);
+    this.windowManagerService.closeWindow(this.id || '');
   }
+
   scrollToBottom(): void {
     const scrollContainer = this.container.nativeElement;
     scrollContainer.scrollTop = scrollContainer.scrollHeight;
   }
+
   saveLast() {
     this.lastPosition = {
       x: parseFloat(this.windowEl.getAttribute('data-x')!) || 100,
@@ -220,6 +229,7 @@ export class WindowComponent implements OnInit {
       height: this.windowEl.offsetHeight,
     };
   }
+
   applyLast() {
     if (this.lastPosition.y < 0) this.lastPosition.y = 0;
     this.windowEl.style.transform = `translate(${this.lastPosition.x}px, ${this.lastPosition.y}px)`;

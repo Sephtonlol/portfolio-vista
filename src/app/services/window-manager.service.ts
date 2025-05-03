@@ -10,7 +10,7 @@ export class WindowManagerService {
   windows$ = this.windowsSource.asObservable();
 
   private focusSource = new BehaviorSubject<{
-    application: string;
+    id: string;
     unminimize: boolean | null;
     drag: boolean | null;
   } | null>(null);
@@ -20,32 +20,35 @@ export class WindowManagerService {
   minimize$ = this.minimizeSource.asObservable();
 
   addWindow(window: Window) {
+    const uniqueId = `window-${Date.now()}`;
+    const windowWithId = { ...window, id: uniqueId };
+
     const currentItems = this.windowsSource.value;
-    this.windowsSource.next([...currentItems, window]);
+    this.windowsSource.next([...currentItems, windowWithId]);
   }
 
-  focusWindow(application: string, unminimize = false, drag = false) {
-    this.focusSource.next({ application, unminimize, drag });
+  focusWindow(windowId: string, unminimize = false, drag = false) {
+    this.focusSource.next({ id: windowId, unminimize, drag });
   }
 
-  isOpened(appName: string): boolean {
-    return this.windowsSource.value.some(
-      (w) => w.application === appName && w.opened
-    );
+  isOpened(windowId: string): boolean {
+    const window = this.windowsSource.value.find((win) => win.id === windowId);
+    return window ? !!window.opened : false;
   }
 
-  isMinized(appName: string): boolean {
-    return this.windowsSource.value.some(
-      (w) => w.application === appName && w.minimized
-    );
+  isMinimized(windowId: string): boolean {
+    const window = this.windowsSource.value.find((win) => win.id === windowId);
+    return window ? !!window.minimized : false;
   }
-  closeWindow(appName: string) {
-    const currentItems = this.windowsSource.value.filter(
-      (w) => w.application !== appName
+
+  closeWindow(windowId: string) {
+    const updated = this.windowsSource.value.filter(
+      (window) => window.id !== windowId
     );
-    this.windowsSource.next(currentItems);
+    this.windowsSource.next(updated);
   }
-  minimizeWindow(appName: string) {
-    this.minimizeSource.next(appName);
+
+  minimizeWindow(windowId: string) {
+    this.minimizeSource.next(windowId);
   }
 }
