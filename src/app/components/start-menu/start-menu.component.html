@@ -7,13 +7,15 @@
 </div>
 <div class="applications">
   <span>Applications</span>
-  @for(application of applications; track $index){
-  <div
-    class="application"
-    (click)="newWindow(application.application, application.icon)"
-  >
-    <i class="bi {{ application.icon }}"></i>
-    <p>{{ application.application }}</p>
+  <div class="applications-inner">
+    @for(application of applications; track $index){
+    <div
+      class="application"
+      (click)="newWindow(application.application, application.icon)"
+    >
+      <i class="bi {{ application.icon }}"></i>
+      <p>{{ application.application }}</p>
+    </div>
+    }
   </div>
-  }
 </div>

@@ -1,8 +1,9 @@
 :host {
   background-color: var(--secondary-color);
-  height: 300px;
+  height: 400px;
   display: flex;
   flex-wrap: nowrap;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 .system {
   display: flex;
@@ -27,9 +28,13 @@ span {
 }
 
 .applications {
-  padding: 0.5rem;
+  padding: 0.5rem 0;
   display: flex;
   flex-direction: column;
+  height: 100%;
+}
+.applications-inner {
+  padding: 0.5rem;
   gap: 0.2rem;
   overflow-y: auto;
 }
