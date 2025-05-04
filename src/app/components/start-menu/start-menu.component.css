@@ -25,6 +25,7 @@ span {
   font-size: 0.8rem;
   opacity: 0.9;
   user-select: none;
+  padding: 0 0 0 0.5rem;
 }
 
 .applications {
