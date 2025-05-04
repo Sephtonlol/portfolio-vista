@@ -104,3 +104,6 @@ i {
   visibility: visible;
   transform: translateY(-0.5rem);
 }
+* {
+  transition: all 0.2s ease;
+}

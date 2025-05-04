@@ -8,43 +8,48 @@
   <div class="applications">
     <i class="bi bi-ubuntu start-button" (click)="toggleStartMenu()"></i>
 
-    @for (entry of groupedApps; track entry[0]) {
+    @for (appName of allApps(); track appName) {
     <div class="application-outer">
       <i
-        class="bi {{ entry[1][0].icon }}"
-        [class.opened-application]="isAnyInstanceOpen(entry[1])"
+        class="bi {{ getIcon(appName) }}"
+        [class.opened-application]="isAnyInstanceOpen(getWindowsByApp(appName))"
         (click)="
           $event.stopPropagation();
-          entry[1].length > 1
-            ? toggleContextMenu(entry[0], $event)
-            : toggleWindow(entry[1][0].id!)
+          getWindowsByApp(appName).length === 0
+            ? newWindow(appName, getIcon(appName))
+            : getWindowsByApp(appName).length > 1
+            ? toggleContextMenu(appName, $event)
+            : toggleWindow(getWindowsByApp(appName)[0].id || '')
         "
         (contextmenu)="
-          $event.preventDefault(); toggleContextMenu(entry[0], $event)
+          $event.preventDefault(); toggleContextMenu(appName, $event)
         "
       ></i>
 
       <div
         class="taskbar-popup"
-        [class.show-taskbar-popup]="contextMenuApp === entry[0]"
+        [class.show-taskbar-popup]="contextMenuApp === appName"
       >
-        @for (win of entry[1]; track win.id) {
+        @for (win of getWindowsByApp(appName); track win.id) {
         <div class="taskbar-popup-item" (click)="toggleWindow(win.id || '')">
           <i class="bi {{ win.icon }}"></i>
           <span>{{ win.application }} #{{ win.index + 1 }}</span>
         </div>
         }
+
         <div
           class="taskbar-popup-item"
-          (click)="newWindow(entry[1][0].application, entry[1][0].icon)"
+          (click)="newWindow(appName, getIcon(appName))"
         >
           <span>New window</span>
+        </div>
+        <div class="taskbar-popup-item" (click)="togglePinApp(appName)">
+          <span>{{ isPinned(appName) ? "Unpin" : "Pin" }}</span>
         </div>
       </div>
     </div>
     }
   </div>
-
   <div class="taskbar-right">
     <div class="date-time-container">
       <span>{{ time }}</span>

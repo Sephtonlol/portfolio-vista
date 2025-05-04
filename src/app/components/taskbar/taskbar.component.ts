@@ -23,6 +23,7 @@ export class TaskbarComponent implements OnInit {
   windows: Window[] = [];
   groupedApps: [string, IndexedWindow[]][] = [];
   applications: Window[] = applications as Window[];
+  pinnedApps: string[] = ['Explorer', 'Terminal', 'Notepad', 'Calculator'];
 
   contextMenuApp: string | null = null;
   contextMenuElement: HTMLElement | null = null;
@@ -117,5 +118,35 @@ export class TaskbarComponent implements OnInit {
     this.contextMenuApp =
       this.contextMenuApp === application ? null : application;
     this.contextMenuElement = event.target as HTMLElement;
+  }
+
+  isPinned(appName: string): boolean {
+    return this.pinnedApps.includes(appName);
+  }
+
+  togglePinApp(appName: string) {
+    this.contextMenuApp = null;
+    if (!this.isPinned(appName)) {
+      this.pinnedApps.push(appName);
+      return;
+    }
+    this.pinnedApps = this.pinnedApps.filter((name) => name !== appName);
+  }
+
+  allApps() {
+    const active = this.groupedApps.map((e) => e[0]);
+    const pinnedFirst = this.pinnedApps.concat(
+      active.filter((app) => !this.pinnedApps.includes(app))
+    );
+    return pinnedFirst;
+  }
+
+  getWindowsByApp(appName: string) {
+    return this.groupedApps.find(([name]) => name === appName)?.[1] || [];
+  }
+
+  getIcon(appName: string): string {
+    const app = this.applications.find((a) => a.application === appName);
+    return app?.icon || 'bi-question-circle';
   }
 }
