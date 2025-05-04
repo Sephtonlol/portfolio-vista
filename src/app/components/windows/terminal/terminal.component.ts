@@ -14,7 +14,7 @@ export class TerminalComponent {
   @Output() requestScrollToBottom = new EventEmitter<void>();
   @Input() id!: string | undefined;
 
-  filesystem: FileNode = portfolio as FileNode;
+  fileSystem: FileNode = portfolio as FileNode;
 
   currentPath: string[] = [];
   output: string[] = [];
@@ -26,7 +26,7 @@ export class TerminalComponent {
   constructor(private windowManagerService: WindowManagerService) {}
 
   get currentDir(): FileNode {
-    let dir = this.filesystem;
+    let dir = this.fileSystem;
     for (const part of this.currentPath) {
       const next = dir.children?.find(
         (child) => child.name === part && child.type === 'directory'
@@ -101,28 +101,54 @@ export class TerminalComponent {
       ) || [];
     this.output.push(items.length ? items.join(' | ') : '(empty)');
   }
-  changeDirectory(folder: string) {
-    if (!folder) {
+  changeDirectory(path: string) {
+    if (!path) {
       this.output.push('cd: missing folder name');
       return;
     }
 
-    if (folder === '..') {
-      if (this.currentPath.length > 0) {
-        this.currentPath.pop();
+    const parts = path.split('/');
+
+    let tempPath = [...this.currentPath];
+    let current = this.fileSystem;
+
+    for (const part of parts) {
+      if (part === '..') {
+        if (tempPath.length > 0) {
+          tempPath.pop();
+          current = this.fileSystem;
+          for (const segment of tempPath) {
+            const next = current.children?.find(
+              (child) => child.name === segment && child.type === 'directory'
+            );
+            if (!next) {
+              this.output.push(`Broken path: ${segment}`);
+              return;
+            }
+            current = next;
+          }
+        } else {
+          this.output.push('Already at root.');
+          return;
+        }
+      } else if (part === '.' || part === '') {
+        continue;
       } else {
-        this.output.push('Already at root.');
-      }
-    } else {
-      const found = this.currentDir.children?.find(
-        (child) => child.name === folder && child.type === 'directory'
-      );
-      if (found) {
-        this.currentPath.push(folder);
-      } else {
-        this.output.push(`No such directory: ${folder}`);
+        const found = current.children?.find(
+          (child) => child.name === part && child.type === 'directory'
+        );
+        if (found) {
+          tempPath.push(part);
+          current = found;
+        } else {
+          this.output.push(`No such directory: ${part}`);
+          return;
+        }
       }
     }
+
+    // Only update if full path succeeded
+    this.currentPath = tempPath;
   }
 
   openFile(fileName: string) {
