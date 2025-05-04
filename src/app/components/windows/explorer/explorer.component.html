@@ -1,1 +1,37 @@
-<p>explorer works!</p>
+<div class="explorer-header d-flex align-items-center gap-2 mb-2">
+  <i class="bi bi-arrow-up-short fs-5" (click)="goUp()"></i>
+  <input
+    spellcheck="false"
+    [(ngModel)]="pathInput"
+    (keydown.enter)="goToTypedPath()"
+    (blur)="resetPathInput()"
+    placeholder="/"
+  />
+</div>
+
+<div class="sub-header">
+  <input type="text" [(ngModel)]="searchTerm" placeholder="Search..." />
+  <i class="bi bi-justify" (click)="viewList = !viewList"></i>
+</div>
+
+<div class="explorer-list" [class.explorer-list-tiles]="!viewList">
+  @for (item of filteredChildren; track item) {
+  <div
+    class="explorer-item"
+    [class.explorer-item-tiles]="!viewList"
+    (click)="openItem(item)"
+  >
+    <i
+      class="bi"
+      [class.bi-folder]="item.type === 'directory'"
+      [class.bi-file-earmark-text]="item.type === 'md'"
+      [class.bi-film]="item.type === 'mp4'"
+      [class.bi-music-note]="item.type === 'mp3'"
+      [class.bi-image]="item.type === 'png'"
+    ></i>
+    <span>
+      {{ item.type === "directory" ? item.name : item.name + "." + item.type }}
+    </span>
+  </div>
+  }
+</div>

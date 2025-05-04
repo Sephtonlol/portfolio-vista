@@ -34,7 +34,7 @@ export class WindowComponent implements AfterViewInit {
   maximizing = false;
   isMaximized = false;
   minimumSize = { width: 300, height: 175 };
-  initialSize = { width: 450, height: 250 };
+  initialSize = { width: 450, height: 300 };
   lastPosition = { x: 100, y: 50 };
   lastSize = this.initialSize;
   shouldAnimate = true;

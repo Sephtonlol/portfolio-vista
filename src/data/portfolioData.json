@@ -9,22 +9,20 @@
         {
           "name": "passion",
           "type": "md",
-          "content": "This is a readme file for the projects directory. It contains information about the projects contained within this directory."
+          "content": "I love exploring new ideas and building stuff."
         },
+        { "name": "profilePic", "type": "png", "content": "image data" },
+        { "name": "introVideo", "type": "mp4", "content": "video data" },
+        { "name": "voiceClip", "type": "mp3", "content": "audio data" },
         {
           "name": "skills",
           "type": "md",
-          "content": "This is a readme file for the projects directory. It contains information about the projects contained within this directory."
+          "content": "Coding, design, problem-solving."
         },
         {
-          "name": "education",
+          "name": "timeline",
           "type": "md",
-          "content": "This is a readme file for the projects directory. It contains information about the projects contained within this directory."
-        },
-        {
-          "name": "experience",
-          "type": "md",
-          "content": "This is a readme file for the projects directory. It contains information about the projects contained within this directory."
+          "content": "My career path and major milestones."
         }
       ]
     },
@@ -33,9 +31,155 @@
       "type": "directory",
       "children": [
         {
-          "name": "readMe",
+          "name": "readme",
           "type": "md",
-          "content": "This is a readme file for the projects directory. It contains information about the projects contained within this directory."
+          "content": "This folder contains all my projects."
+        },
+        {
+          "name": "webApp",
+          "type": "directory",
+          "children": [
+            {
+              "name": "media",
+              "type": "directory",
+              "children": [
+                { "name": "logo", "type": "png", "content": "logo image" },
+                {
+                  "name": "walkthrough",
+                  "type": "mp4",
+                  "content": "app walkthrough"
+                }
+              ]
+            },
+            {
+              "name": "docs",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "overview",
+                  "type": "md",
+                  "content": "Project overview"
+                },
+                { "name": "features", "type": "md", "content": "Feature list" }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "musicPlayer",
+          "type": "directory",
+          "children": [
+            {
+              "name": "tracks",
+              "type": "directory",
+              "children": [
+                { "name": "track1", "type": "mp3", "content": "audio 1" },
+                { "name": "track2", "type": "mp3", "content": "audio 2" }
+              ]
+            },
+            {
+              "name": "notes",
+              "type": "directory",
+              "children": [
+                { "name": "design", "type": "md", "content": "UI plans" },
+                { "name": "bugs", "type": "md", "content": "known issues" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "media",
+      "type": "directory",
+      "children": [
+        {
+          "name": "photos",
+          "type": "directory",
+          "children": [
+            { "name": "cat", "type": "png", "content": "a cat" },
+            { "name": "dog", "type": "png", "content": "a dog" },
+            {
+              "name": "old",
+              "type": "directory",
+              "children": [
+                { "name": "childhood", "type": "png", "content": "old photo" },
+                { "name": "vacation", "type": "png", "content": "beach photo" }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "videos",
+          "type": "directory",
+          "children": [
+            { "name": "vlog1", "type": "mp4", "content": "vlog content" },
+            { "name": "vlog2", "type": "mp4", "content": "another vlog" }
+          ]
+        },
+        {
+          "name": "audio",
+          "type": "directory",
+          "children": [
+            { "name": "greeting", "type": "mp3", "content": "hello audio" },
+            { "name": "recording", "type": "mp3", "content": "random thoughts" }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "deepStuff",
+      "type": "directory",
+      "children": [
+        {
+          "name": "layer1",
+          "type": "directory",
+          "children": [
+            {
+              "name": "layer2",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "layer3",
+                  "type": "directory",
+                  "children": [
+                    {
+                      "name": "layer4",
+                      "type": "directory",
+                      "children": [
+                        {
+                          "name": "fileA",
+                          "type": "md",
+                          "content": "deep thoughts"
+                        },
+                        {
+                          "name": "sound",
+                          "type": "mp3",
+                          "content": "deep noise"
+                        },
+                        {
+                          "name": "media",
+                          "type": "directory",
+                          "children": [
+                            {
+                              "name": "clip",
+                              "type": "mp4",
+                              "content": "short video"
+                            },
+                            {
+                              "name": "snapshot",
+                              "type": "png",
+                              "content": "still image"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
         }
       ]
     }

@@ -6,5 +6,5 @@
   { "application": "Notepad", "icon": "bi-file-earmark-text" },
   { "application": "Photos", "icon": "bi-image" },
   { "application": "Music", "icon": "bi-music-note" },
-  { "application": "Video Player", "icon": "bi-film" }
+  { "application": "Video player", "icon": "bi-film" }
 ]
