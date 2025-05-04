@@ -62,6 +62,8 @@ export class TaskbarComponent implements OnInit {
 
   newWindow(application: string, icon: string) {
     this.contextMenuApp = null;
+    this.showStartMenu = false;
+
     this.windowManagerService.addWindow({
       application,
       icon,
@@ -73,6 +75,8 @@ export class TaskbarComponent implements OnInit {
 
   toggleWindow(windowId: string) {
     this.contextMenuApp = null;
+    this.showStartMenu = false;
+
     const win = this.windows.find((w) => w.id === windowId);
     if (win) {
       if (win.minimized) {
@@ -111,6 +115,12 @@ export class TaskbarComponent implements OnInit {
     ) {
       this.contextMenuApp = null;
     }
+    const clickedInsideStartMenu = target.closest('.start-menu');
+    const clickedStartButton = target.closest('.start-button');
+
+    if (!clickedInsideStartMenu && !clickedStartButton && this.showStartMenu) {
+      this.showStartMenu = false;
+    }
   }
 
   toggleContextMenu(application: string, event: MouseEvent) {
@@ -126,6 +136,8 @@ export class TaskbarComponent implements OnInit {
 
   togglePinApp(appName: string) {
     this.contextMenuApp = null;
+    this.showStartMenu = false;
+
     if (!this.isPinned(appName)) {
       this.pinnedApps.push(appName);
       return;
