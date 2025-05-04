@@ -48,19 +48,40 @@ i {
 .no-transition {
   transition: none !important;
 }
-.maximizing {
+.maximizing,
+.left-snap,
+.right-snap {
   position: absolute;
   transition: all 0.2s ease;
   width: 0;
   height: 0;
   border-radius: 6px;
-  transform: translate(50vw, 0);
   background-color: var(--hover-color);
+}
+.maximizing {
+  transform: translate(50vw, 0);
+}
+.left-snap {
+  transform: translate(0, 50vh);
+}
+.right-snap {
+  transform: translate(100vw, 50vh);
 }
 .show-maximizing {
   transform: translate(0, 0);
   width: 100vw;
   height: calc(100vh - 3.5rem);
+}
+.show-left-snap,
+.show-right-snap {
+  width: 50vw;
+  height: calc(100vh - 3.5rem);
+}
+.show-left-snap {
+  transform: translate(0, 0);
+}
+.show-right-snap {
+  transform: translate(50vw, 0);
 }
 @keyframes scaleIn {
   from {
