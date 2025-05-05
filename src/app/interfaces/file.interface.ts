@@ -3,4 +3,5 @@ export interface FileNode {
   type: 'directory' | 'md' | 'mp4' | 'mp3' | 'png';
   content?: string;
   children?: FileNode[];
+  path?: string;
 }

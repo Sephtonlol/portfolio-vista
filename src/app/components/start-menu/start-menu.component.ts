@@ -2,6 +2,7 @@ import {
   Component,
   EventEmitter,
   Input,
+  OnInit,
   Output,
   SimpleChanges,
 } from '@angular/core';
@@ -16,7 +17,7 @@ import { FileNode } from '../../interfaces/file.interface';
   templateUrl: './start-menu.component.html',
   styleUrls: ['./start-menu.component.css'],
 })
-export class StartMenuComponent {
+export class StartMenuComponent implements OnInit {
   @Input() searchQuery: string = '';
   applications: Window[] = applications as Window[];
   fileTree: FileNode = portfolio as FileNode;
@@ -27,6 +28,20 @@ export class StartMenuComponent {
   @Output() closeStartMenu = new EventEmitter<null>();
 
   constructor(public windowManagerService: WindowManagerService) {}
+
+  ngOnInit(): void {
+    this.addPaths(this.fileTree, '');
+  }
+
+  addPaths(node: FileNode, currentPath: string): void {
+    node.path = currentPath ? `${currentPath}/${node.name}` : node.name;
+
+    if (node.children) {
+      for (const child of node.children) {
+        this.addPaths(child, node.path);
+      }
+    }
+  }
 
   newWindow(application: string, icon: string) {
     this.windowManagerService.addWindow({
@@ -83,13 +98,25 @@ export class StartMenuComponent {
     this.closeStartMenu.emit();
 
     switch (item.type) {
+      case 'directory':
+        this.windowManagerService.addWindow({
+          application: 'Explorer',
+          icon: 'bi-folder',
+          data: {
+            title: item.name,
+            content: item.path || '',
+            type: 'directory',
+          },
+        });
+        console.log(item.path);
+        break;
       case 'md':
         this.windowManagerService.addWindow({
           application: 'Notepad',
           icon: 'bi-file-earmark-text',
           data: {
             title: item.name,
-            content: item.content || 'No content available.',
+            content: item.content || '',
             type: 'text',
           },
         });
@@ -100,7 +127,7 @@ export class StartMenuComponent {
           icon: 'bi-image',
           data: {
             title: item.name,
-            content: item.content || 'No content available.',
+            content: item.content || '',
             type: 'image',
           },
         });
@@ -111,7 +138,7 @@ export class StartMenuComponent {
           icon: 'bi-music-note',
           data: {
             title: item.name,
-            content: item.content || 'No content available.',
+            content: item.content || '',
             type: 'audio',
           },
         });
@@ -122,7 +149,7 @@ export class StartMenuComponent {
           icon: 'bi-film',
           data: {
             title: item.name,
-            content: item.content || 'No content available.',
+            content: item.content || '',
             type: 'video',
           },
         });

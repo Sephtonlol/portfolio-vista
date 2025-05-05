@@ -10,5 +10,5 @@ export interface Window {
 export interface Data {
   title: string;
   content: string;
-  type: 'text' | 'image' | 'audio' | 'video';
+  type: 'directory' | 'text' | 'image' | 'audio' | 'video';
 }

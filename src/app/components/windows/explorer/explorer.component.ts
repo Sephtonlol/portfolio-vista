@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import portfolio from '../../../../data/portfolioData.json';
 import { FileNode } from '../../../interfaces/file.interface';
 import { FormsModule } from '@angular/forms';
 import { WindowManagerService } from '../../../services/window-manager.service';
+import { Data } from '@angular/router';
 
 @Component({
   selector: 'app-explorer',
@@ -11,6 +12,8 @@ import { WindowManagerService } from '../../../services/window-manager.service';
   styleUrl: './explorer.component.css',
 })
 export class ExplorerComponent implements OnInit {
+  @Input() data!: Data | undefined;
+
   filesystem: FileNode = portfolio as FileNode;
   currentPath: string[] = [];
   searchTerm: string = '';
@@ -21,7 +24,9 @@ export class ExplorerComponent implements OnInit {
   constructor(private windowManagerService: WindowManagerService) {}
 
   ngOnInit(): void {
-    this.pathInput = '/' + this.currentPath.join('/');
+    this.pathInput =
+      '/' + (this.data ? this.data['content'] : this.currentPath.join('/'));
+    this.goToTypedPath();
   }
 
   get currentDir(): FileNode {
