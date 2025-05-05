@@ -73,3 +73,15 @@ span {
   background-color: var(--hover-color);
   cursor: pointer;
 }
+.application-inner {
+  display: flex;
+  flex-direction: column;
+  span,
+  p {
+    padding: 0;
+    margin: 0 0.2rem;
+  }
+  span {
+    font-size: 0.7rem;
+  }
+}

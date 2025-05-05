@@ -33,9 +33,17 @@
     <div class="application" (click)="openFile(file)">
       <i class="bi {{ getFileIcon(file) }}"></i>
       @if(file.type !== "directory"){
-      <p>{{ file.name }}.{{ file.type }}</p>
+      <div class="application-inner">
+        <p>{{ file.name }}.{{ file.type }}</p>
+        <span> {{ file.path }}/{{ file.name }} </span>
+      </div>
       }@else {
-      <p>{{ file.name }}</p>
+      <div class="application-inner">
+        <p>{{ file.name }}</p>
+        <span>
+          {{ file.path }}
+        </span>
+      </div>
       }
     </div>
     }
