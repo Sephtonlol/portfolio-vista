@@ -68,7 +68,7 @@ export class ExplorerComponent implements OnInit {
           icon: 'bi-file-earmark-text',
           data: {
             title: item.name,
-            content: item.content || 'No content available.',
+            content: item.content || '',
             type: 'text',
           },
         });
@@ -79,10 +79,11 @@ export class ExplorerComponent implements OnInit {
           icon: 'bi-image',
           data: {
             title: item.name,
-            content: item.content || 'No content available.',
+            content: this.pathInput + '/' + item.name || '',
             type: 'image',
           },
         });
+        console.log(this.pathInput);
         break;
       case 'mp3':
         this.windowManagerService.addWindow({
@@ -90,7 +91,7 @@ export class ExplorerComponent implements OnInit {
           icon: 'bi-music-note',
           data: {
             title: item.name,
-            content: item.content || 'No content available.',
+            content: this.pathInput + '/' + item.name || '',
             type: 'audio',
           },
         });
@@ -101,7 +102,7 @@ export class ExplorerComponent implements OnInit {
           icon: 'bi-film',
           data: {
             title: item.name,
-            content: item.content || 'No content available.',
+            content: this.pathInput + '/' + item.name || '',
             type: 'video',
           },
         });

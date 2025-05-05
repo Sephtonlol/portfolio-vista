@@ -101,53 +101,75 @@ export class TerminalComponent {
       ) || [];
     this.output.push(items.length ? items.join(' | ') : '(empty)');
   }
+
   changeDirectory(path: string) {
     if (!path) {
       this.output.push('cd: missing folder name');
       return;
     }
 
-    const parts = path.split('/');
+    let tempPath: string[] = [];
 
-    let tempPath = [...this.currentPath];
-    let current = this.fileSystem;
+    if (
+      path.startsWith('./') ||
+      path.startsWith('../') ||
+      path.startsWith('.')
+    ) {
+      tempPath = [...this.currentPath];
+    } else if (path.startsWith('/')) {
+      path = path.slice(1);
+      tempPath = [];
+    } else {
+      tempPath = [];
+    }
+
+    const parts = path.split('/').filter(Boolean);
+    let dir: FileNode = this.fileSystem;
+
+    for (const segment of tempPath) {
+      const next = dir.children?.find(
+        (child) => child.name === segment && child.type === 'directory'
+      );
+      if (!next) {
+        this.output.push(`Broken path at: ${segment}`);
+        return;
+      }
+      dir = next;
+    }
 
     for (const part of parts) {
+      if (part === '.') continue;
       if (part === '..') {
         if (tempPath.length > 0) {
           tempPath.pop();
-          current = this.fileSystem;
-          for (const segment of tempPath) {
-            const next = current.children?.find(
-              (child) => child.name === segment && child.type === 'directory'
+          dir = this.fileSystem;
+          for (const seg of tempPath) {
+            const next = dir.children?.find(
+              (child) => child.name === seg && child.type === 'directory'
             );
             if (!next) {
-              this.output.push(`Broken path: ${segment}`);
+              this.output.push(`Broken path at: ${seg}`);
               return;
             }
-            current = next;
+            dir = next;
           }
         } else {
           this.output.push('Already at root.');
           return;
         }
-      } else if (part === '.' || part === '') {
-        continue;
       } else {
-        const found = current.children?.find(
+        const found = dir.children?.find(
           (child) => child.name === part && child.type === 'directory'
         );
-        if (found) {
-          tempPath.push(part);
-          current = found;
-        } else {
+        if (!found) {
           this.output.push(`No such directory: ${part}`);
           return;
         }
+        tempPath.push(part);
+        dir = found;
       }
     }
 
-    // Only update if full path succeeded
     this.currentPath = tempPath;
   }
 
@@ -176,16 +198,39 @@ export class TerminalComponent {
             type: 'text',
           },
         });
-        this.output.push(`Text editor opened: ${file.name}`);
         break;
       case 'png':
-        this.output.push(`Image viewer opened: ${file.name}`);
+        this.windowManagerService.addWindow({
+          application: 'Photos',
+          icon: 'bi-image',
+          data: {
+            title: file.name,
+            content: '/' + this.currentPath.join('/') + '/' + file.name || '',
+            type: 'image',
+          },
+        });
         break;
       case 'mp3':
-        this.output.push(`Playing audio: ${file.name}`);
+        this.windowManagerService.addWindow({
+          application: 'Music',
+          icon: 'bi-music-note',
+          data: {
+            title: file.name,
+            content: '/' + this.currentPath.join('/') + '/' + file.name || '',
+            type: 'audio',
+          },
+        });
         break;
       case 'mp4':
-        this.output.push(`Playing video: ${file.name}`);
+        this.windowManagerService.addWindow({
+          application: 'Video player',
+          icon: 'bi-film',
+          data: {
+            title: file.name,
+            content: '/' + this.currentPath.join('/') + '/' + file.name || '',
+            type: 'video',
+          },
+        });
         break;
       default:
         this.output.push(`open: unsupported file type "${file.type}"`);

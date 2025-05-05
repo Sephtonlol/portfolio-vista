@@ -13,6 +13,7 @@ import { TerminalComponent } from '../components/windows/terminal/terminal.compo
 import { ExplorerComponent } from '../components/windows/explorer/explorer.component';
 import { CalculatorComponent } from '../components/windows/calculator/calculator.component';
 import { NotepadComponent } from '../components/windows/notepad/notepad.component';
+import { PhotosComponent } from '../components/windows/photos/photos.component';
 
 @Component({
   selector: 'app-window',
@@ -22,6 +23,7 @@ import { NotepadComponent } from '../components/windows/notepad/notepad.componen
     ExplorerComponent,
     CalculatorComponent,
     NotepadComponent,
+    PhotosComponent,
   ],
   templateUrl: './window.component.html',
   styleUrl: './window.component.css',

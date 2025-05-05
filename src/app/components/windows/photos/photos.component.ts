@@ -1,0 +1,81 @@
+import { Component, Input } from '@angular/core';
+import { Data } from '../../../interfaces/window.interface';
+import portfolio from '../../../../data/portfolioData.json';
+
+@Component({
+  selector: 'app-photos',
+  imports: [],
+  templateUrl: './photos.component.html',
+  styleUrl: './photos.component.css',
+})
+export class PhotosComponent {
+  @Input() data!: Data | undefined;
+
+  folderPath = '';
+  images: { name: string; url: string }[] = [];
+  currentIndex = 0;
+
+  ngOnInit() {
+    console.log(this.data);
+    if (!this.data?.content) return;
+
+    const fullPath = this.data.content;
+
+    // Check if it's a URL (starts with 'http')
+    if (fullPath.startsWith('http')) {
+      console.log('Content is a URL, skipping folder path extraction');
+      // Handle image URL or URL-specific logic here
+      this.images = [{ name: 'image', url: fullPath }];
+      return;
+    }
+
+    // Otherwise, handle as a path (existing logic)
+    const lastSlash = fullPath.lastIndexOf('/');
+    this.folderPath = fullPath.slice(0, lastSlash);
+    const targetName = fullPath.slice(lastSlash + 1);
+
+    const folderNode = this.getNodeByPath(this.folderPath);
+    if (!folderNode) {
+      console.error(`PhotosComponent: No folder at path “${this.folderPath}”`);
+      return;
+    }
+
+    this.images = folderNode.children
+      .filter((child: any) => child.type === 'png')
+      .map((child: any) => ({ name: child.name, url: child.content }));
+
+    this.currentIndex = this.images.findIndex((img) => img.name === targetName);
+  }
+
+  get currentImage() {
+    return this.images[this.currentIndex];
+  }
+
+  next() {
+    if (this.currentIndex < this.images.length - 1) this.currentIndex++;
+    else this.currentIndex = 0;
+  }
+
+  prev() {
+    if (this.currentIndex > 0) this.currentIndex--;
+    else this.currentIndex = this.images.length - 1;
+  }
+  getNodeByPath(path: string): any {
+    const parts = path.split('/').filter(Boolean);
+    let node: any = portfolio;
+
+    for (const part of parts) {
+      const next = node.children?.find(
+        (child: any) => child.name === part && child.type === 'directory'
+      );
+
+      if (!next) {
+        console.log('Invalid path part:', part);
+        return null;
+      }
+      node = next;
+    }
+
+    return node;
+  }
+}

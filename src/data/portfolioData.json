@@ -11,7 +11,11 @@
           "type": "md",
           "content": "I love exploring new ideas and building stuff."
         },
-        { "name": "profilePic", "type": "png", "content": "image data" },
+        {
+          "name": "profilePic",
+          "type": "png",
+          "content": "https://brandingforthepeople.com/wp-content/uploads/2019/04/Stock-Photography-vs-Real-Imagery.jpg"
+        },
         { "name": "introVideo", "type": "mp4", "content": "video data" },
         { "name": "voiceClip", "type": "mp3", "content": "audio data" },
         {
@@ -43,7 +47,11 @@
               "name": "media",
               "type": "directory",
               "children": [
-                { "name": "logo", "type": "png", "content": "logo image" },
+                {
+                  "name": "logo",
+                  "type": "png",
+                  "content": "https://brandingforthepeople.com/wp-content/uploads/2019/04/Stock-Photography-vs-Real-Imagery.jpg"
+                },
                 {
                   "name": "walkthrough",
                   "type": "mp4",
@@ -97,14 +105,30 @@
           "name": "photos",
           "type": "directory",
           "children": [
-            { "name": "cat", "type": "png", "content": "a cat" },
-            { "name": "dog", "type": "png", "content": "a dog" },
+            {
+              "name": "cat",
+              "type": "png",
+              "content": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTMGCwt6q80fhqDtBOGg1qfznOvQsj1q71mw&s"
+            },
+            {
+              "name": "dog",
+              "type": "png",
+              "content": "https://miro.medium.com/v2/resize:fit:800/1*mjjCjQmPMtEPAGmjh-wMww.jpeg"
+            },
             {
               "name": "old",
               "type": "directory",
               "children": [
-                { "name": "childhood", "type": "png", "content": "old photo" },
-                { "name": "vacation", "type": "png", "content": "beach photo" }
+                {
+                  "name": "childhood",
+                  "type": "png",
+                  "content": "https://miro.medium.com/v2/resize:fit:800/1*mjjCjQmPMtEPAGmjh-wMww.jpeg"
+                },
+                {
+                  "name": "vacation",
+                  "type": "png",
+                  "content": "https://brandingforthepeople.com/wp-content/uploads/2019/04/Stock-Photography-vs-Real-Imagery.jpg"
+                }
               ]
             }
           ]

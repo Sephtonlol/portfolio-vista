@@ -31,6 +31,8 @@
     <app-calculator />
     }@else if(windowData.application === 'Notepad') {
     <app-notepad [data]="windowData.data" />
+    }@else if(windowData.application === 'Photos'){
+    <app-photos [data]="windowData.data" />
     }
   </div>
 </div>

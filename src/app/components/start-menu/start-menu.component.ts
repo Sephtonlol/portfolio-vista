@@ -96,7 +96,6 @@ export class StartMenuComponent implements OnInit {
 
   openFile(item: FileNode) {
     this.closeStartMenu.emit();
-
     switch (item.type) {
       case 'directory':
         this.windowManagerService.addWindow({
@@ -108,7 +107,6 @@ export class StartMenuComponent implements OnInit {
             type: 'directory',
           },
         });
-        console.log(item.path);
         break;
       case 'md':
         this.windowManagerService.addWindow({
@@ -127,7 +125,7 @@ export class StartMenuComponent implements OnInit {
           icon: 'bi-image',
           data: {
             title: item.name,
-            content: item.content || '',
+            content: item.path || '',
             type: 'image',
           },
         });
@@ -138,7 +136,7 @@ export class StartMenuComponent implements OnInit {
           icon: 'bi-music-note',
           data: {
             title: item.name,
-            content: item.content || '',
+            content: item.path || '',
             type: 'audio',
           },
         });
@@ -149,7 +147,7 @@ export class StartMenuComponent implements OnInit {
           icon: 'bi-film',
           data: {
             title: item.name,
-            content: item.content || '',
+            content: item.path || '',
             type: 'video',
           },
         });
