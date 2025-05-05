@@ -12,6 +12,7 @@ textarea {
   padding: 0.5rem;
   background-color: var(--background-color);
   border: none !important;
+  font-weight: normal !important;
 }
 textarea:focus {
   outline: none;

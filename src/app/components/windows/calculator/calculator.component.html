@@ -32,9 +32,11 @@
   </div>
 </div>
 <div class="history">
-  @if(history.length) {
-  <i class="bi bi-trash3 clear-history" (click)="clearHistory()"></i>}
-  <p>History</p>
+  <div class="history-header">
+    <p>History</p>
+    @if(history.length) {
+    <i class="bi bi-trash3 clear-history" (click)="clearHistory()"></i>}
+  </div>
   @for(item of history; track $index){
   <h6>
     {{ item }}
