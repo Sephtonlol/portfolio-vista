@@ -41,6 +41,10 @@ app-taskbar {
   position: relative;
   cursor: pointer;
 }
+.sleep {
+  background-color: black;
+  cursor: none;
+}
 .shut-down-inner {
   position: absolute;
   left: 50%;

@@ -132,3 +132,6 @@ span {
 .shut-down-popup-item:hover {
   background-color: var(--hover-color);
 }
+.bi-moon {
+  font-size: 0.2rem;
+}

@@ -51,4 +51,8 @@ export class WindowManagerService {
   minimizeWindow(windowId: string) {
     this.minimizeSource.next(windowId);
   }
+
+  closeAllWindows() {
+    this.windowsSource.next([]);
+  }
 }

@@ -3,6 +3,7 @@ import { TaskbarComponent } from './components/taskbar/taskbar.component';
 import { DesktopComponent } from './components/desktop/desktop.component';
 import { Subscription } from 'rxjs';
 import { ShutDownService } from './services/shut-down.service';
+import { WindowManagerService } from './services/window-manager.service';
 
 @Component({
   selector: 'app-root',
@@ -19,7 +20,10 @@ export class AppComponent implements OnInit, OnDestroy {
   shutDown = false;
   shutDownMessage = '';
 
-  constructor(private shutDownService: ShutDownService) {}
+  constructor(
+    private shutDownService: ShutDownService,
+    private windowManagerService: WindowManagerService
+  ) {}
 
   ngOnInit(): void {
     this.shutDownSubscription = this.shutDownService
@@ -28,6 +32,13 @@ export class AppComponent implements OnInit, OnDestroy {
         (isShuttingDown: { isShuttingDown: boolean; message: string }) => {
           this.shutDown = isShuttingDown.isShuttingDown;
           this.shutDownMessage = isShuttingDown.message;
+          setTimeout(() => {
+            if (this.shutDown) {
+              if (isShuttingDown.message === 'Shutting down')
+                window.location.href = 'https://google.com';
+              else this.windowManagerService.closeAllWindows();
+            }
+          }, 2000);
         }
       );
   }
