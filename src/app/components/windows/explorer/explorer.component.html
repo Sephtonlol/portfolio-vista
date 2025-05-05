@@ -11,7 +11,12 @@
 
 <div class="sub-header">
   <input type="text" [(ngModel)]="searchTerm" placeholder="Search..." />
-  <i class="bi bi-justify" (click)="viewList = !viewList"></i>
+  <i
+    class="bi"
+    [class.bi-justify]="!viewList"
+    [class.bi-grid]="viewList"
+    (click)="viewList = !viewList"
+  ></i>
 </div>
 
 <div class="explorer-list" [class.explorer-list-tiles]="!viewList">
