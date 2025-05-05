@@ -6,7 +6,7 @@
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
   transform: translate(100px, 50px);
   transition: all 0.2s ease;
-  padding: 0 2px 4px 2px;
+  padding: 0 2px 4.5px 2px;
 }
 .window-header {
   background-color: var(--primary-color);
