@@ -1,4 +1,10 @@
-import { Component, ElementRef, OnInit, HostListener } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  OnInit,
+  HostListener,
+  ViewChild,
+} from '@angular/core';
 import { StartMenuComponent } from '../start-menu/start-menu.component';
 import { WindowManagerService } from '../../services/window-manager.service';
 import { Window } from '../../interfaces/window.interface';
@@ -31,6 +37,8 @@ export class TaskbarComponent implements OnInit {
 
   searchQuery: string = '';
 
+  @ViewChild('searchInput') searchInputRef!: ElementRef<HTMLInputElement>;
+
   constructor(
     public windowManagerService: WindowManagerService,
     private eRef: ElementRef
@@ -62,6 +70,10 @@ export class TaskbarComponent implements OnInit {
   toggleStartMenu() {
     this.searchQuery = '';
     this.showStartMenu = !this.showStartMenu;
+    if (this.showStartMenu)
+      setTimeout(() => {
+        this.searchInputRef?.nativeElement.focus();
+      }, 0);
   }
 
   newWindow(application: string, icon: string) {
