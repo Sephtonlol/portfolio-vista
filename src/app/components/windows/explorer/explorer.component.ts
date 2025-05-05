@@ -130,7 +130,7 @@ export class ExplorerComponent implements OnInit {
       const next = dir.children?.find(
         (child) => child.name === part && child.type === 'directory'
       );
-      if (!next) return alert('Invalid path');
+      if (!next) return;
       dir = next;
     }
     this.currentPath = parts;
