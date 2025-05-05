@@ -1,1 +1,4 @@
-<textarea [value]="data?.content" spellcheck="false"></textarea>
+<textarea [(ngModel)]="contentValue" spellcheck="false"></textarea>
+<div class="footer">
+  <span> {{ contentValue.length }} characters </span>
+</div>
