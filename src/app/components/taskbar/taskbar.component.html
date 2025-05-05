@@ -2,11 +2,20 @@
   [class.show-start-menu]="showStartMenu"
   class="start-menu"
   (closeStartMenu)="toggleStartMenu()"
+  [searchQuery]="searchQuery"
 />
 
 <div class="taskbar-inner">
   <div class="applications">
     <i class="bi bi-ubuntu start-button" (click)="toggleStartMenu()"></i>
+    <input
+      class="search-bar"
+      type="text"
+      placeholder="Search..."
+      [(ngModel)]="searchQuery"
+      (ngModelChange)="onSearchChange($event)"
+      (click)="showStartMenu = true"
+    />
 
     @for (appName of allApps(); track appName) {
     <div class="application-outer">

@@ -3,6 +3,7 @@ import { StartMenuComponent } from '../start-menu/start-menu.component';
 import { WindowManagerService } from '../../services/window-manager.service';
 import { Window } from '../../interfaces/window.interface';
 import applications from '../../../data/applications.json';
+import { FormsModule } from '@angular/forms';
 
 interface IndexedWindow extends Window {
   index: number;
@@ -11,7 +12,7 @@ interface IndexedWindow extends Window {
 @Component({
   selector: 'app-taskbar',
   standalone: true,
-  imports: [StartMenuComponent],
+  imports: [StartMenuComponent, FormsModule],
   templateUrl: './taskbar.component.html',
   styleUrls: ['./taskbar.component.css'],
 })
@@ -27,6 +28,8 @@ export class TaskbarComponent implements OnInit {
 
   contextMenuApp: string | null = null;
   contextMenuElement: HTMLElement | null = null;
+
+  searchQuery: string = '';
 
   constructor(
     public windowManagerService: WindowManagerService,
@@ -57,12 +60,14 @@ export class TaskbarComponent implements OnInit {
   }
 
   toggleStartMenu() {
+    this.searchQuery = '';
     this.showStartMenu = !this.showStartMenu;
   }
 
   newWindow(application: string, icon: string) {
     this.contextMenuApp = null;
     this.showStartMenu = false;
+    this.searchQuery = '';
 
     this.windowManagerService.addWindow({
       application,
@@ -76,6 +81,7 @@ export class TaskbarComponent implements OnInit {
   toggleWindow(windowId: string) {
     this.contextMenuApp = null;
     this.showStartMenu = false;
+    this.searchQuery = '';
 
     const win = this.windows.find((w) => w.id === windowId);
     if (win) {
@@ -117,9 +123,16 @@ export class TaskbarComponent implements OnInit {
     }
     const clickedInsideStartMenu = target.closest('.start-menu');
     const clickedStartButton = target.closest('.start-button');
+    const clickedSearchBar = target.closest('.search-bar');
 
-    if (!clickedInsideStartMenu && !clickedStartButton && this.showStartMenu) {
+    if (
+      !clickedInsideStartMenu &&
+      !clickedStartButton &&
+      !clickedSearchBar &&
+      this.showStartMenu
+    ) {
       this.showStartMenu = false;
+      this.searchQuery = '';
     }
   }
 
@@ -137,6 +150,7 @@ export class TaskbarComponent implements OnInit {
   togglePinApp(appName: string) {
     this.contextMenuApp = null;
     this.showStartMenu = false;
+    this.searchQuery = '';
 
     if (!this.isPinned(appName)) {
       this.pinnedApps.push(appName);
@@ -160,5 +174,9 @@ export class TaskbarComponent implements OnInit {
   getIcon(appName: string): string {
     const app = this.applications.find((a) => a.application === appName);
     return app?.icon || 'bi-question-circle';
+  }
+
+  onSearchChange(value: string) {
+    this.searchQuery = value;
   }
 }

@@ -104,6 +104,11 @@ i {
   visibility: visible;
   transform: translateY(-0.5rem);
 }
-* {
-  transition: all 0.2s ease;
+.search-bar {
+  background-color: var(--background-color);
+  border: 2px solid var(--hover-color);
+  border-radius: 6px;
+}
+.search-bar:focus {
+  outline: none;
 }
