@@ -1,3 +1,11 @@
+@if(shutDown){
+<div class="shut-down" (click)="disableShutDown()">
+  <div class="shut-down-inner">
+    <div class="spinner-border" role="status"></div>
+    <h4>{{ shutDownMessage }}</h4>
+  </div>
+</div>
+}@else {
 <app-desktop [class.show-content]="acceptedWarning" />
 
 <app-taskbar [class.show-content]="acceptedWarning" />
@@ -11,3 +19,4 @@
     <p>Next</p>
   </button>
 </div>
+}

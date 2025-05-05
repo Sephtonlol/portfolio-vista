@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { WindowManagerService } from '../../services/window-manager.service';
 import { WindowComponent } from '../../window/window.component';
 import { Window } from '../../interfaces/window.interface';
@@ -11,6 +11,7 @@ import { Window } from '../../interfaces/window.interface';
 })
 export class DesktopComponent {
   windows: Window[] = [];
+
   constructor(private windowManagerService: WindowManagerService) {
     this.windowManagerService.windows$.subscribe((windows) => {
       this.windows = windows;

@@ -32,8 +32,26 @@ app-taskbar {
   opacity: 1;
   pointer-events: all;
 }
-.show-content {
-}
 .show-warning {
   top: 50%;
+}
+.shut-down {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  cursor: pointer;
+}
+.shut-down-inner {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  text-align: center;
+  transform: translate(-50%, -50%);
+}
+
+.spinner-border {
+  height: 4rem;
+  width: 4rem;
+  color: white;
+  margin-bottom: 0.5rem;
 }

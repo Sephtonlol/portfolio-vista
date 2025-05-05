@@ -1,9 +1,12 @@
 import {
   Component,
+  ElementRef,
   EventEmitter,
   Input,
+  OnDestroy,
   OnInit,
   Output,
+  Renderer2,
   SimpleChanges,
 } from '@angular/core';
 import applications from '../../../data/applications.json';
@@ -11,13 +14,14 @@ import { Window } from '../../interfaces/window.interface';
 import { WindowManagerService } from '../../services/window-manager.service';
 import portfolio from '../../../data/portfolioData.json';
 import { FileNode } from '../../interfaces/file.interface';
+import { ShutDownService } from '../../services/shut-down.service';
 
 @Component({
   selector: 'app-start-menu',
   templateUrl: './start-menu.component.html',
   styleUrls: ['./start-menu.component.css'],
 })
-export class StartMenuComponent implements OnInit {
+export class StartMenuComponent implements OnInit, OnDestroy {
   @Input() searchQuery: string = '';
   applications: Window[] = applications as Window[];
   fileTree: FileNode = portfolio as FileNode;
@@ -25,12 +29,47 @@ export class StartMenuComponent implements OnInit {
   filteredApplications: Window[] = [];
   filteredFiles: FileNode[] = [];
 
+  showShutDownPopup = false;
+  private globalClickUnlistener!: () => void;
+
   @Output() closeStartMenu = new EventEmitter<null>();
 
-  constructor(public windowManagerService: WindowManagerService) {}
+  constructor(
+    public windowManagerService: WindowManagerService,
+    private shutdownService: ShutDownService,
+    private elRef: ElementRef,
+    private renderer: Renderer2
+  ) {}
 
   ngOnInit(): void {
     this.addPaths(this.fileTree, '');
+
+    this.globalClickUnlistener = this.renderer.listen(
+      'document',
+      'click',
+      (event: MouseEvent) => {
+        const clickedInside = this.elRef.nativeElement.contains(event.target);
+        const clickedOnPopup = (event.target as HTMLElement).closest(
+          '.show-shut-down'
+        );
+        if (!clickedInside || !clickedOnPopup) {
+          this.showShutDownPopup = false;
+        }
+      }
+    );
+  }
+  ngOnDestroy(): void {
+    if (this.globalClickUnlistener) {
+      this.globalClickUnlistener();
+    }
+  }
+
+  toggleShutDownPopup() {
+    this.showShutDownPopup = !this.showShutDownPopup;
+  }
+
+  shutDown(message: string) {
+    this.shutdownService.shutDown(true, message);
   }
 
   addPaths(node: FileNode, currentPath: string): void {
