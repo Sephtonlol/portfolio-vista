@@ -47,6 +47,7 @@ export class WindowComponent implements AfterViewInit {
 
   isLeftSnap = false;
   isRightSnap = false;
+  isSnapped = false;
 
   windowEl!: HTMLElement;
 
@@ -126,8 +127,11 @@ export class WindowComponent implements AfterViewInit {
         listeners: {
           move: (event) => {
             const target = event.target;
-            if (!this.isMaximized && !dragStarted) this.saveLast();
-            if (this.isMaximized && !dragStarted) {
+            if (!this.isMaximized && !this.isSnapped && !dragStarted)
+              this.saveLast();
+            if ((this.isMaximized || this.isSnapped) && !dragStarted) {
+              this.isSnapped = false;
+
               this.unmaximizeWindow();
               const x = event.client.x - this.lastSize.width / 2;
               const y = event.client.y - 15;
@@ -170,6 +174,8 @@ export class WindowComponent implements AfterViewInit {
               if (this.isLeftSnap || this.isRightSnap) {
                 this.snapWindow();
               }
+              this.isLeftSnap = false;
+              this.isRightSnap = false;
             }, 0);
           },
         },
@@ -232,6 +238,9 @@ export class WindowComponent implements AfterViewInit {
   }
 
   snapWindow() {
+    this.saveLast();
+    this.isSnapped = true;
+
     switch (true) {
       case this.isLeftSnap:
         this.windowEl.style.transform = `translate(0px, 0px)`;
