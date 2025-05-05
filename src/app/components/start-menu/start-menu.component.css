@@ -116,6 +116,8 @@ span {
   cursor: pointer;
   padding: 0.2rem;
   border-radius: 6px;
+  transition: all 0.2s ease;
+
   i {
     font-size: 1rem;
     padding: 0 0.1rem;
