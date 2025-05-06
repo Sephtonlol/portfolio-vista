@@ -90,19 +90,23 @@ export class TaskbarComponent implements OnInit {
     });
   }
 
-  toggleWindow(windowId: string) {
+  toggleWindow(windowId: string | undefined) {
     this.contextMenuApp = null;
     this.showStartMenu = false;
     this.searchQuery = '';
 
     const win = this.windows.find((w) => w.id === windowId);
-    if (win) {
+    if (windowId && win) {
       if (win.minimized) {
         this.windowManagerService.focusWindow(windowId, true);
       } else {
         this.windowManagerService.minimizeWindow(windowId);
       }
     }
+  }
+
+  closeWindow(windowId: string | undefined) {
+    if (windowId) this.windowManagerService.closeWindow(windowId);
   }
 
   groupWindowsByApplication(windows: Window[]): [string, IndexedWindow[]][] {

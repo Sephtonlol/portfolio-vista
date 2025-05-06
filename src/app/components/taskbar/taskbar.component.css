@@ -86,17 +86,32 @@ i {
   }
 }
 .taskbar-popup-item {
-  padding: 0 0.25rem;
   border-radius: 6px;
-  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.taskbar-popup-item:hover {
-  transition: all 0s;
-  background-color: var(--hover-color);
+.taskbar-popup-item.item-default {
   cursor: pointer;
+}
+.taskbar-popup-item-inner,
+.taskbar-popup-close {
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  padding: 0 0.25rem;
+  cursor: pointer;
+}
+.taskbar-popup-close {
+  padding: 0.2rem 0.2rem !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.taskbar-popup-item-inner:hover,
+.taskbar-popup-close:hover {
+  transition: all 0s;
+  background-color: var(--hover-color) !important;
 }
 .show-taskbar-popup {
   opacity: 1;
