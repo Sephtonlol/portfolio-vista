@@ -3,6 +3,7 @@
   class="window window-{{ id }} animate-in"
   [class.window-minized]="windowData.minimized"
   [class.no-transition]="!shouldAnimate"
+  [class.focused]="windowData.focused"
 >
   <div
     class="window-header"

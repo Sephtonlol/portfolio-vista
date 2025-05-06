@@ -3,10 +3,13 @@
   width: fit-content;
   height: fit-content;
   background-color: var(--background-color);
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
   transform: translate(100px, 50px);
   transition: all 0.2s ease;
   padding: 0 2px 4.5px 2px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+.focused {
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 .window-header {
   background-color: var(--primary-color);

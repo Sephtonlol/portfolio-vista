@@ -97,7 +97,7 @@ export class TaskbarComponent implements OnInit {
 
     const win = this.windows.find((w) => w.id === windowId);
     if (windowId && win) {
-      if (win.minimized) {
+      if (win.minimized || !win.focused) {
         this.windowManagerService.focusWindow(windowId, true);
       } else {
         this.windowManagerService.minimizeWindow(windowId);

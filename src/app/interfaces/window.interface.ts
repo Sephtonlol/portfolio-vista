@@ -5,6 +5,7 @@ export interface Window {
   data?: Data;
   opened?: boolean;
   minimized?: boolean;
+  focused?: boolean;
 }
 
 export interface Data {

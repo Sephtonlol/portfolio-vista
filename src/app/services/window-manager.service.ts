@@ -28,6 +28,13 @@ export class WindowManagerService {
   }
 
   focusWindow(windowId: string, unminimize = false, drag = false) {
+    const updated = this.windowsSource.value.map((win) => ({
+      ...win,
+      focused: win.id === windowId,
+      minimized: win.id === windowId && unminimize ? false : win.minimized,
+    }));
+
+    this.windowsSource.next(updated);
     this.focusSource.next({ id: windowId, unminimize, drag });
   }
 

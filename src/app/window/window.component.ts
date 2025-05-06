@@ -99,13 +99,15 @@ export class WindowComponent implements AfterViewInit {
       (minimizedIndex) => {
         if (minimizedIndex === this.id) {
           if (!this.isMaximized) this.saveLast();
-          this.windowEl.style.transform = `translate(50vw, 100vh) scale(0, 0)`;
+          this.windowEl.style.transform = `translate(25vw, 100vh) scale(0, 0)`;
           this.windowData.minimized = true;
         }
       }
     );
 
     this.windowEl.addEventListener('mousedown', (event: MouseEvent) => {
+      if (this.windowData.id)
+        this.windowManagerService.focusWindow(this.windowData.id);
       const header = this.windowEl.querySelector('.window-header');
       const controls = this.windowEl.querySelector('.window-controls');
       const isHeader = header?.contains(event.target as Node) ?? false;
@@ -164,6 +166,7 @@ export class WindowComponent implements AfterViewInit {
               !this.isRightSnap;
           },
           end: (event) => {
+            this.saveLast();
             dragStarted = false;
             setTimeout(() => {
               this.shouldAnimate = true;
@@ -207,6 +210,7 @@ export class WindowComponent implements AfterViewInit {
             target.setAttribute('data-y', y.toString());
           },
           end: () => {
+            this.saveLast();
             setTimeout(() => {
               this.shouldAnimate = true;
             }, 0);
