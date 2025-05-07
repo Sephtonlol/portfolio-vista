@@ -1,3 +1,6 @@
 @for(window of windows; track window.id){
 <app-window [windowData]="window" [id]="window.id" />
 }
+<app-desktop-application
+  [application]="{ application: 'Recycle bin', icon: 'bi-trash3' }"
+/>
