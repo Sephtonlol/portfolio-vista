@@ -16,8 +16,16 @@
           "type": "png",
           "content": "https://brandingforthepeople.com/wp-content/uploads/2019/04/Stock-Photography-vs-Real-Imagery.jpg"
         },
-        { "name": "introVideo", "type": "mp4", "content": "video data" },
-        { "name": "voiceClip", "type": "mp3", "content": "audio data" },
+        {
+          "name": "introVideo",
+          "type": "mp4",
+          "content": "https://www.w3schools.com/html/mov_bbb.mp4"
+        },
+        {
+          "name": "voiceClip",
+          "type": "mp3",
+          "content": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+        },
         {
           "name": "skills",
           "type": "md",
@@ -55,7 +63,7 @@
                 {
                   "name": "walkthrough",
                   "type": "mp4",
-                  "content": "app walkthrough"
+                  "content": "https://www.w3schools.com/html/mov_bbb.mp4"
                 }
               ]
             },
@@ -81,8 +89,16 @@
               "name": "tracks",
               "type": "directory",
               "children": [
-                { "name": "track1", "type": "mp3", "content": "audio 1" },
-                { "name": "track2", "type": "mp3", "content": "audio 2" }
+                {
+                  "name": "track1",
+                  "type": "mp3",
+                  "content": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+                },
+                {
+                  "name": "track2",
+                  "type": "mp3",
+                  "content": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+                }
               ]
             },
             {
@@ -137,7 +153,11 @@
           "name": "videos",
           "type": "directory",
           "children": [
-            { "name": "vlog1", "type": "mp4", "content": "vlog content" },
+            {
+              "name": "vlog1",
+              "type": "mp4",
+              "content": "https://www.w3schools.com/html/mov_bbb.mp4"
+            },
             { "name": "vlog2", "type": "mp4", "content": "another vlog" }
           ]
         },
@@ -145,8 +165,16 @@
           "name": "audio",
           "type": "directory",
           "children": [
-            { "name": "greeting", "type": "mp3", "content": "hello audio" },
-            { "name": "recording", "type": "mp3", "content": "random thoughts" }
+            {
+              "name": "greeting",
+              "type": "mp3",
+              "content": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+            },
+            {
+              "name": "recording",
+              "type": "mp3",
+              "content": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+            }
           ]
         }
       ]
@@ -179,7 +207,7 @@
                         {
                           "name": "sound",
                           "type": "mp3",
-                          "content": "deep noise"
+                          "content": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
                         },
                         {
                           "name": "media",
@@ -188,7 +216,7 @@
                             {
                               "name": "clip",
                               "type": "mp4",
-                              "content": "short video"
+                              "content": "https://www.w3schools.com/html/mov_bbb.mp4"
                             },
                             {
                               "name": "snapshot",

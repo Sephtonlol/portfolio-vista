@@ -188,17 +188,6 @@ export class TerminalComponent {
     }
 
     switch (file.type) {
-      case 'md':
-        this.windowManagerService.addWindow({
-          application: 'Notepad',
-          icon: 'bi-file-earmark-text',
-          data: {
-            title: file.name,
-            content: file.content || 'No content available.',
-            type: 'text',
-          },
-        });
-        break;
       case 'png':
         this.windowManagerService.addWindow({
           application: 'Photos',
@@ -210,30 +199,28 @@ export class TerminalComponent {
           },
         });
         break;
+      case 'mp4':
       case 'mp3':
         this.windowManagerService.addWindow({
-          application: 'Music',
-          icon: 'bi-music-note',
+          application: 'Media player',
+          icon: 'bi-play-circle',
           data: {
             title: file.name,
             content: '/' + this.currentPath.join('/') + '/' + file.name || '',
-            type: 'audio',
-          },
-        });
-        break;
-      case 'mp4':
-        this.windowManagerService.addWindow({
-          application: 'Video player',
-          icon: 'bi-film',
-          data: {
-            title: file.name,
-            content: '/' + this.currentPath.join('/') + '/' + file.name || '',
-            type: 'video',
+            type: 'media',
           },
         });
         break;
       default:
-        this.output.push(`open: unsupported file type "${file.type}"`);
+        this.windowManagerService.addWindow({
+          application: 'Notepad',
+          icon: 'bi-file-earmark-text',
+          data: {
+            title: file.name,
+            content: file.content || 'No content available.',
+            type: 'text',
+          },
+        });
     }
   }
 

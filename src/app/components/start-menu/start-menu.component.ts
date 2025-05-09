@@ -42,6 +42,11 @@ export class StartMenuComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.applications = this.applications.filter(
+      (app) =>
+        app.application !== 'Media player' && app.application !== 'Photos'
+    );
+
     this.addPaths(this.fileTree, '');
 
     this.globalClickUnlistener = this.renderer.listen(
@@ -147,17 +152,7 @@ export class StartMenuComponent implements OnInit, OnDestroy {
           },
         });
         break;
-      case 'md':
-        this.windowManagerService.addWindow({
-          application: 'Notepad',
-          icon: 'bi-file-earmark-text',
-          data: {
-            title: item.name,
-            content: item.content || '',
-            type: 'text',
-          },
-        });
-        break;
+
       case 'png':
         this.windowManagerService.addWindow({
           application: 'Photos',
@@ -169,30 +164,28 @@ export class StartMenuComponent implements OnInit, OnDestroy {
           },
         });
         break;
+      case 'mp4':
       case 'mp3':
         this.windowManagerService.addWindow({
-          application: 'Music',
-          icon: 'bi-music-note',
+          application: 'Media player',
+          icon: 'bi-play-circle',
           data: {
             title: item.name,
             content: item.path || '',
-            type: 'audio',
-          },
-        });
-        break;
-      case 'mp4':
-        this.windowManagerService.addWindow({
-          application: 'Video player',
-          icon: 'bi-film',
-          data: {
-            title: item.name,
-            content: item.path || '',
-            type: 'video',
+            type: 'media',
           },
         });
         break;
       default:
-        console.error('File type is unsupported.');
+        this.windowManagerService.addWindow({
+          application: 'Notepad',
+          icon: 'bi-file-earmark-text',
+          data: {
+            title: item.name,
+            content: item.content || '',
+            type: 'text',
+          },
+        });
     }
   }
 }

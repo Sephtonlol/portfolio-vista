@@ -14,6 +14,7 @@ import { ExplorerComponent } from '../components/windows/explorer/explorer.compo
 import { CalculatorComponent } from '../components/windows/calculator/calculator.component';
 import { NotepadComponent } from '../components/windows/notepad/notepad.component';
 import { PhotosComponent } from '../components/windows/photos/photos.component';
+import { PlayerComponent } from '../components/windows/player/player.component';
 
 @Component({
   selector: 'app-window',
@@ -24,6 +25,7 @@ import { PhotosComponent } from '../components/windows/photos/photos.component';
     CalculatorComponent,
     NotepadComponent,
     PhotosComponent,
+    PlayerComponent,
   ],
   templateUrl: './window.component.html',
   styleUrl: './window.component.css',

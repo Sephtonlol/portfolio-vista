@@ -62,17 +62,6 @@ export class ExplorerComponent implements OnInit {
     }
 
     switch (item.type) {
-      case 'md':
-        this.windowManagerService.addWindow({
-          application: 'Notepad',
-          icon: 'bi-file-earmark-text',
-          data: {
-            title: item.name,
-            content: item.content || '',
-            type: 'text',
-          },
-        });
-        break;
       case 'png':
         this.windowManagerService.addWindow({
           application: 'Photos',
@@ -85,30 +74,28 @@ export class ExplorerComponent implements OnInit {
         });
         console.log(this.pathInput);
         break;
+      case 'mp4':
       case 'mp3':
         this.windowManagerService.addWindow({
-          application: 'Music',
-          icon: 'bi-music-note',
+          application: 'Media player',
+          icon: 'bi-play-circle',
           data: {
             title: item.name,
             content: this.pathInput + '/' + item.name || '',
-            type: 'audio',
-          },
-        });
-        break;
-      case 'mp4':
-        this.windowManagerService.addWindow({
-          application: 'Video player',
-          icon: 'bi-film',
-          data: {
-            title: item.name,
-            content: this.pathInput + '/' + item.name || '',
-            type: 'video',
+            type: 'media',
           },
         });
         break;
       default:
-        console.error('File type is unsupported.');
+        this.windowManagerService.addWindow({
+          application: 'Notepad',
+          icon: 'bi-file-earmark-text',
+          data: {
+            title: item.name,
+            content: item.content || '',
+            type: 'text',
+          },
+        });
     }
   }
 

@@ -1,19 +1,20 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ViewChild, ElementRef } from '@angular/core';
 import { Data } from '../../../interfaces/window.interface';
 import portfolio from '../../../../data/portfolioData.json';
 
 @Component({
-  selector: 'app-photos',
-  imports: [],
-  templateUrl: './photos.component.html',
-  styleUrl: './photos.component.css',
+  selector: 'app-player',
+  templateUrl: './player.component.html',
+  styleUrl: './player.component.css',
 })
-export class PhotosComponent {
+export class PlayerComponent {
   @Input() data!: Data | undefined;
+  @ViewChild('media') mediaRef!: ElementRef<HTMLMediaElement>;
 
   folderPath = '';
-  images: { name: string; url: string }[] = [];
+  videos: { name: string; url: string }[] = [];
   currentIndex = 0;
+  isPlaying = false;
 
   ngOnInit() {
     if (!this.data?.content) return;
@@ -21,8 +22,7 @@ export class PhotosComponent {
     const fullPath = this.data.content;
 
     if (fullPath.startsWith('http')) {
-      console.log('Content is a URL, skipping folder path extraction');
-      this.images = [{ name: 'image', url: fullPath }];
+      this.videos = [{ name: 'video', url: fullPath }];
       return;
     }
 
@@ -32,30 +32,45 @@ export class PhotosComponent {
 
     const folderNode = this.getNodeByPath(this.folderPath);
     if (!folderNode) {
-      console.error(`PhotosComponent: No folder at path “${this.folderPath}”`);
+      console.error(`PlayerComponent: No folder at path "${this.folderPath}"`);
       return;
     }
 
-    this.images = folderNode.children
-      .filter((child: any) => child.type === 'png')
+    this.videos = folderNode.children
+      .filter((child: any) => child.type === 'mp4' || child.type === 'mp3')
       .map((child: any) => ({ name: child.name, url: child.content }));
 
-    this.currentIndex = this.images.findIndex((img) => img.name === targetName);
+    this.currentIndex = this.videos.findIndex((vid) => vid.name === targetName);
+    this.autoplay();
   }
 
-  get currentImage() {
-    return this.images[this.currentIndex];
+  get currentVideo() {
+    return this.videos[this.currentIndex];
   }
 
   next() {
-    if (this.currentIndex < this.images.length - 1) this.currentIndex++;
+    if (this.currentIndex < this.videos.length - 1) this.currentIndex++;
     else this.currentIndex = 0;
+    this.autoplay();
   }
 
   prev() {
     if (this.currentIndex > 0) this.currentIndex--;
-    else this.currentIndex = this.images.length - 1;
+    else this.currentIndex = this.videos.length - 1;
+    this.autoplay();
   }
+
+  autoplay() {
+    setTimeout(() => {
+      const video = this.mediaRef?.nativeElement;
+      if (video) {
+        video.load();
+        video.play();
+        this.isPlaying = true;
+      }
+    }, 100);
+  }
+
   getNodeByPath(path: string): any {
     const parts = path.split('/').filter(Boolean);
     let node: any = portfolio;
@@ -64,7 +79,6 @@ export class PhotosComponent {
       const next = node.children?.find(
         (child: any) => child.name === part && child.type === 'directory'
       );
-
       if (!next) {
         console.log('Invalid path part:', part);
         return null;
