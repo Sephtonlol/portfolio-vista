@@ -60,7 +60,6 @@ i {
   height: 0;
   border-radius: 6px;
   background-color: var(--hover-color);
-  z-index: 2147483648;
 }
 .maximizing {
   transform: translate(50vw, 0);

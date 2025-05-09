@@ -223,6 +223,10 @@ export class WindowComponent implements AfterViewInit {
     this.windowManagerService.focusWindow(this.id || '', true);
   }
 
+  get currentZIndex() {
+    return WindowComponent.currentZIndex;
+  }
+
   minimizeWindow() {
     this.windowManagerService.minimizeWindow(this.id || '');
   }
