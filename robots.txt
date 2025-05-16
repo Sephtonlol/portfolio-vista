@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /private/
+Allow: /
+
+Sitemap: https://sephtonlol.github.io/portfolio-vista/sitemap.xml
