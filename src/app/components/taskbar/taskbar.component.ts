@@ -152,6 +152,14 @@ export class TaskbarComponent implements OnInit {
     }
   }
 
+  @HostListener('document:keydown', ['$event'])
+  onDocumentKeydown(event: KeyboardEvent) {
+    if (event.key === 'Escape' && this.showStartMenu) {
+      this.showStartMenu = false;
+      this.searchQuery = '';
+    }
+  }
+
   toggleContextMenu(application: string, event: MouseEvent) {
     event.preventDefault();
     this.contextMenuApp =
