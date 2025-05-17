@@ -20,22 +20,25 @@
 </div>
 
 <div class="explorer-list" [class.explorer-list-tiles]="!viewList">
-  @for (item of filteredChildren; track item) {
+  @for (file of filteredChildren; track file) {
   <div
     class="explorer-item"
     [class.explorer-item-tiles]="!viewList"
-    (click)="openItem(item)"
+    (click)="openItem(file)"
   >
+    @if(file.type === "shortcut"){
     <i
-      class="bi"
-      [class.bi-folder]="item.type === 'directory'"
-      [class.bi-file-earmark-text]="item.type === 'md'"
-      [class.bi-film]="item.type === 'mp4'"
-      [class.bi-music-note]="item.type === 'mp3'"
-      [class.bi-image]="item.type === 'png'"
+      class="bi bi-arrow-up-right-square-fill shortcut"
+      [class.shortcut-list-tiles]="!viewList"
     ></i>
+    }
+    <i class="bi {{ getFileIcon(file.type) }}"></i>
     <span>
-      {{ item.type === "directory" ? item.name : item.name + "." + item.type }}
+      {{
+        file.type === "directory" || file.type === "shortcut"
+          ? file.name
+          : file.name + "." + file.type
+      }}
     </span>
   </div>
   }

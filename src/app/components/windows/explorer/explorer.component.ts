@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import portfolio from '../../../../data/portfolioData.json';
+import portfolio from '../../../../data/data.json';
 import { FileNode } from '../../../interfaces/file.interface';
 import { FormsModule } from '@angular/forms';
 import { WindowManagerService } from '../../../services/window-manager.service';
@@ -53,11 +53,27 @@ export class ExplorerComponent implements OnInit {
       });
   }
 
+  getFileIcon(type: string): string {
+    if (type === 'directory' || type === 'shortcut') return 'bi-folder';
+    if (type === 'md') return 'bi-file-earmark-text';
+    if (type === 'png') return 'bi-image';
+    if (type === 'mp3') return 'bi-music-note';
+    if (type === 'mp4') return 'bi-film';
+    return 'bi-file-earmark';
+  }
+
   openItem(item: FileNode) {
     if (item.type === 'directory') {
       this.currentPath.push(item.name);
       this.pathInput = '/' + this.currentPath.join('/');
       this.searchTerm = '';
+      return;
+    }
+    if (item.type === 'shortcut') {
+      if (!item.content)
+        return console.error('Failed to open shortcut location');
+      this.currentPath = item.content.split('/').filter(Boolean);
+      this.pathInput = item.content;
       return;
     }
 
@@ -111,6 +127,17 @@ export class ExplorerComponent implements OnInit {
   }
 
   goToTypedPath() {
+    if (this.pathInput === 'cmd') {
+      this.windowManagerService.addWindow({
+        application: 'Terminal',
+        icon: 'bi-terminal',
+        data: {
+          title: 'Terminal',
+          type: 'directory',
+          content: [...this.currentPath].join('/'),
+        },
+      });
+    }
     const parts = this.pathInput.split('/').filter(Boolean);
     let dir = this.filesystem;
     for (const part of parts) {

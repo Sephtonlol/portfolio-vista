@@ -60,6 +60,8 @@ span {
   opacity: 0.8;
 }
 .application {
+  position: relative;
+
   padding: 0 0.2rem 0 0.1rem;
   border-radius: 6px;
   transition: background-color 0.1s ease;
@@ -137,4 +139,11 @@ span {
 }
 .bi-moon {
   font-size: 0.2rem;
+}
+.shortcut {
+  position: absolute;
+  font-size: 0.8rem !important;
+  top: 25px;
+  left: 11px;
+  transform: translate(-50%, -50%);
 }

@@ -1,6 +1,6 @@
 import { Component, Input, ViewChild, ElementRef } from '@angular/core';
 import { Data } from '../../../interfaces/window.interface';
-import portfolio from '../../../../data/portfolioData.json';
+import portfolio from '../../../../data/data.json';
 
 @Component({
   selector: 'app-player',

@@ -12,7 +12,7 @@ import {
 import applications from '../../../data/applications.json';
 import { Window } from '../../interfaces/window.interface';
 import { WindowManagerService } from '../../services/window-manager.service';
-import portfolio from '../../../data/portfolioData.json';
+import portfolio from '../../../data/data.json';
 import { FileNode } from '../../interfaces/file.interface';
 import { ShutDownService } from '../../services/shut-down.service';
 
@@ -47,6 +47,7 @@ export class StartMenuComponent implements OnInit, OnDestroy {
         app.application !== 'Media player' && app.application !== 'Photos'
     );
 
+    this.fileTree = this.removeShortcuts(this.fileTree)!;
     this.addPaths(this.fileTree, '');
 
     this.globalClickUnlistener = this.renderer.listen(
@@ -77,6 +78,21 @@ export class StartMenuComponent implements OnInit, OnDestroy {
     this.shutdownService.shutDown(true, message);
   }
 
+  removeShortcuts(node: FileNode): FileNode | null {
+    if (node.type === 'shortcut') {
+      return null;
+    }
+
+    const cleanedNode: FileNode = { ...node };
+    if (cleanedNode.children) {
+      cleanedNode.children = cleanedNode.children
+        .map((child) => this.removeShortcuts(child))
+        .filter((child): child is FileNode => child !== null);
+    }
+
+    return cleanedNode;
+  }
+
   addPaths(node: FileNode, currentPath: string): void {
     node.path = currentPath ? `${currentPath}/${node.name}` : node.name;
 
@@ -97,12 +113,12 @@ export class StartMenuComponent implements OnInit, OnDestroy {
     this.closeStartMenu.emit();
   }
 
-  getFileIcon(file: FileNode): string {
-    if (file.type === 'directory') return 'bi-folder';
-    if (file.type === 'md') return 'bi-file-earmark-text';
-    if (file.type === 'png') return 'bi-image';
-    if (file.type === 'mp3') return 'bi-music-note';
-    if (file.type === 'mp4') return 'bi-film';
+  getFileIcon(type: string): string {
+    if (type === 'directory' || type === 'shortcut') return 'bi-folder';
+    if (type === 'md') return 'bi-file-earmark-text';
+    if (type === 'png') return 'bi-image';
+    if (type === 'mp3') return 'bi-music-note';
+    if (type === 'mp4') return 'bi-film';
     return 'bi-file-earmark';
   }
 

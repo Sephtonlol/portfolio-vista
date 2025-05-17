@@ -1,5 +1,6 @@
 import {
   AfterViewInit,
+  ChangeDetectorRef,
   Component,
   ElementRef,
   Input,
@@ -43,6 +44,8 @@ export class WindowComponent implements AfterViewInit {
   lastSize = this.initialSize;
   shouldAnimate = true;
 
+  zIndex = 0;
+
   snapMargin = 20;
   screenWidth!: number;
   screeHeight!: number;
@@ -60,7 +63,8 @@ export class WindowComponent implements AfterViewInit {
 
   constructor(
     private el: ElementRef,
-    private windowManagerService: WindowManagerService
+    private windowManagerService: WindowManagerService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngAfterViewInit() {
@@ -79,8 +83,11 @@ export class WindowComponent implements AfterViewInit {
 
     this.focusSub = this.windowManagerService.focus$.subscribe((focused) => {
       if (focused?.id === this.id) {
-        WindowComponent.currentZIndex++;
-        this.windowEl.style.zIndex = WindowComponent.currentZIndex.toString();
+        setTimeout(() => {
+          WindowComponent.currentZIndex++;
+          this.zIndex = WindowComponent.currentZIndex;
+          this.cdr.detectChanges();
+        }, 0);
 
         if (focused && focused.unminimize) {
           if (this.isMaximized) {

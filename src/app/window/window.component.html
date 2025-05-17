@@ -4,6 +4,7 @@
   [class.window-minized]="windowData.minimized"
   [class.no-transition]="!shouldAnimate"
   [class.focused]="windowData.focused"
+  [style.zIndex]="zIndex"
 >
   <div
     class="window-header"
@@ -25,7 +26,11 @@
 
   <div class="window-content" #windowContent>
     @if(windowData.application === 'Terminal') {
-    <app-terminal [id]="id" (requestScrollToBottom)="scrollToBottom()" />
+    <app-terminal
+      [id]="id"
+      [data]="windowData.data"
+      (requestScrollToBottom)="scrollToBottom()"
+    />
     } @else if(windowData.application === 'Explorer') {
     <app-explorer [data]="windowData.data" />
     } @else if(windowData.application === 'Calculator') {

@@ -1,8 +1,9 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FileNode } from '../../../interfaces/file.interface';
-import portfolio from '../../../../data/portfolioData.json';
+import portfolio from '../../../../data/data.json';
 import { FormsModule } from '@angular/forms';
 import { WindowManagerService } from '../../../services/window-manager.service';
+import { Data } from '@angular/router';
 
 @Component({
   selector: 'app-terminal',
@@ -10,9 +11,10 @@ import { WindowManagerService } from '../../../services/window-manager.service';
   styleUrl: './terminal.component.css',
   imports: [FormsModule],
 })
-export class TerminalComponent {
+export class TerminalComponent implements OnInit {
   @Output() requestScrollToBottom = new EventEmitter<void>();
   @Input() id!: string | undefined;
+  @Input() data!: Data | undefined;
 
   fileSystem: FileNode = portfolio as FileNode;
 
@@ -24,6 +26,11 @@ export class TerminalComponent {
   historyIndex: number = -1;
 
   constructor(private windowManagerService: WindowManagerService) {}
+
+  ngOnInit(): void {
+    if (this.data && this.data['content'])
+      this.currentPath = this.data['content'].split('/');
+  }
 
   get currentDir(): FileNode {
     let dir = this.fileSystem;
@@ -97,7 +104,9 @@ export class TerminalComponent {
   list() {
     const items =
       this.currentDir.children?.map((child) =>
-        child.type === 'directory' ? child.name : `${child.name}.${child.type}`
+        child.type === 'directory' || child.type === 'shortcut'
+          ? child.name
+          : `${child.name}.${child.type}`
       ) || [];
     this.output.push(items.length ? items.join(' | ') : '(empty)');
   }
@@ -145,7 +154,9 @@ export class TerminalComponent {
           dir = this.fileSystem;
           for (const seg of tempPath) {
             const next = dir.children?.find(
-              (child) => child.name === seg && child.type === 'directory'
+              (child) =>
+                child.name === seg &&
+                (child.type === 'directory' || child.type === 'shortcut')
             );
             if (!next) {
               this.output.push(`Broken path at: ${seg}`);
@@ -159,31 +170,89 @@ export class TerminalComponent {
         }
       } else {
         const found = dir.children?.find(
-          (child) => child.name === part && child.type === 'directory'
+          (child) =>
+            child.name === part &&
+            (child.type === 'directory' || child.type === 'shortcut')
         );
         if (!found) {
           this.output.push(`No such directory: ${part}`);
           return;
         }
-        tempPath.push(part);
-        dir = found;
+        if (found?.type === 'directory') {
+          tempPath.push(part);
+          dir = found;
+        } else {
+          tempPath = found.content?.split('/').filter(Boolean) || [];
+          dir = found;
+        }
       }
     }
 
     this.currentPath = tempPath;
   }
-
   openFile(fileName: string) {
     if (!fileName) {
       this.output.push('open: missing file name');
       return;
     }
 
-    const file = this.currentDir.children?.find(
-      (child) => `${child.name}.${child.type}` === fileName
+    const parts = fileName.split('/').filter(Boolean);
+    let dir: FileNode;
+
+    if (
+      fileName.startsWith('./') ||
+      fileName.startsWith('../') ||
+      fileName.startsWith('.')
+    ) {
+      dir = this.currentDir;
+    } else {
+      dir = this.fileSystem;
+    }
+
+    for (const part of parts.slice(0, -1)) {
+      if (part === '.') continue;
+      if (part === '..') {
+        if (this.currentPath.length > 0) {
+          this.currentPath.pop();
+          dir = this.currentDir;
+        } else {
+          this.output.push('open: already at root');
+          return;
+        }
+      } else {
+        const nextDir = dir.children?.find(
+          (child) => child.name === part && child.type === 'directory'
+        );
+        if (!nextDir) {
+          this.output.push(`open: no such file or directory: ${part}`);
+          return;
+        }
+        dir = nextDir;
+      }
+    }
+
+    const targetFileName = parts[parts.length - 1];
+    const file = dir.children?.find(
+      (child) =>
+        `${child.name}.${child.type}` === targetFileName ||
+        child.name === targetFileName
     );
+
     if (!file) {
-      this.output.push(`open: file "${fileName}" not found`);
+      this.output.push(`open: file "${targetFileName}" not found`);
+      return;
+    }
+
+    if (file.type === 'directory' || file.type === 'shortcut') {
+      this.windowManagerService.addWindow({
+        application: 'Explorer',
+        icon: 'bi-folder',
+        data: {
+          title: file.name,
+          content: [...this.currentPath, file.name].join('/'),
+          type: 'directory',
+        },
+      });
       return;
     }
 
@@ -194,7 +263,7 @@ export class TerminalComponent {
           icon: 'bi-image',
           data: {
             title: file.name,
-            content: '/' + this.currentPath.join('/') + '/' + file.name || '',
+            content: '/' + [...this.currentPath, file.name].join('/'),
             type: 'image',
           },
         });
@@ -206,7 +275,7 @@ export class TerminalComponent {
           icon: 'bi-play-circle',
           data: {
             title: file.name,
-            content: '/' + this.currentPath.join('/') + '/' + file.name || '',
+            content: '/' + [...this.currentPath, file.name].join('/'),
             type: 'media',
           },
         });

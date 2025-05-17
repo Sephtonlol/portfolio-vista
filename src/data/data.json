@@ -1,0 +1,124 @@
+{
+  "name": "",
+  "type": "directory",
+  "children": [
+    {
+      "name": "workProcesses",
+      "type": "directory",
+      "children": [
+        {
+          "name": "k1-w1",
+          "type": "directory",
+          "children": [
+            {
+              "name": "projectAlpha",
+              "type": "shortcut",
+              "content": "/projects/projectAlpha"
+            }
+          ]
+        },
+        {
+          "name": "k1-w2",
+          "type": "directory",
+          "children": [
+            {
+              "name": "projectBeta",
+              "type": "shortcut",
+              "content": "/projects/projectBeta"
+            }
+          ]
+        },
+        {
+          "name": "k1-w3",
+          "type": "directory",
+          "children": [
+            {
+              "name": "projectGamma",
+              "type": "shortcut",
+              "content": "/projects/projectGamma"
+            }
+          ]
+        },
+        {
+          "name": "k1-w4",
+          "type": "directory",
+          "children": []
+        },
+        {
+          "name": "k1-w5",
+          "type": "directory",
+          "children": []
+        },
+        {
+          "name": "k2-w1",
+          "type": "directory",
+          "children": []
+        },
+        {
+          "name": "k2-w2",
+          "type": "directory",
+          "children": []
+        },
+        {
+          "name": "k2-w3",
+          "type": "directory",
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "projects",
+      "type": "directory",
+      "children": [
+        {
+          "name": "projectAlpha",
+          "type": "directory",
+          "children": [
+            {
+              "name": "readme",
+              "type": "md",
+              "content": "Project Alpha is a social media dashboard."
+            },
+            {
+              "name": "screenshot",
+              "type": "png",
+              "content": "https://brandingforthepeople.com/wp-content/uploads/2019/04/Stock-Photography-vs-Real-Imagery.jpg"
+            }
+          ]
+        },
+        {
+          "name": "projectBeta",
+          "type": "directory",
+          "children": [
+            {
+              "name": "readme",
+              "type": "md",
+              "content": "Project Beta is a task tracking app."
+            },
+            {
+              "name": "demo",
+              "type": "mp4",
+              "content": "https://www.w3schools.com/html/mov_bbb.mp4"
+            }
+          ]
+        },
+        {
+          "name": "projectGamma",
+          "type": "directory",
+          "children": [
+            {
+              "name": "readme",
+              "type": "md",
+              "content": "Project Gamma is a music recommendation engine."
+            },
+            {
+              "name": "logo",
+              "type": "png",
+              "content": "https://brandingforthepeople.com/wp-content/uploads/2019/04/Stock-Photography-vs-Real-Imagery.jpg"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

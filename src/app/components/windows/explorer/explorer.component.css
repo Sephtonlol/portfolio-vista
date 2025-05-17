@@ -49,6 +49,7 @@ input:focus {
   flex-wrap: wrap;
 }
 .explorer-item {
+  position: relative;
   display: flex;
   align-items: center;
   user-select: none;
@@ -76,4 +77,16 @@ input:focus {
 }
 .bi-grid {
   font-size: 1.25rem;
+}
+.shortcut {
+  position: absolute;
+  font-size: 0.5rem !important;
+  bottom: 2px;
+  left: 9px;
+  transform: translate(-50%, -50%);
+}
+.shortcut-list-tiles {
+  font-size: 1rem !important;
+  bottom: 25px;
+  left: 53px;
 }

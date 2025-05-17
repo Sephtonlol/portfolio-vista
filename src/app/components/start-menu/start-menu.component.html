@@ -52,8 +52,11 @@
       <div class="search-inner">
         @for (file of filteredFiles; track $index) {
         <div class="application" (click)="openFile(file)">
-          <i class="bi {{ getFileIcon(file) }}"></i>
-          @if(file.type !== "directory"){
+          @if(file.type === "shortcut"){
+          <i class="bi bi-arrow-up-right-square-fill shortcut"></i>
+          }
+          <i class="bi {{ getFileIcon(file.type) }}"></i>
+          @if(file.type !== "directory" && file.type !== "shortcut"){
           <div class="application-inner">
             <p>{{ file.name }}.{{ file.type }}</p>
             <span> {{ file.path }}.{{ file.type }} </span>
