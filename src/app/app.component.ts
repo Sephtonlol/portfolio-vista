@@ -18,6 +18,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private shutDownSubscription!: Subscription;
 
   shutDown = false;
+  sleepPointerDelay = false;
   shutDownMessage = '';
 
   constructor(
@@ -39,6 +40,13 @@ export class AppComponent implements OnInit, OnDestroy {
               else this.windowManagerService.closeAllWindows();
             }
           }, 2000);
+          if (this.shutDown && this.shutDownMessage === 'Sleep')
+            setTimeout(() => {
+              this.sleepPointerDelay = true;
+            }, 0);
+          else {
+            this.sleepPointerDelay = false;
+          }
         }
       );
   }

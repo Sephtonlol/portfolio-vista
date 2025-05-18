@@ -75,6 +75,7 @@ export class StartMenuComponent implements OnInit, OnDestroy {
   }
 
   shutDown(message: string) {
+    this.closeStartMenu.emit();
     this.shutdownService.shutDown(true, message);
   }
 
