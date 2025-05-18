@@ -10,6 +10,7 @@
 input {
   background-color: #0000;
   border: none;
+  width: max-content;
 }
 input:focus {
   outline: none;
@@ -25,4 +26,7 @@ p {
   word-wrap: break-word;
   overflow-wrap: break-word;
   font-family: monospace;
+}
+.prompt {
+  overflow-wrap: break-word;
 }
