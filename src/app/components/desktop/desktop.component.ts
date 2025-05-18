@@ -3,6 +3,8 @@ import { WindowManagerService } from '../../services/window-manager.service';
 import { WindowComponent } from '../../window/window.component';
 import { Window } from '../../interfaces/window.interface';
 import { DesktopApplicationComponent } from '../desktop-application/desktop-application.component';
+import { SettingsService } from '../../services/settings.service';
+import { AppSettings } from '../../interfaces/settings.interface';
 
 @Component({
   selector: 'app-desktop',
@@ -12,10 +14,20 @@ import { DesktopApplicationComponent } from '../desktop-application/desktop-appl
 })
 export class DesktopComponent {
   windows: Window[] = [];
+  settings: AppSettings | null = null;
 
-  constructor(private windowManagerService: WindowManagerService) {
+  constructor(
+    private windowManagerService: WindowManagerService,
+    private settingsService: SettingsService
+  ) {}
+
+  ngOnInit(): void {
     this.windowManagerService.windows$.subscribe((windows) => {
       this.windows = windows;
+    });
+
+    this.settingsService.settings$.subscribe((settings) => {
+      this.settings = settings;
     });
   }
 }

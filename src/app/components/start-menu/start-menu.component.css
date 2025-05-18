@@ -108,6 +108,7 @@ span {
   transform: translateY(15%);
   transition: all 0.2s ease;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  z-index: 1;
 }
 .show-shut-doown-pop {
   visibility: visible;

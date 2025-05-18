@@ -16,6 +16,7 @@ import { CalculatorComponent } from '../components/windows/calculator/calculator
 import { NotepadComponent } from '../components/windows/notepad/notepad.component';
 import { PhotosComponent } from '../components/windows/photos/photos.component';
 import { PlayerComponent } from '../components/windows/player/player.component';
+import { SettingsComponent } from '../components/windows/settings/settings.component';
 
 @Component({
   selector: 'app-window',
@@ -27,6 +28,7 @@ import { PlayerComponent } from '../components/windows/player/player.component';
     NotepadComponent,
     PhotosComponent,
     PlayerComponent,
+    SettingsComponent,
   ],
   templateUrl: './window.component.html',
   styleUrl: './window.component.css',
@@ -39,7 +41,7 @@ export class WindowComponent implements AfterViewInit {
   maximizing = false;
   isMaximized = false;
   minimumSize = { width: 300, height: 175 };
-  initialSize = { width: 450, height: 300 };
+  initialSize = { width: 600, height: 400 };
   lastPosition = { x: 100, y: 50 };
   lastSize = this.initialSize;
   shouldAnimate = true;

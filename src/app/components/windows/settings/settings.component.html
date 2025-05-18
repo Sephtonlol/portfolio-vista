@@ -1,0 +1,65 @@
+<div class="setting-groups-outer">
+  <h4>Background</h4>
+  <div class="setting-group no-child">
+    <div class="preview">
+      <img
+        [src]="settings.backgroundImage ?? '/assets/background.jpg'"
+        alt="Selected image"
+      />
+    </div>
+    <div class="setting-group-inner">
+      <span for="imageUpload">Select Image</span>
+      <input
+        type="file"
+        id="imageUpload"
+        (change)="onImageSelected($event)"
+        hidden
+      />
+      <label for="imageUpload" class="upload-button">Upload Image</label>
+    </div>
+    <div class="setting-group-inner">
+      <span for="fitSelect">Background Fit</span>
+      <select
+        id="fitSelect"
+        class="form-select"
+        [value]="settings.backgroundFit"
+        (change)="onBackgroundFitChange($event)"
+      >
+        <option value="cover">Fill</option>
+        <option value="contain">Fit</option>
+        <option value="stretch">Stretch</option>
+        <option value="repeat">Tile</option>
+      </select>
+    </div>
+  </div>
+</div>
+<div class="setting-groups-outer">
+  <h4>Display</h4>
+  <div class="setting-group has-border">
+    <h4>Dark mode</h4>
+    <div class="form-check form-switch">
+      <input
+        class="form-check-input"
+        type="checkbox"
+        role="switch"
+        id="themeSwitch"
+        [checked]="settings.theme === 'dark' ? true : false"
+        (change)="toggleTheme()"
+      />
+    </div>
+  </div>
+
+  <div class="setting-group has-border">
+    <h4>Animations</h4>
+    <div class="form-check form-switch">
+      <input
+        class="form-check-input"
+        type="checkbox"
+        role="switch"
+        id="animationsSwitch"
+        [checked]="settings.animations"
+        (change)="toggleAnimations()"
+      />
+    </div>
+  </div>
+</div>

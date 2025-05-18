@@ -1,6 +1,25 @@
-@for(window of windows; track window.id){
-<app-window [windowData]="window" [id]="window.id" />
-}
-<app-desktop-application
-  [application]="{ application: 'Recycle bin', icon: 'bi-trash3' }"
-/>
+<div
+  class="desktop-background"
+  [style.backgroundImage]="
+    settings?.backgroundImage
+      ? 'url(' + settings?.backgroundImage + ')'
+      : 'url(/assets/background.jpg)'
+  "
+  [style.backgroundSize]="
+    settings?.backgroundFit === 'repeat'
+      ? 'auto'
+      : settings?.backgroundFit === 'stretch'
+      ? '100% 100%'
+      : settings?.backgroundFit || 'cover'
+  "
+  [style.backgroundRepeat]="
+    settings?.backgroundFit === 'repeat' ? 'repeat' : 'no-repeat'
+  "
+>
+  @for(window of windows; track window.id){
+  <app-window [windowData]="window" [id]="window.id" />
+  }
+  <app-desktop-application
+    [application]="{ application: 'Recycles bin', icon: 'bi-trash3' }"
+  />
+</div>

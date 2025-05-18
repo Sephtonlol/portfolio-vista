@@ -55,11 +55,14 @@ i {
 .left-snap,
 .right-snap {
   position: absolute;
-  transition: all 0.2s ease;
+  transition: all 0.2s ease-in-out;
   width: 0;
   height: 0;
   border-radius: 6px;
   background-color: var(--hover-color);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  margin: 5px;
 }
 .maximizing {
   transform: translate(50vw, 0);
@@ -72,19 +75,19 @@ i {
 }
 .show-maximizing {
   transform: translate(0, 0);
-  width: 100vw;
-  height: calc(100vh - 3.5rem);
+  width: calc(100vw - 10px);
+  height: calc(100vh - 3.5rem - 10px);
 }
 .show-left-snap,
 .show-right-snap {
-  width: 50vw;
-  height: calc(100vh - 3.5rem);
+  width: calc(50vw - 5px);
+  height: calc(100vh - 3.5rem - 10px);
 }
 .show-left-snap {
   transform: translate(0, 0);
 }
 .show-right-snap {
-  transform: translate(50vw, 0);
+  transform: translate(calc(50vw - 5px), 0);
 }
 @keyframes scaleIn {
   from {

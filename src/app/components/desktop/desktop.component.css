@@ -1,3 +1,9 @@
 :host {
   height: calc(100vh - 3.5rem);
 }
+.desktop-background {
+  height: 100%;
+  width: 100%;
+  background-position: center;
+  position: absolute;
+}
