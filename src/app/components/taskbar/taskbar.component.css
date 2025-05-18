@@ -55,7 +55,8 @@ i {
   position: absolute;
   width: 10px;
   height: 10px;
-  background-color: white;
+  background-color: var(--text-color);
+
   z-index: -1;
   border-radius: 6px;
 }

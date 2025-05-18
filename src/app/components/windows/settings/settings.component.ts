@@ -18,7 +18,7 @@ export class SettingsComponent implements OnInit {
     });
   }
 
-  onImageSelected(event: Event): void {
+  onImageSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
       const file = input.files[0];
@@ -32,13 +32,14 @@ export class SettingsComponent implements OnInit {
     }
   }
 
-  onBackgroundFitChange(event: Event): void {
+  onBackgroundFitChange(event: Event) {
     const select = event.target as HTMLSelectElement;
     this.settingsService.setBackgroundFit(select.value as any);
   }
 
-  toggleTheme() {
-    this.settingsService.toggleTheme();
+  setTheme(event: Event) {
+    const select = event.target as HTMLSelectElement;
+    this.settingsService.setTheme(select.value);
   }
 
   toggleAnimations() {

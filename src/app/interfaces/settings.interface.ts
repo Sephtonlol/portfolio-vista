@@ -1,5 +1,5 @@
 export interface AppSettings {
-  theme: 'light' | 'dark';
+  theme: string;
   animations: boolean;
   backgroundImage: string | ArrayBuffer | null;
   backgroundFit: 'cover' | 'contain' | 'stretch' | 'repeat';

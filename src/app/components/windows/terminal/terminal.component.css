@@ -10,7 +10,7 @@
 input {
   background-color: #0000;
   border: none;
-  width: max-content;
+  width: 100%;
 }
 input:focus {
   outline: none;
@@ -29,4 +29,10 @@ p {
 }
 .prompt {
   overflow-wrap: break-word;
+}
+input,
+p,
+.output,
+.prompt {
+  color: var(--terminal-color);
 }

@@ -46,10 +46,14 @@ button,
 .form-select,
 .upload-button {
   background-color: var(--secondary-color);
-  color: white;
+  color: var(--text-color);
   border: solid 3px var(--hover-color);
   border-radius: 6px;
   padding: 0.1rem 0.2rem;
   width: fit-content;
+  width: 125px;
   margin: 0;
+}
+.upload-button {
+  text-align: center;
 }
