@@ -26,7 +26,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  margin: 10px 20px;
+  margin: 5px 10px;
 }
 .setting-group-inner,
 .setting-group.has-border {
@@ -34,13 +34,13 @@
   justify-content: space-between;
   border: solid 3px var(--hover-color);
   border-radius: 6px;
-  padding: 6px 20px;
+  padding: 6px 10px;
   align-items: center;
 }
 h4 {
   font-size: large;
   user-select: none;
-  margin-top: 0.4rem;
+  margin: 0.4rem 0 0 0;
 }
 button,
 .form-select,
