@@ -96,7 +96,7 @@ export class SettingsService {
       animations: !current.animations,
     });
     const root = document.documentElement;
-    if (current.animations) {
+    if (!current.animations) {
       root.style.setProperty('--primary-transition', '0.2s');
       root.style.setProperty('--secondary-transition', '0.1s');
       root.style.setProperty('--tertiary-transition', '0.5s');

@@ -82,6 +82,7 @@ export class TerminalComponent implements OnInit {
         this.cat(args[0]);
         break;
       case 'help':
+      case '--help':
         this.showHelp();
         break;
       case 'clear':
@@ -122,12 +123,13 @@ export class TerminalComponent implements OnInit {
     if (
       path.startsWith('./') ||
       path.startsWith('../') ||
-      path.startsWith('.')
+      path.startsWith('.') ||
+      path.startsWith('/')
     ) {
       tempPath = [...this.currentPath];
-    } else if (path.startsWith('/')) {
-      path = path.slice(1);
-      tempPath = [];
+      if (path.startsWith('/')) {
+        path = path.slice(1);
+      }
     } else {
       tempPath = [];
     }
@@ -190,6 +192,7 @@ export class TerminalComponent implements OnInit {
 
     this.currentPath = tempPath;
   }
+
   openFile(fileName: string) {
     if (!fileName) {
       this.output.push('open: missing file name');
@@ -202,14 +205,20 @@ export class TerminalComponent implements OnInit {
     if (
       fileName.startsWith('./') ||
       fileName.startsWith('../') ||
-      fileName.startsWith('.')
+      fileName.startsWith('.') ||
+      fileName.startsWith('/')
     ) {
       dir = this.currentDir;
+      if (fileName.startsWith('/')) {
+        fileName = fileName.slice(1);
+      }
     } else {
       dir = this.fileSystem;
     }
 
-    for (const part of parts.slice(0, -1)) {
+    const pathParts = fileName.split('/').filter(Boolean);
+
+    for (const part of pathParts.slice(0, -1)) {
       if (part === '.') continue;
       if (part === '..') {
         if (this.currentPath.length > 0) {
@@ -231,7 +240,7 @@ export class TerminalComponent implements OnInit {
       }
     }
 
-    const targetFileName = parts[parts.length - 1];
+    const targetFileName = pathParts[pathParts.length - 1];
     const file = dir.children?.find(
       (child) =>
         `${child.name}.${child.type}` === targetFileName ||
@@ -299,18 +308,63 @@ export class TerminalComponent implements OnInit {
       return;
     }
 
-    const file = this.currentDir.children?.find(
-      (child) => `${child.name}.${child.type}` === fileName
+    let dir: FileNode;
+
+    // Treat '/' as './'
+    if (
+      fileName.startsWith('./') ||
+      fileName.startsWith('../') ||
+      fileName.startsWith('.') ||
+      fileName.startsWith('/')
+    ) {
+      dir = this.currentDir;
+      if (fileName.startsWith('/')) {
+        fileName = fileName.slice(1);
+      }
+    } else {
+      dir = this.fileSystem;
+    }
+
+    const pathParts = fileName.split('/').filter(Boolean);
+
+    for (const part of pathParts.slice(0, -1)) {
+      if (part === '.') continue;
+      if (part === '..') {
+        if (this.currentPath.length > 0) {
+          this.currentPath.pop();
+          dir = this.currentDir;
+        } else {
+          this.output.push('cat: already at root');
+          return;
+        }
+      } else {
+        const nextDir = dir.children?.find(
+          (child) => child.name === part && child.type === 'directory'
+        );
+        if (!nextDir) {
+          this.output.push(`cat: no such file or directory: ${part}`);
+          return;
+        }
+        dir = nextDir;
+      }
+    }
+
+    const targetFileName = pathParts[pathParts.length - 1];
+    const file = dir.children?.find(
+      (child) =>
+        `${child.name}.${child.type}` === targetFileName ||
+        child.name === targetFileName
     );
+
     if (!file) {
-      this.output.push(`cat: file "${fileName}" not found`);
+      this.output.push(`cat: file "${targetFileName}" not found`);
       return;
     }
 
     if (file.type === 'md') {
       this.output.push(file.content || 'No content available.');
     } else {
-      this.output.push(`cat: "${fileName}" is not a text file`);
+      this.output.push(`cat: "${targetFileName}" is not a text file`);
     }
   }
 
