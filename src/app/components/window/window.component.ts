@@ -7,16 +7,16 @@ import {
   ViewChild,
 } from '@angular/core';
 import interact from 'interactjs';
-import { Window } from '../interfaces/window.interface';
-import { WindowManagerService } from '../services/window-manager.service';
+import { TerminalComponent } from '../windows/terminal/terminal.component';
+import { ExplorerComponent } from '../windows/explorer/explorer.component';
+import { CalculatorComponent } from '../windows/calculator/calculator.component';
+import { NotepadComponent } from '../windows/notepad/notepad.component';
+import { PhotosComponent } from '../windows/photos/photos.component';
+import { PlayerComponent } from '../windows/player/player.component';
+import { SettingsComponent } from '../windows/settings/settings.component';
 import { Subscription } from 'rxjs';
-import { TerminalComponent } from '../components/windows/terminal/terminal.component';
-import { ExplorerComponent } from '../components/windows/explorer/explorer.component';
-import { CalculatorComponent } from '../components/windows/calculator/calculator.component';
-import { NotepadComponent } from '../components/windows/notepad/notepad.component';
-import { PhotosComponent } from '../components/windows/photos/photos.component';
-import { PlayerComponent } from '../components/windows/player/player.component';
-import { SettingsComponent } from '../components/windows/settings/settings.component';
+import { WindowManagerService } from '../../services/window-manager.service';
+import { Window } from '../../interfaces/window.interface';
 
 @Component({
   selector: 'app-window',

@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { WindowManagerService } from '../../services/window-manager.service';
-import { WindowComponent } from '../../window/window.component';
 import { Window } from '../../interfaces/window.interface';
 import { DesktopApplicationComponent } from '../desktop-application/desktop-application.component';
 import { SettingsService } from '../../services/settings.service';
 import { AppSettings } from '../../interfaces/settings.interface';
+import { WindowComponent } from '../window/window.component';
 
 @Component({
   selector: 'app-desktop',
