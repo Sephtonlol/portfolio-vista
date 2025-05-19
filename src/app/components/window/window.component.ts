@@ -229,6 +229,50 @@ export class WindowComponent implements AfterViewInit {
         },
       });
 
+    setTimeout(() => {
+      const step = 30;
+      let x = this.lastPosition.x;
+      let y = this.lastPosition.y;
+
+      let isOnTop: boolean;
+      do {
+        isOnTop = false;
+
+        const allWindows = Array.from(
+          document.querySelectorAll('.window')
+        ) as HTMLElement[];
+
+        for (const win of allWindows) {
+          if (win === this.windowEl) continue;
+
+          const style = window.getComputedStyle(win);
+          const transform = style.transform;
+          let otherX = 100,
+            otherY = 50;
+          if (transform && transform !== 'none') {
+            const match = transform.match(/matrix.*\((.+)\)/);
+            if (match) {
+              const values = match[1].split(', ');
+              otherX = parseFloat(values[4]);
+              otherY = parseFloat(values[5]);
+            }
+          }
+
+          if (otherX === x && otherY === y) {
+            isOnTop = true;
+            x += step;
+            y += step;
+            break;
+          }
+        }
+      } while (isOnTop);
+
+      this.windowEl.style.transform = `translate(${x}px, ${y}px)`;
+      this.windowEl.setAttribute('data-x', x.toString());
+      this.windowEl.setAttribute('data-y', y.toString());
+      this.saveLast();
+    }, 250);
+
     this.windowManagerService.focusWindow(this.id || '', true);
   }
 
