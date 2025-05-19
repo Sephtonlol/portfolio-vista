@@ -25,18 +25,59 @@
     </div>
   </div>
 
-  <div class="applications" [class.search]="searchQuery">
-    @if (searchQuery) {
-    <span>Search Results</span>
-    @if(filteredFiles.length < 1 && filteredApplications.length < 1){
-    <span class="sub-header">No results found for '{{ searchQuery }}'</span>
-    }
-    <div class="applications">
-      @if(filteredApplications.length > 0){
-      <span class="sub-header">Applications</span>
+  <div class="applications main-applications" [class.search]="searchQuery">
+    <div class="applications-outer-inner">
+      @if (searchQuery) {
+      <span>Search Results</span>
+      @if(filteredFiles.length < 1 && filteredApplications.length < 1){
+      <span class="sub-header">No results found for '{{ searchQuery }}'</span>
       }
-      <div class="search-inner">
-        @for (application of filteredApplications; track $index) {
+      <div class="applications">
+        @if(filteredApplications.length > 0){
+        <span class="sub-header">Applications</span>
+        }
+        <div class="search-inner">
+          @for (application of filteredApplications; track $index) {
+          <div
+            class="application"
+            (click)="newWindow(application.application, application.icon)"
+          >
+            <i class="bi {{ application.icon }}"></i>
+            <p>{{ application.application }}</p>
+          </div>
+          }
+        </div>
+        @if(filteredFiles.length> 0){
+        <span class="sub-header">Files</span>
+        }
+        <div class="search-inner">
+          @for (file of filteredFiles; track $index) {
+          <div class="application" (click)="openFile(file)">
+            @if(file.type === "shortcut"){
+            <i class="bi bi-arrow-up-right-square-fill shortcut"></i>
+            }
+            <i class="bi {{ getFileIcon(file.type) }}"></i>
+            @if(file.type !== "directory" && file.type !== "shortcut"){
+            <div class="application-inner">
+              <p>{{ file.name }}.{{ file.type }}</p>
+              <span> {{ file.path }}.{{ file.type }} </span>
+            </div>
+            }@else {
+            <div class="application-inner">
+              <p>{{ file.name }}</p>
+              <span>
+                {{ file.path }}
+              </span>
+            </div>
+            }
+          </div>
+          }
+        </div>
+      </div>
+      } @else {
+      <span>Applications</span>
+      <div class="applications-inner">
+        @for (application of applications; track $index) {
         <div
           class="application"
           (click)="newWindow(application.application, application.icon)"
@@ -46,46 +87,15 @@
         </div>
         }
       </div>
-      @if(filteredFiles.length> 0){
-      <span class="sub-header">Files</span>
-      }
-      <div class="search-inner">
-        @for (file of filteredFiles; track $index) {
-        <div class="application" (click)="openFile(file)">
-          @if(file.type === "shortcut"){
-          <i class="bi bi-arrow-up-right-square-fill shortcut"></i>
-          }
-          <i class="bi {{ getFileIcon(file.type) }}"></i>
-          @if(file.type !== "directory" && file.type !== "shortcut"){
-          <div class="application-inner">
-            <p>{{ file.name }}.{{ file.type }}</p>
-            <span> {{ file.path }}.{{ file.type }} </span>
-          </div>
-          }@else {
-          <div class="application-inner">
-            <p>{{ file.name }}</p>
-            <span>
-              {{ file.path }}
-            </span>
-          </div>
-          }
-        </div>
-        }
-      </div>
-    </div>
-    } @else {
-    <span>Applications</span>
-    <div class="applications-inner">
-      @for (application of applications; track $index) {
-      <div
-        class="application"
-        (click)="newWindow(application.application, application.icon)"
-      >
-        <i class="bi {{ application.icon }}"></i>
-        <p>{{ application.application }}</p>
-      </div>
       }
     </div>
-    }
+    <input
+      #searchInput
+      class="search-bar"
+      type="text"
+      placeholder="Search..."
+      (ngModelChange)="onSearchQueryChange($event)"
+      [(ngModel)]="searchQuery"
+    />
   </div>
 </div>

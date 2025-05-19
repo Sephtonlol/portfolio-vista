@@ -134,3 +134,43 @@ i {
 .search-bar:focus {
   outline: none;
 }
+
+@media (max-width: 992px) {
+  .taskbar-inner,
+  .applications {
+    flex-direction: column-reverse;
+  }
+  .taskbar-inner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: min-content;
+    height: 100%;
+    padding: 0.2rem;
+    border-top: none;
+    border-right: 2px solid var(--hover-color);
+  }
+  .taskbar-popup {
+    height: fit-content;
+    bottom: 0;
+    left: 2rem;
+    transform: translate(0, -0.5rem);
+  }
+  .show-taskbar-popup {
+    left: 4rem;
+  }
+  .search-bar,
+  .date {
+    display: none;
+  }
+  .start-menu {
+    bottom: 0;
+    left: 0;
+  }
+  .show-start-menu {
+    left: 56.8px;
+  }
+  app-start-menu {
+    max-width: calc(100% - 56.8px);
+  }
+}

@@ -1,9 +1,16 @@
 :host {
-  height: calc(100vh - 3.5rem);
+  height: calc(100dvh - 3.5rem);
 }
 .desktop-background {
-  height: 100%;
+  height: calc(100dvh - 3.5rem);
   width: 100%;
   background-position: center;
   position: absolute;
+}
+@media (max-width: 992px) {
+  .desktop-background {
+    right: 0;
+    height: 100dvh;
+    width: calc(100% - 56.8px);
+  }
 }

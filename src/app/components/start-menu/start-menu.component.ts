@@ -15,11 +15,13 @@ import { WindowManagerService } from '../../services/window-manager.service';
 import portfolio from '../../../data/data.json';
 import { FileNode } from '../../interfaces/file.interface';
 import { ShutDownService } from '../../services/shut-down.service';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-start-menu',
   templateUrl: './start-menu.component.html',
   styleUrls: ['./start-menu.component.css'],
+  imports: [FormsModule],
 })
 export class StartMenuComponent implements OnInit, OnDestroy {
   @Input() searchQuery: string = '';
@@ -67,6 +69,20 @@ export class StartMenuComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.globalClickUnlistener) {
       this.globalClickUnlistener();
+    }
+  }
+
+  onSearchQueryChange(value: string) {
+    this.searchQuery = value;
+    const query = value.trim().toLowerCase();
+    if (query !== '') {
+      this.filteredApplications = this.applications.filter((app) =>
+        app.application.toLowerCase().includes(query)
+      );
+      this.filteredFiles = this.searchFiles(this.fileTree, query);
+    } else {
+      this.filteredApplications = [];
+      this.filteredFiles = [];
     }
   }
 
