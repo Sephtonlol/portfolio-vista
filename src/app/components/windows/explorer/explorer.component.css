@@ -53,7 +53,7 @@ input:focus {
   display: flex;
   align-items: center;
   user-select: none;
-  transition: background-color 0.2s ease;
+  transition: background-color var(--primary-transition) ease;
   border-radius: 6px;
   padding: 0.1rem;
   i {

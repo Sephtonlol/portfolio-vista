@@ -35,7 +35,7 @@ span {
   display: flex;
   flex-direction: column;
   height: 100%;
-  transition: all 0.2s;
+  transition: all var(--primary-transition);
   min-width: 200px;
   overflow-y: auto;
 }
@@ -63,7 +63,7 @@ span {
   position: relative;
   padding: 0 0.2rem 0 0.1rem;
   border-radius: 6px;
-  transition: background-color 0.1s ease;
+  transition: background-color var(--secondary-transition) ease;
   display: flex;
   align-items: center;
   i {
@@ -105,7 +105,7 @@ span {
   opacity: 0;
   pointer-events: none;
   transform: translateY(15%);
-  transition: all 0.2s ease;
+  transition: all var(--primary-transition) ease;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
   z-index: 1;
 }
@@ -121,7 +121,7 @@ span {
   cursor: pointer;
   padding: 0.2rem;
   border-radius: 6px;
-  transition: all 0.2s ease;
+  transition: all var(--primary-transition) ease;
 
   i {
     font-size: 1rem;

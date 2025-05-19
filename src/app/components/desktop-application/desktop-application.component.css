@@ -7,7 +7,7 @@
   cursor: pointer;
   border-radius: 6px;
   margin: 0.2rem;
-  transition: all 0.2s ease;
+  transition: all var(--primary-transition) ease;
   user-select: none;
 }
 .application:hover {
