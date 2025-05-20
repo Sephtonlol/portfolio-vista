@@ -84,7 +84,7 @@ export class SettingsService {
         root.style.setProperty('--secondary-color', '#212123');
         root.style.setProperty('--hover-color', '#ffffff0b');
         root.style.setProperty('--text-color', '#fff');
-        root.style.setProperty('--terminal-color', '#0c0c0c');
+        root.style.setProperty('--terminal-color', '#fff');
         break;
     }
   }

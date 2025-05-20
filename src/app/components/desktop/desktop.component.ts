@@ -16,10 +16,12 @@ export class DesktopComponent {
   windows: Window[] = [];
   settings: AppSettings | null = null;
 
+  linkedinOpened = false
+
   constructor(
     private windowManagerService: WindowManagerService,
     private settingsService: SettingsService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.windowManagerService.windows$.subscribe((windows) => {
@@ -29,5 +31,11 @@ export class DesktopComponent {
     this.settingsService.settings$.subscribe((settings) => {
       this.settings = settings;
     });
+  }
+
+  openLinkedin() {
+    this.linkedinOpened = true;
+    const linkedinUrl = 'https://www.linkedin.com/in/alexander-wu-b63038241/';
+    window.open(linkedinUrl, '_blank');
   }
 }

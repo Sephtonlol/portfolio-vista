@@ -22,4 +22,10 @@
   <app-desktop-application
     [application]="{ application: 'Recycle bin', icon: 'bi-trash3' }"
   />
+  @if(!linkedinOpened){
+  <div class="activate-linkedin" (click)="openLinkedin()">
+    <p class="header">Connection required</p>
+    <p>Click here to connect to network</p>
+  </div>
+  }
 </div>
