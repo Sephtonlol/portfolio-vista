@@ -14,7 +14,10 @@ export class DesktopApplicationComponent implements AfterViewInit {
   @Input() initialPosition: { x: number; y: number } = { x: 0, y: 0 };
   shouldAnimate = true;
   private gridSize = 80;
-  constructor(private elRef: ElementRef, private windowManagerService: WindowManagerService) { }
+  constructor(
+    private elRef: ElementRef,
+    private windowManagerService: WindowManagerService
+  ) {}
 
   ngAfterViewInit() {
     const application = this.elRef.nativeElement.querySelector('.application');
@@ -86,8 +89,10 @@ export class DesktopApplicationComponent implements AfterViewInit {
                 for (const sibling of allApplications) {
                   if (sibling === application) continue; // Exclude the current application
 
-                  const siblingX = parseFloat(sibling.getAttribute('data-x')!) || 0;
-                  const siblingY = parseFloat(sibling.getAttribute('data-y')!) || 0;
+                  const siblingX =
+                    parseFloat(sibling.getAttribute('data-x')!) ?? '0';
+                  const siblingY =
+                    parseFloat(sibling.getAttribute('data-y')!) ?? '0';
 
                   if (siblingX === x && siblingY === y) {
                     isOverlapping = true;
@@ -104,7 +109,9 @@ export class DesktopApplicationComponent implements AfterViewInit {
 
                 iterationCount++;
                 if (iterationCount > maxIterations) {
-                  console.error('Failed to resolve overlap after maximum attempts.');
+                  console.error(
+                    'Failed to resolve overlap after maximum attempts.'
+                  );
                   break; // Exit the loop if the maximum number of iterations is reached
                 }
               } while (isOverlapping);
@@ -120,7 +127,7 @@ export class DesktopApplicationComponent implements AfterViewInit {
   }
 
   clickAction() {
-    if (this.application.type === "shortcut") {
+    if (this.application.type === 'shortcut') {
       this.windowManagerService.addWindow({
         application: 'Explorer',
         icon: 'bi-folder',

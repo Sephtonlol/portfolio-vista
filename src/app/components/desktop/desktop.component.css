@@ -8,6 +8,7 @@
   position: absolute;
 }
 .activate-linkedin {
+  cursor: pointer;
   position: absolute;
   bottom: 0;
   right: 0;

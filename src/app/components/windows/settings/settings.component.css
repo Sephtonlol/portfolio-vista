@@ -57,3 +57,8 @@ button,
 .upload-button {
   text-align: center;
 }
+.btn-danger {
+  height: 32px;
+  display: flex;
+  align-items: center;
+}

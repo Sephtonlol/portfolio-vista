@@ -7,7 +7,7 @@
   flex-direction: column;
   align-items: center;
   width: fit-content;
-  padding: 0 0.75rem 0.2rem 0.75rem;
+  padding: 0 0.75rem 0.25rem 0.75rem;
   cursor: pointer;
   border-radius: 6px;
   margin: 0.2rem;
@@ -35,9 +35,9 @@ i:hover {
   position: absolute;
   font-size: 1.2rem;
   bottom: 14px;
-  left: 16px;
+  left: 13px;
 }
 span {
   position: absolute;
-  bottom: -5px;
+  bottom: -6px;
 }

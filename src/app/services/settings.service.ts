@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { AppSettings } from '../interfaces/settings.interface';
 
+const SETTINGS_KEY = 'app_settings';
+
 @Injectable({ providedIn: 'root' })
 export class SettingsService {
   private defaultSettings: AppSettings = {
@@ -11,32 +13,49 @@ export class SettingsService {
     backgroundFit: 'cover',
   };
 
-  private settingsSubject = new BehaviorSubject<AppSettings>(
-    this.defaultSettings
-  );
-  settings$ = this.settingsSubject.asObservable();
+  private settingsSubject: BehaviorSubject<AppSettings>;
+  settings$: ReturnType<BehaviorSubject<AppSettings>['asObservable']>;
+
+  constructor() {
+    const saved = localStorage.getItem(SETTINGS_KEY);
+    const initial = saved
+      ? { ...this.defaultSettings, ...JSON.parse(saved) }
+      : this.defaultSettings;
+    this.settingsSubject = new BehaviorSubject<AppSettings>(initial);
+    this.settings$ = this.settingsSubject.asObservable();
+
+    this.applyTheme(initial.theme);
+    this.applyAnimations(initial.animations);
+  }
+
+  private saveSettings(settings: AppSettings) {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  }
 
   updateImage(image: string | ArrayBuffer | null) {
     const current = this.settingsSubject.value;
-    this.settingsSubject.next({ ...current, backgroundImage: image });
+    const updated = { ...current, backgroundImage: image };
+    this.settingsSubject.next(updated);
+    this.saveSettings(updated);
   }
 
   setBackgroundFit(fit: AppSettings['backgroundFit']) {
     const current = this.settingsSubject.value;
-    this.settingsSubject.next({ ...current, backgroundFit: fit });
+    const updated = { ...current, backgroundFit: fit };
+    this.settingsSubject.next(updated);
+    this.saveSettings(updated);
   }
 
   setTheme(theme: string) {
     const current = this.settingsSubject.value;
-    this.settingsSubject.next({
-      ...current,
-      theme,
-    });
+    const updated = { ...current, theme };
+    this.settingsSubject.next(updated);
+    this.saveSettings(updated);
     this.applyTheme(theme);
   }
+
   private applyTheme(theme: string) {
     const root = document.documentElement;
-
     switch (theme) {
       case 'light':
         root.style.setProperty('--background-color', '#f2f2f2');
@@ -91,12 +110,15 @@ export class SettingsService {
 
   toggleAnimations() {
     const current = this.settingsSubject.value;
-    this.settingsSubject.next({
-      ...current,
-      animations: !current.animations,
-    });
+    const updated = { ...current, animations: !current.animations };
+    this.settingsSubject.next(updated);
+    this.saveSettings(updated);
+    this.applyAnimations(updated.animations);
+  }
+
+  private applyAnimations(animations: boolean) {
     const root = document.documentElement;
-    if (!current.animations) {
+    if (animations) {
       root.style.setProperty('--primary-transition', '0.2s');
       root.style.setProperty('--secondary-transition', '0.1s');
       root.style.setProperty('--tertiary-transition', '0.5s');
@@ -109,5 +131,8 @@ export class SettingsService {
 
   resetSettings() {
     this.settingsSubject.next(this.defaultSettings);
+    this.saveSettings(this.defaultSettings);
+    this.applyTheme(this.defaultSettings.theme);
+    this.applyAnimations(this.defaultSettings.animations);
   }
 }
