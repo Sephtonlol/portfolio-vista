@@ -93,9 +93,15 @@ export class WindowComponent implements AfterViewInit {
 
         if (focused && focused.unminimize) {
           if (this.isMaximized) {
+            this.screenWidth = window.innerWidth;
             this.windowEl.style.transform = `translate(0px, 0px) scale(1, 1)`;
-            this.windowEl.style.width = '100vw';
-            this.windowEl.style.height = 'calc(100vh - 3.5rem)';
+            if (this.screenWidth < 992) {
+              this.windowEl.style.width = `calc(100vw - 55.2px)`;
+              this.windowEl.style.height = `100dvh`;
+            } else {
+              this.windowEl.style.width = '100vw';
+              this.windowEl.style.height = 'calc(100dvh - 3.5rem)';
+            }
           } else {
             this.applyLast();
           }
@@ -274,6 +280,28 @@ export class WindowComponent implements AfterViewInit {
     }, 250);
 
     this.windowManagerService.focusWindow(this.id || '', true);
+    setTimeout(() => {
+      this.handleResponsiveMaximize();
+    }, 250);
+
+    window.addEventListener('resize', this.handleResponsiveMaximize.bind(this));
+  }
+
+  handleResponsiveMaximize() {
+    this.screenWidth = window.innerWidth;
+    if (this.screenWidth < 992) {
+      if (!this.isMaximized) {
+        this.maximizeWindow(false);
+        interact(this.windowEl).draggable({ enabled: false });
+        interact(this.windowEl).resizable({ enabled: false });
+      }
+    } else {
+      if (this.isMaximized) {
+        this.unmaximizeWindow();
+      }
+      interact(this.windowEl).draggable({ enabled: true });
+      interact(this.windowEl).resizable({ enabled: true });
+    }
   }
 
   get currentZIndex() {
@@ -288,9 +316,15 @@ export class WindowComponent implements AfterViewInit {
     if (saveLast) this.saveLast();
     interact(this.windowEl).resizable({ enabled: false });
     this.windowEl.style.transform = `translate(0px, 0px)`;
-    this.windowEl.style.width = '100vw';
-    this.windowEl.style.height = 'calc(100vh - 3.5rem)';
+    if (window.innerWidth < 992) {
+      this.windowEl.style.width = `calc(100vw - 55.2px)`;
+      this.windowEl.style.height = `100dvh`;
+    } else {
+      this.windowEl.style.width = '100vw';
+      this.windowEl.style.height = 'calc(100dvh - 3.5rem)';
+    }
     this.isMaximized = true;
+    this.cdr.detectChanges();
   }
 
   unmaximizeWindow() {
@@ -298,6 +332,7 @@ export class WindowComponent implements AfterViewInit {
     interact(this.windowEl).draggable(true);
     interact(this.windowEl).resizable({ enabled: true });
     this.isMaximized = false;
+    this.cdr.detectChanges();
   }
 
   snapWindow() {

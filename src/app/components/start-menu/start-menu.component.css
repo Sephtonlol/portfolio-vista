@@ -165,8 +165,10 @@ span {
   justify-content: space-between;
 }
 @media (max-width: 992px) {
-  .main-container {
+  .main-container,
+  .main-container.search {
     height: 400px;
+    max-height: 100dvh;
   }
   .applications.search {
     min-width: 100px;

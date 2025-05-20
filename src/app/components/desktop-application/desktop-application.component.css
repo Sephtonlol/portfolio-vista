@@ -7,7 +7,7 @@
   flex-direction: column;
   align-items: center;
   width: fit-content;
-  padding: 0 0.75rem 0.25rem 0.75rem;
+  padding: 0.8rem;
   cursor: pointer;
   border-radius: 6px;
   margin: 0.2rem;
@@ -24,6 +24,11 @@ span {
 }
 i {
   font-size: 3rem;
+  height: 48px;
+  display: flex;
+}
+i::before {
+  align-self: center;
 }
 i:hover {
   background-color: #00000000;
@@ -34,10 +39,10 @@ i:hover {
 .shortcut {
   position: absolute;
   font-size: 1.2rem;
-  bottom: 14px;
+  bottom: 3px;
   left: 13px;
 }
 span {
   position: absolute;
-  bottom: -6px;
+  bottom: -25px;
 }

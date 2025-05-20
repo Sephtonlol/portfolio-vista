@@ -9,6 +9,7 @@ export class CalculatorComponent {
   display = '';
   topDisplay = '';
   history: string[] = [];
+  showHistory = false;
 
   private current = '';
   private previous = '';
@@ -66,6 +67,9 @@ export class CalculatorComponent {
 
   clearHistory() {
     this.history = [];
+  }
+  toggleHistory() {
+    this.showHistory = !this.showHistory;
   }
 
   calc() {

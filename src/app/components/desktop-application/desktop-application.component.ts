@@ -13,7 +13,7 @@ export class DesktopApplicationComponent implements AfterViewInit {
   @Input() application!: FileNode;
   @Input() initialPosition: { x: number; y: number } = { x: 0, y: 0 };
   shouldAnimate = true;
-  private gridSize = 80;
+  private gridSize = 100;
   constructor(
     private elRef: ElementRef,
     private windowManagerService: WindowManagerService
@@ -66,18 +66,17 @@ export class DesktopApplicationComponent implements AfterViewInit {
               if (y > screenHeight - application.offsetHeight)
                 y = screenHeight - application.offsetHeight - 56;
 
-              // Check for overlap with sibling components
               const step = this.gridSize;
               let isOverlapping: boolean;
               const directions = [
-                { dx: 0, dy: step }, // Down
-                { dx: step, dy: 0 }, // Right
-                { dx: -step, dy: 0 }, // Left
-                { dx: 0, dy: -step }, // Up
+                { dx: 0, dy: step },
+                { dx: step, dy: 0 },
+                { dx: -step, dy: 0 },
+                { dx: 0, dy: -step },
               ];
               let directionIndex = 0;
-              let iterationCount = 0; // Safeguard to prevent infinite loop
-              const maxIterations = 100; // Maximum number of attempts to resolve overlap
+              let iterationCount = 0;
+              const maxIterations = 100;
 
               do {
                 isOverlapping = false;
@@ -87,7 +86,7 @@ export class DesktopApplicationComponent implements AfterViewInit {
                 ) as HTMLElement[];
 
                 for (const sibling of allApplications) {
-                  if (sibling === application) continue; // Exclude the current application
+                  if (sibling === application) continue;
 
                   const siblingX =
                     parseFloat(sibling.getAttribute('data-x')!) ?? '0';
@@ -97,12 +96,11 @@ export class DesktopApplicationComponent implements AfterViewInit {
                   if (siblingX === x && siblingY === y) {
                     isOverlapping = true;
 
-                    // Try the next direction
                     const direction = directions[directionIndex];
                     x += direction.dx;
                     y += direction.dy;
 
-                    directionIndex = (directionIndex + 1) % directions.length; // Cycle through directions
+                    directionIndex = (directionIndex + 1) % directions.length;
                     break;
                   }
                 }
@@ -112,7 +110,7 @@ export class DesktopApplicationComponent implements AfterViewInit {
                   console.error(
                     'Failed to resolve overlap after maximum attempts.'
                   );
-                  break; // Exit the loop if the maximum number of iterations is reached
+                  break;
                 }
               } while (isOverlapping);
 

@@ -104,3 +104,8 @@ i {
   align-items: center;
   animation: scaleIn 200ms ease-out;
 }
+@media (max-width: 992px) {
+  .maximize {
+    display: none !important;
+  }
+}

@@ -17,7 +17,7 @@
     <div class="window-controls">
       <i class="bi bi-dash" (click)="minimizeWindow()"></i>
       <i
-        class="{{ isMaximized ? 'bi-fullscreen-exit' : 'bi-square' }}"
+        class="{{ isMaximized ? 'bi-fullscreen-exit' : 'bi-square' }} maximize"
         (click)="isMaximized ? unmaximizeWindow() : maximizeWindow()"
       ></i>
       <i class="bi bi-x" (click)="closeWindow()"></i>
