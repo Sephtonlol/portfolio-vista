@@ -4,6 +4,7 @@ import {
   Component,
   ElementRef,
   Input,
+  OnInit,
   ViewChild,
 } from '@angular/core';
 import interact from 'interactjs';
@@ -33,7 +34,7 @@ import { Window } from '../../interfaces/window.interface';
   templateUrl: './window.component.html',
   styleUrl: './window.component.css',
 })
-export class WindowComponent implements AfterViewInit {
+export class WindowComponent implements AfterViewInit, OnInit {
   @ViewChild('windowContent') container!: ElementRef;
   @Input() windowData!: Window;
   @Input() id!: string | undefined;
@@ -68,6 +69,11 @@ export class WindowComponent implements AfterViewInit {
     private windowManagerService: WindowManagerService,
     private cdr: ChangeDetectorRef
   ) {}
+  ngOnInit(): void {
+    if (window.innerWidth < 992) {
+      this.lastPosition = { x: 0, y: 0 };
+    }
+  }
 
   ngAfterViewInit() {
     this.screenWidth = window.innerWidth;
@@ -75,12 +81,19 @@ export class WindowComponent implements AfterViewInit {
     this.windowEl = this.el.nativeElement.querySelector(`.window-${this.id}`);
     const size =
       this.windowData.application === 'Calculator'
-        ? (this.minimumSize = this.lastSize = { width: 375, height: 400 })
+        ? (this.minimumSize = this.lastSize = { width: 350, height: 400 })
         : this.initialSize;
 
     setTimeout(() => {
-      this.windowEl.style.width = `${size.width}px`;
-      this.windowEl.style.height = `${size.height}px`;
+      if (window.innerWidth < 992) {
+        this.lastPosition = { x: 0, y: 0 };
+
+        this.windowEl.style.width = 'calc(100vw - 55.2px)';
+        this.windowEl.style.height = '100dvh';
+      } else {
+        this.windowEl.style.width = `${size.width}px`;
+        this.windowEl.style.height = `${size.height}px`;
+      }
     }, 0);
 
     this.focusSub = this.windowManagerService.focus$.subscribe((focused) => {

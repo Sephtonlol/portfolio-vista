@@ -102,10 +102,17 @@ i {
 
 .animate-in {
   align-items: center;
-  animation: scaleIn 200ms ease-out;
+  animation: scaleIn var(--primary-transition) ease-out;
 }
 @media (max-width: 992px) {
+  .window {
+    transform: translate(0px, 0px);
+  }
   .maximize {
     display: none !important;
+  }
+  .animate-in {
+    align-items: center;
+    animation: none;
   }
 }
