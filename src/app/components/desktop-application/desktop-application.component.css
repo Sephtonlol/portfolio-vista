@@ -1,14 +1,19 @@
+:host {
+  width: 0;
+  height: 0;
+}
 .application {
   display: flex;
   flex-direction: column;
   align-items: center;
   width: fit-content;
-  padding: 0.15rem;
+  padding: 0 0.75rem 0.2rem 0.75rem;
   cursor: pointer;
   border-radius: 6px;
   margin: 0.2rem;
   transition: all var(--primary-transition) ease;
   user-select: none;
+  position: relative;
 }
 .application:hover {
   background-color: var(--hover-color);
@@ -25,4 +30,14 @@ i:hover {
 }
 .no-transition {
   transition: none !important;
+}
+.shortcut {
+  position: absolute;
+  font-size: 1.2rem;
+  bottom: 14px;
+  left: 16px;
+}
+span {
+  position: absolute;
+  bottom: -5px;
 }

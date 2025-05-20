@@ -1,6 +1,15 @@
-<div class="application" [class.no-transition]="!shouldAnimate">
-  <i class="bi {{ application.icon }}"></i>
+<div
+  class="application"
+  [class.no-transition]="!shouldAnimate"
+  (dblclick)="clickAction()"
+>
+  @if(application.type === "shortcut"){
+  <i class="bi bi-folder"></i>
+  <i class="bi bi-arrow-up-right-square-fill shortcut"></i>
+  }@else {
+  <i class="bi bi-{{ application.name.toLocaleLowerCase() }}"></i>
+  }
   <span>
-    {{ application.application }}
+    {{ application.name }}
   </span>
 </div>

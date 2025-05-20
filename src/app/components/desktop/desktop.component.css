@@ -22,6 +22,9 @@
 .header {
   font-size: 1.2rem;
 }
+app-desktop-application {
+  position: absolute;
+}
 @media (max-width: 992px) {
   .desktop-background {
     right: 0;

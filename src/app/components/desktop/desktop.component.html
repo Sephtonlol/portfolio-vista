@@ -20,7 +20,16 @@
   <app-window [windowData]="window" [id]="window.id" />
   }
   <app-desktop-application
-    [application]="{ application: 'Recycle bin', icon: 'bi-trash3' }"
+    [application]="{ name: 'aboutMe', type: 'shortcut', content: '/aboutMe',  }"
+    [initialPosition]="{ x: 0, y: 0 }"
+  />
+  <app-desktop-application
+    [application]="{ name: 'Github', type: 'url', content: 'https://github.com/Sephtonlol/',  }"
+    [initialPosition]="{ x: 0, y: 1 }"
+  />
+  <app-desktop-application
+    [application]="{ name: 'Linkedin', type: 'url', content: 'https://www.linkedin.com/in/alexander-wu-b63038241/',  }"
+    [initialPosition]="{ x: 0, y: 2 }"
   />
   @if(!linkedinOpened){
   <div class="activate-linkedin" (click)="openLinkedin()">

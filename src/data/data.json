@@ -3,6 +3,32 @@
   "type": "directory",
   "children": [
     {
+      "name": "aboutMe",
+      "type": "directory",
+      "children": [
+        {
+          "name": "aboutme",
+          "type": "md",
+          "content": "Hello! I am a software developer passionate about creating impactful projects."
+        },
+        {
+          "name": "Contact",
+          "type": "md",
+          "content": "Mobile: +31687627550, Email: Alexander Wu,"
+        },
+        {
+          "name": "picture",
+          "type": "png",
+          "content": "https://brandingforthepeople.com/wp-content/uploads/2019/04/Stock-Photography-vs-Real-Imagery.jpg"
+        },
+        {
+          "name": "technologies",
+          "type": "md",
+          "content": "Technologies I use: JavaScript, React, Node.js, Python, Docker, and more."
+        }
+      ]
+    },
+    {
       "name": "workProcesses",
       "type": "directory",
       "children": [
