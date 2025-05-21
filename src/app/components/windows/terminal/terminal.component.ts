@@ -25,11 +25,14 @@ export class TerminalComponent implements OnInit {
   commandHistory: string[] = [];
   historyIndex: number = -1;
 
-  constructor(private windowManagerService: WindowManagerService) {}
+  mobile = false
+
+  constructor(private windowManagerService: WindowManagerService) { }
 
   ngOnInit(): void {
     if (this.data && this.data['content'])
       this.currentPath = this.data['content'].split('/');
+    this.mobile = window.innerWidth < 922;
   }
 
   get currentDir(): FileNode {
@@ -55,8 +58,7 @@ export class TerminalComponent implements OnInit {
     this.historyIndex = this.commandHistory.length;
 
     this.output.push(
-      `portfolio@user:~${
-        this.currentPath.length ? '/' + this.currentPath.join('/') : ''
+      `portfolio@user:~${this.currentPath.length ? '/' + this.currentPath.join('/') : ''
       }$ ${input}`
     );
 

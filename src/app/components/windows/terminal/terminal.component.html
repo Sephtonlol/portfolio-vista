@@ -16,6 +16,6 @@
     (keydown.enter)="handleCommand()"
     (keydown)="handleKey($event)"
     type="text"
-    autofocus
+    [autofocus]="!mobile"
   />
 </div>
