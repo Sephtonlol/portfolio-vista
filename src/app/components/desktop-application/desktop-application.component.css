@@ -59,6 +59,7 @@ i:hover {
   border-radius: 6px;
   opacity: 0;
   transition: all var(--primary-transition);
+  pointer-events: none;
   span {
     user-select: none;
     padding: 0.4rem;
@@ -71,6 +72,7 @@ i:hover {
   }
 }
 .show-context-menu {
+  pointer-events: all;
   opacity: 1;
   transform: translate(0, -50%);
 }
