@@ -21,7 +21,7 @@ export class ExplorerComponent implements OnInit {
 
   viewList = true;
 
-  constructor(private windowManagerService: WindowManagerService) {}
+  constructor(private windowManagerService: WindowManagerService) { }
 
   ngOnInit(): void {
     this.pathInput =
@@ -88,7 +88,6 @@ export class ExplorerComponent implements OnInit {
             type: 'image',
           },
         });
-        console.log(this.pathInput);
         break;
       case 'mp4':
       case 'mp3':

@@ -21,7 +21,6 @@ export class PhotosComponent {
     const fullPath = this.data.content;
 
     if (fullPath.startsWith('http')) {
-      console.log('Content is a URL, skipping folder path extraction');
       this.images = [{ name: 'image', url: fullPath }];
       return;
     }
@@ -66,7 +65,6 @@ export class PhotosComponent {
       );
 
       if (!next) {
-        console.log('Invalid path part:', part);
         return null;
       }
       node = next;

@@ -80,7 +80,6 @@ export class PlayerComponent {
         (child: any) => child.name === part && child.type === 'directory'
       );
       if (!next) {
-        console.log('Invalid path part:', part);
         return null;
       }
       node = next;

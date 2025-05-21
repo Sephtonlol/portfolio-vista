@@ -165,8 +165,10 @@ export class WindowComponent implements AfterViewInit, OnInit {
               this.isSnapped = false;
 
               this.unmaximizeWindow();
-              const x = event.client.x - this.lastSize.width / 2;
+              let x = event.client.x - this.lastSize.width / 2;
               const y = event.client.y - 15;
+              if (window.innerWidth < 992)
+                x = event.client.x - this.lastSize.width / 2 - 56;
 
               target.style.transform = `translate(${x}px, ${y}px)`;
               target.setAttribute('data-x', x.toString());
@@ -204,7 +206,6 @@ export class WindowComponent implements AfterViewInit, OnInit {
               !this.isRightSnap;
           },
           end: (event) => {
-            this.saveLast();
             dragStarted = false;
             setTimeout(() => {
               this.shouldAnimate = true;
@@ -368,7 +369,6 @@ export class WindowComponent implements AfterViewInit, OnInit {
   }
 
   snapWindow() {
-    this.saveLast();
     this.isSnapped = true;
 
     switch (true) {
@@ -384,7 +384,6 @@ export class WindowComponent implements AfterViewInit, OnInit {
         this.windowEl.setAttribute('data-y', '0.1');
         break;
       case this.isRightSnap:
-        console.log(window.innerWidth)
         if (window.innerWidth < 992) {
           this.windowEl.style.transform = `translate(calc(50vw - 29px), 0px)`;
           this.windowEl.style.height = '100vh';
@@ -403,6 +402,7 @@ export class WindowComponent implements AfterViewInit, OnInit {
         console.error('Failed to snap window.');
         break;
     }
+    this.saveLast();
   }
 
   closeWindow() {
@@ -433,7 +433,10 @@ export class WindowComponent implements AfterViewInit, OnInit {
 
   applyLast() {
     if (this.lastPosition.y < 0) this.lastPosition.y = 0;
-    this.windowEl.style.transform = `translate(${this.lastPosition.x}px, ${this.lastPosition.y}px)`;
+    if (window.innerWidth < 992)
+      this.windowEl.style.transform = `translate(calc(${this.lastPosition.x}px - 29px), ${this.lastPosition.y}px)`;
+    else
+      this.windowEl.style.transform = `translate(${this.lastPosition.x}px, ${this.lastPosition.y}px)`;
     this.windowEl.style.width = `${this.lastSize.width}px`;
     this.windowEl.style.height = `${this.lastSize.height}px`;
     this.windowEl.setAttribute('data-x', this.lastPosition.x.toString());
