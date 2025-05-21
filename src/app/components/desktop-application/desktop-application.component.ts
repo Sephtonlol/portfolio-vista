@@ -17,7 +17,7 @@ export class DesktopApplicationComponent implements AfterViewInit {
   constructor(
     private elRef: ElementRef,
     private windowManagerService: WindowManagerService
-  ) {}
+  ) { }
 
   ngAfterViewInit() {
     const application = this.elRef.nativeElement.querySelector('.application');
@@ -61,10 +61,19 @@ export class DesktopApplicationComponent implements AfterViewInit {
               if (x < 0) x = 0;
               if (y < 0) y = 0;
 
-              if (x > screenWidth - application.offsetWidth)
-                x = screenWidth - application.offsetWidth;
-              if (y > screenHeight - application.offsetHeight)
-                y = screenHeight - application.offsetHeight - 56;
+              if (window.innerWidth < 992) {
+                if (x > screenWidth - application.offsetWidth)
+                  x = screenWidth - application.offsetWidth - 56;
+                if (y > screenHeight - application.offsetHeight)
+                  y = screenHeight - application.offsetHeight;
+              } else {
+                if (x > screenWidth - application.offsetWidth)
+                  x = screenWidth - application.offsetWidth;
+                if (y > screenHeight - application.offsetHeight)
+                  y = screenHeight - application.offsetHeight - 56;
+
+
+              }
 
               const step = this.gridSize;
               let isOverlapping: boolean;

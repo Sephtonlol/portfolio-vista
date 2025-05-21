@@ -68,7 +68,7 @@ export class WindowComponent implements AfterViewInit, OnInit {
     private el: ElementRef,
     private windowManagerService: WindowManagerService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
   ngOnInit(): void {
     if (window.innerWidth < 992) {
       this.lastPosition = { x: 0, y: 0 };
@@ -86,7 +86,7 @@ export class WindowComponent implements AfterViewInit, OnInit {
 
     setTimeout(() => {
       if (window.innerWidth < 992) {
-        this.lastPosition = { x: 0, y: 0 };
+        this.lastPosition = { x: 25, y: 25 };
 
         this.windowEl.style.width = 'calc(100vw - 55.2px)';
         this.windowEl.style.height = '100dvh';
@@ -174,10 +174,15 @@ export class WindowComponent implements AfterViewInit, OnInit {
               this.windowEl.style.width = `${this.lastSize.width}px`;
               this.windowEl.style.height = `${this.lastSize.height}px`;
             } else {
-              const x =
+              let x =
                 (parseFloat(target.getAttribute('data-x')!) || 100) + event.dx;
-              const y =
+              let y =
                 (parseFloat(target.getAttribute('data-y')!) || 50) + event.dy;
+
+              if (window.innerWidth < 992) {
+                x = (parseFloat(target.getAttribute('data-x')!) || 0) + event.dx;
+                y = (parseFloat(target.getAttribute('data-y')!) || 0) + event.dy;
+              }
 
               target.style.transform = `translate(${x}px, ${y}px)`;
               target.setAttribute('data-x', x.toString());
@@ -186,7 +191,10 @@ export class WindowComponent implements AfterViewInit, OnInit {
             if (!dragStarted) dragStarted = true;
 
             this.shouldAnimate = false;
-            this.isLeftSnap = event.client.x < this.snapMargin;
+            if (window.innerWidth < 992)
+              this.isLeftSnap = event.client.x < this.snapMargin + 56;
+            else
+              this.isLeftSnap = event.client.x < this.snapMargin;
             this.isRightSnap =
               event.client.x > this.screenWidth - this.snapMargin;
             this.maximizing =
@@ -228,6 +236,10 @@ export class WindowComponent implements AfterViewInit, OnInit {
             const target = event.target;
             let x = parseFloat(target.getAttribute('data-x')!) || 100;
             let y = parseFloat(target.getAttribute('data-y')!) || 50;
+            if (window.innerWidth < 992) {
+              x = 25;
+              y = 25;
+            }
 
             target.style.width = `${event.rect.width}px`;
             target.style.height = `${event.rect.height}px`;
@@ -303,17 +315,24 @@ export class WindowComponent implements AfterViewInit, OnInit {
   handleResponsiveMaximize() {
     this.screenWidth = window.innerWidth;
     if (this.screenWidth < 992) {
-      if (!this.isMaximized) {
+      this.lastPosition = {
+        x: 25,
+        y: 25,
+      };
+      if (this.windowData.application === "Calculator")
+        this.lastSize = {
+          width: 350,
+          height: 400,
+        }; else this.lastSize = {
+          width: 300,
+          height: 300,
+        };
+      if (!this.isMaximized)
         this.maximizeWindow(false);
-        interact(this.windowEl).draggable({ enabled: false });
-        interact(this.windowEl).resizable({ enabled: false });
-      }
+
     } else {
-      if (this.isMaximized) {
+      if (this.isMaximized)
         this.unmaximizeWindow();
-      }
-      interact(this.windowEl).draggable({ enabled: true });
-      interact(this.windowEl).resizable({ enabled: true });
     }
   }
 
@@ -354,16 +373,26 @@ export class WindowComponent implements AfterViewInit, OnInit {
 
     switch (true) {
       case this.isLeftSnap:
+        if (window.innerWidth < 992) {
+          this.windowEl.style.height = '100vh';
+        } else {
+          this.windowEl.style.height = 'calc(100vh - 3.5rem)';
+        }
         this.windowEl.style.transform = `translate(0px, 0px)`;
-        this.windowEl.style.width = '50vw';
-        this.windowEl.style.height = 'calc(100vh - 3.5rem)';
+        this.windowEl.style.width = '50%';
         this.windowEl.setAttribute('data-x', '0.1');
         this.windowEl.setAttribute('data-y', '0.1');
         break;
       case this.isRightSnap:
-        this.windowEl.style.transform = `translate(50vw, 0px)`;
-        this.windowEl.style.width = '50vw';
-        this.windowEl.style.height = 'calc(100vh - 3.5rem)';
+        console.log(window.innerWidth)
+        if (window.innerWidth < 992) {
+          this.windowEl.style.transform = `translate(calc(50vw - 29px), 0px)`;
+          this.windowEl.style.height = '100vh';
+        } else {
+          this.windowEl.style.transform = `translate(50vw, 0px)`;
+          this.windowEl.style.height = 'calc(100vh - 3.5rem)';
+        }
+        this.windowEl.style.width = '50%';
         this.windowEl.setAttribute(
           'data-x',
           (this.screenWidth / 2).toString() + '.1'
@@ -386,10 +415,16 @@ export class WindowComponent implements AfterViewInit, OnInit {
   }
 
   saveLast() {
-    this.lastPosition = {
-      x: parseFloat(this.windowEl.getAttribute('data-x')!) || 100,
-      y: parseFloat(this.windowEl.getAttribute('data-y')!) || 50,
-    };
+    if (window.innerWidth < 992)
+      this.lastPosition = {
+        x: parseFloat(this.windowEl.getAttribute('data-x')!) || 25,
+        y: parseFloat(this.windowEl.getAttribute('data-y')!) || 25,
+      };
+    else
+      this.lastPosition = {
+        x: parseFloat(this.windowEl.getAttribute('data-x')!) || 200,
+        y: parseFloat(this.windowEl.getAttribute('data-y')!) || 100,
+      };
     this.lastSize = {
       width: this.windowEl.offsetWidth,
       height: this.windowEl.offsetHeight,

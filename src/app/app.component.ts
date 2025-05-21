@@ -21,10 +21,12 @@ export class AppComponent implements OnInit, OnDestroy {
   sleepPointerDelay = false;
   shutDownMessage = '';
 
+  public width = window.innerWidth;
+
   constructor(
     private shutDownService: ShutDownService,
     private windowManagerService: WindowManagerService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.shutDownSubscription = this.shutDownService

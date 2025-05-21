@@ -6,6 +6,7 @@
   width: 100%;
   background-position: center;
   position: absolute;
+  overflow: hidden;
 }
 .activate-linkedin {
   cursor: pointer;

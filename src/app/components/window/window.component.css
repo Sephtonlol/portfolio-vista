@@ -7,6 +7,7 @@
   transition: all var(--primary-transition) ease;
   padding: 0 2px 4.5px 2px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  touch-action: none;
 }
 .focused {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
@@ -108,11 +109,19 @@ i {
   .window {
     transform: translate(0px, 0px);
   }
-  .maximize {
-    display: none !important;
-  }
   .animate-in {
     align-items: center;
     animation: none;
+  }
+  .show-maximizing,
+  .show-left-snap,
+  .show-right-snap {
+    height: calc(100vh - 10px);
+  }
+  .show-maximizing {
+    width: calc(100vw - 56px - 10px);
+  }
+  .show-right-snap {
+    transform: translate(calc(50vw - 5px - 56px), 0);
   }
 }

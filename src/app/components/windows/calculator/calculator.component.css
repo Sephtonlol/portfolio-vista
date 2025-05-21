@@ -63,7 +63,7 @@
   transition: all var(--primary-transition);
 }
 .bi-chevron-left.show-toggle {
-  opacity: 1;
+  opacity: 0.8;
   pointer-events: all;
 }
 .row-4 {

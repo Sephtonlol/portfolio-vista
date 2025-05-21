@@ -17,12 +17,21 @@
 />
 
 <div class="warning" [class.show-warning]="!acceptedWarning">
+  @if(width > 992){
   <p class="main-warning">
-    For the best experience, it's recommended to use fullscreen mode (F11).
+    For the best experience, please use fullscreen mode (F11).
   </p>
-  <p class="sub-warning">Some features or layouts may not work as intended.</p>
+  }@else {
+  <p class="main-warning">
+    For the best experience, please rotate your phone into landscape mode.
+  </p>
+  }
+  <p class="sub-warning">
+    Some features or layouts may not work properly otherwise.
+  </p>
   <button class="btn btn-secondary" (click)="acceptedWarning = true">
     <p>Next</p>
   </button>
 </div>
+
 }
