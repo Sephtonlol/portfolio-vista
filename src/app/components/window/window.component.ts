@@ -68,7 +68,7 @@ export class WindowComponent implements AfterViewInit, OnInit {
     private el: ElementRef,
     private windowManagerService: WindowManagerService,
     private cdr: ChangeDetectorRef
-  ) { }
+  ) {}
   ngOnInit(): void {
     if (window.innerWidth < 992) {
       this.lastPosition = { x: 0, y: 0 };
@@ -182,8 +182,10 @@ export class WindowComponent implements AfterViewInit, OnInit {
                 (parseFloat(target.getAttribute('data-y')!) || 50) + event.dy;
 
               if (window.innerWidth < 992) {
-                x = (parseFloat(target.getAttribute('data-x')!) || 0) + event.dx;
-                y = (parseFloat(target.getAttribute('data-y')!) || 0) + event.dy;
+                x =
+                  (parseFloat(target.getAttribute('data-x')!) || 0) + event.dx;
+                y =
+                  (parseFloat(target.getAttribute('data-y')!) || 0) + event.dy;
               }
 
               target.style.transform = `translate(${x}px, ${y}px)`;
@@ -195,8 +197,7 @@ export class WindowComponent implements AfterViewInit, OnInit {
             this.shouldAnimate = false;
             if (window.innerWidth < 992)
               this.isLeftSnap = event.client.x < this.snapMargin + 56;
-            else
-              this.isLeftSnap = event.client.x < this.snapMargin;
+            else this.isLeftSnap = event.client.x < this.snapMargin;
             this.isRightSnap =
               event.client.x > this.screenWidth - this.snapMargin;
             this.maximizing =
@@ -320,20 +321,19 @@ export class WindowComponent implements AfterViewInit, OnInit {
         x: 25,
         y: 25,
       };
-      if (this.windowData.application === "Calculator")
+      if (this.windowData.application === 'Calculator')
         this.lastSize = {
           width: 350,
           height: 400,
-        }; else this.lastSize = {
+        };
+      else
+        this.lastSize = {
           width: 300,
           height: 300,
         };
-      if (!this.isMaximized)
-        this.maximizeWindow(false);
-
+      if (!this.isMaximized) this.maximizeWindow(false);
     } else {
-      if (this.isMaximized)
-        this.unmaximizeWindow();
+      if (this.isMaximized) this.unmaximizeWindow();
     }
   }
 
@@ -346,7 +346,7 @@ export class WindowComponent implements AfterViewInit, OnInit {
   }
 
   maximizeWindow(saveLast = true) {
-    if (saveLast) this.saveLast();
+    if (saveLast && !this.isSnapped) this.saveLast();
     interact(this.windowEl).resizable({ enabled: false });
     this.windowEl.style.transform = `translate(0px, 0px)`;
     if (window.innerWidth < 992) {
@@ -402,7 +402,6 @@ export class WindowComponent implements AfterViewInit, OnInit {
         console.error('Failed to snap window.');
         break;
     }
-    this.saveLast();
   }
 
   closeWindow() {

@@ -1,4 +1,11 @@
-import { Component, Input, AfterViewInit, ElementRef } from '@angular/core';
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  AfterViewInit,
+  ElementRef,
+} from '@angular/core';
 import interact from 'interactjs';
 import { FileNode } from '../../interfaces/file.interface';
 import { WindowManagerService } from '../../services/window-manager.service';
@@ -12,12 +19,17 @@ import { WindowManagerService } from '../../services/window-manager.service';
 export class DesktopApplicationComponent implements AfterViewInit {
   @Input() application!: FileNode;
   @Input() initialPosition: { x: number; y: number } = { x: 0, y: 0 };
+  @Input() openContextMenuApp: string | null = null;
+  @Output() openContextMenuAppChange = new EventEmitter<string | null>();
   shouldAnimate = true;
   private gridSize = 100;
+
+  deleted = false;
+
   constructor(
     private elRef: ElementRef,
     private windowManagerService: WindowManagerService
-  ) { }
+  ) {}
 
   ngAfterViewInit() {
     const application = this.elRef.nativeElement.querySelector('.application');
@@ -71,8 +83,6 @@ export class DesktopApplicationComponent implements AfterViewInit {
                   x = screenWidth - application.offsetWidth;
                 if (y > screenHeight - application.offsetHeight)
                   y = screenHeight - application.offsetHeight - 56;
-
-
               }
 
               const step = this.gridSize;
@@ -133,7 +143,8 @@ export class DesktopApplicationComponent implements AfterViewInit {
       .styleCursor(false);
   }
 
-  clickAction() {
+  openApplication() {
+    this.openContextMenuAppChange.emit(null);
     if (this.application.type === 'shortcut') {
       this.windowManagerService.addWindow({
         application: 'Explorer',
@@ -146,6 +157,19 @@ export class DesktopApplicationComponent implements AfterViewInit {
       });
     } else {
       window.open(this.application.content, '_blank');
+    }
+  }
+
+  deleteApplication() {
+    this.deleted = true;
+  }
+
+  contextMenu(event: MouseEvent) {
+    event.preventDefault();
+    if (this.openContextMenuApp === this.application.name) {
+      this.openContextMenuAppChange.emit(null);
+    } else {
+      this.openContextMenuAppChange.emit(this.application.name);
     }
   }
 }

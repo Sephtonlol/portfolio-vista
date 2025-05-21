@@ -43,7 +43,31 @@ i:hover {
   bottom: 3px;
   left: 13px;
 }
-span {
+.application > span {
   position: absolute;
   bottom: -25px;
+}
+.context-menu {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--background-color);
+  position: absolute;
+  top: 60%;
+  transform: translate(-20px, -50%);
+  left: 80px;
+  border-radius: 6px;
+  opacity: 0;
+  transition: all var(--primary-transition);
+  span {
+    padding: 0.4rem;
+    margin: 0;
+    border-radius: 6px;
+  }
+  span:hover {
+    background-color: var(--hover-color);
+  }
+}
+.show-context-menu {
+  opacity: 1;
+  transform: translate(0, -50%);
 }

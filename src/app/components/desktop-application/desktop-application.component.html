@@ -1,7 +1,10 @@
+@if(!deleted){
+
 <div
   class="application"
   [class.no-transition]="!shouldAnimate"
-  (dblclick)="clickAction()"
+  (dblclick)="openApplication()"
+  (contextmenu)="contextMenu($event)"
 >
   @if(application.type === "shortcut"){
   <i class="bi bi-folder"></i>
@@ -12,4 +15,12 @@
   <span>
     {{ application.name }}
   </span>
+  <div
+    class="context-menu"
+    [class.show-context-menu]="openContextMenuApp === application.name"
+  >
+    <span (click)="openApplication()">Open</span>
+    <span (click)="deleteApplication()">Delete</span>
+  </div>
 </div>
+}

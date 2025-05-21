@@ -22,14 +22,20 @@
   <app-desktop-application
     [application]="{ name: 'aboutMe', type: 'shortcut', content: '/aboutMe',  }"
     [initialPosition]="{ x: 0, y: 0 }"
+    [openContextMenuApp]="openContextMenuApp"
+    (openContextMenuAppChange)="openContextMenuApp = $event"
   />
   <app-desktop-application
     [application]="{ name: 'Github', type: 'url', content: 'https://github.com/Sephtonlol/',  }"
     [initialPosition]="{ x: 0, y: 1 }"
+    [openContextMenuApp]="openContextMenuApp"
+    (openContextMenuAppChange)="openContextMenuApp = $event"
   />
   <app-desktop-application
     [application]="{ name: 'Linkedin', type: 'url', content: 'https://www.linkedin.com/in/alexander-wu-b63038241/',  }"
     [initialPosition]="{ x: 0, y: 2 }"
+    [openContextMenuApp]="openContextMenuApp"
+    (openContextMenuAppChange)="openContextMenuApp = $event"
   />
   @if(!linkedinOpened){
   <div class="activate-linkedin" (click)="openLinkedin()">

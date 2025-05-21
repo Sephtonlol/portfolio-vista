@@ -161,7 +161,6 @@ export class TaskbarComponent implements OnInit {
   }
 
   toggleContextMenu(application: string, event: MouseEvent) {
-    event.preventDefault();
     this.contextMenuApp =
       this.contextMenuApp === application ? null : application;
     this.contextMenuElement = event.target as HTMLElement;
