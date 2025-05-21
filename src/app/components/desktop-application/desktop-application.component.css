@@ -50,6 +50,7 @@ i:hover {
 .context-menu {
   display: flex;
   flex-direction: column;
+  gap: 0.2rem;
   background-color: var(--background-color);
   position: absolute;
   top: 60%;
@@ -59,9 +60,11 @@ i:hover {
   opacity: 0;
   transition: all var(--primary-transition);
   span {
+    user-select: none;
     padding: 0.4rem;
     margin: 0;
     border-radius: 6px;
+    transition: all var(--primary-transition);
   }
   span:hover {
     background-color: var(--hover-color);

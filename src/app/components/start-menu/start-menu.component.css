@@ -6,6 +6,7 @@
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
   border: 2px solid var(--hover-color);
   border-bottom: none;
+  user-select: none;
 }
 .system {
   display: flex;
