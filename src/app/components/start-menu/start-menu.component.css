@@ -43,7 +43,7 @@ span {
   min-width: 300px;
 }
 .main-container.search {
-  height: 75vh;
+  height: 75dvh;
 }
 .applications-inner {
   padding: 0 0.5rem;
