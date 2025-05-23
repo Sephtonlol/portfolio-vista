@@ -25,9 +25,9 @@ export class TerminalComponent implements OnInit {
   commandHistory: string[] = [];
   historyIndex: number = -1;
 
-  mobile = false
+  mobile = false;
 
-  constructor(private windowManagerService: WindowManagerService) { }
+  constructor(private windowManagerService: WindowManagerService) {}
 
   ngOnInit(): void {
     if (this.data && this.data['content'])
@@ -58,7 +58,8 @@ export class TerminalComponent implements OnInit {
     this.historyIndex = this.commandHistory.length;
 
     this.output.push(
-      `portfolio@user:~${this.currentPath.length ? '/' + this.currentPath.join('/') : ''
+      `portfolio@user:~${
+        this.currentPath.length ? '/' + this.currentPath.join('/') : ''
       }$ ${input}`
     );
 
@@ -107,7 +108,9 @@ export class TerminalComponent implements OnInit {
   list() {
     const items =
       this.currentDir.children?.map((child) =>
-        child.type === 'directory' || child.type === 'shortcut'
+        child.type === 'directory' ||
+        child.type === 'shortcut' ||
+        child.type === 'url'
           ? child.name
           : `${child.name}.${child.type}`
       ) || [];
@@ -290,6 +293,9 @@ export class TerminalComponent implements OnInit {
             type: 'media',
           },
         });
+        break;
+      case 'url':
+        window.open(file.content, '_blank');
         break;
       default:
         this.windowManagerService.addWindow({

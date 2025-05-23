@@ -37,6 +37,9 @@ button {
   font-weight: bold;
   color: var(--text-color);
 }
+p {
+  font-weight: normal;
+}
 i {
   font-size: 2rem;
   color: var(--text-color);
@@ -64,4 +67,42 @@ html {
 ::-webkit-scrollbar-thumb {
   background-color: var(--text-color);
   border-radius: 10px;
+}
+.hljs-keyword {
+  color: #bc8abd;
+}
+.hljs-string {
+  color: #c3917c;
+}
+.hljs-comment {
+  color: #74975d;
+  font-style: italic;
+}
+.hljs-function {
+  color: #dcdbb0;
+}
+.hljs-number {
+  color: #bacdac;
+}
+.hljs-variable {
+  color: #a6d6f5;
+}
+.hljs-built_in {
+  color: #abdbfb;
+}
+.hljs-keyword,
+.hljs-string,
+.hljs-comment,
+.hljs-function,
+.hljs-number,
+.hljs-variable,
+.hljs-built_in {
+  margin: 0;
+  font-weight: normal;
+}
+code {
+  background-color: #000;
+  display: block;
+  padding: 0.25rem;
+  border-radius: 6px;
 }

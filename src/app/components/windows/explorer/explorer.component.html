@@ -1,4 +1,6 @@
 <div class="explorer-header d-flex align-items-center gap-2 mb-2">
+  <i class="bi bi-arrow-left-short fs-5" (click)="goBack()"></i>
+  <i class="bi bi-arrow-right-short fs-5" (click)="goForward()"></i>
   <i class="bi bi-arrow-up-short fs-5" (click)="goUp()"></i>
   <input
     spellcheck="false"
@@ -19,6 +21,7 @@
   ></i>
 </div>
 
+@if(windowWidth < 992){
 <div class="explorer-list" [class.explorer-list-tiles]="!viewList">
   @for (file of filteredChildren; track file) {
   <div
@@ -33,13 +36,43 @@
     ></i>
     }
     <i class="bi {{ getFileIcon(file.type) }}"></i>
-    <span>
+    <p>
       {{
         file.type === "directory" || file.type === "shortcut"
           ? file.name
           : file.name + "." + file.type
       }}
-    </span>
+    </p>
   </div>
   }
 </div>
+
+}@else{
+
+<div class="explorer-list" [class.explorer-list-tiles]="!viewList">
+  @for (file of filteredChildren; track file) {
+  <div
+    class="explorer-item"
+    [class.explorer-item-tiles]="!viewList"
+    (dblclick)="openItem(file)"
+  >
+    @if(file.type === "shortcut"){
+    <i
+      class="bi bi-arrow-up-right-square-fill shortcut"
+      [class.shortcut-list-tiles]="!viewList"
+    ></i>
+    }
+    <i class="bi {{ getFileIcon(file.type) }}"></i>
+    <p>
+      {{
+        file.type === "directory" ||
+        file.type === "shortcut" ||
+        file.type === "url"
+          ? file.name
+          : file.name + "." + file.type
+      }}
+    </p>
+  </div>
+  }
+</div>
+}

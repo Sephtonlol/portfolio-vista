@@ -1,4 +1,25 @@
-<textarea [(ngModel)]="contentValue" spellcheck="false"></textarea>
+<div class="main" [class.main-textarea]="!preview">
+  @if(preview){
+  <div [innerHTML]="sanitizedHtml" class="preview"></div>
+  }@else {
+  <textarea
+    [(ngModel)]="contentValue"
+    (ngModelChange)="onContentChange()"
+    spellcheck="false"
+  ></textarea>
+  }
+</div>
 <div class="footer">
-  <span> {{ contentValue.length }} characters </span>
+  <div class="form-check form-switch">
+    <input
+      class="form-check-input"
+      type="checkbox"
+      role="switch"
+      id="flexSwitchCheckDefault"
+      [(ngModel)]="preview"
+    />
+    <span class="form-check-label" for="flexSwitchCheckDefault">Preview</span>
+  </div>
+
+  <span> {{ contentValue.length }} Characters </span>
 </div>

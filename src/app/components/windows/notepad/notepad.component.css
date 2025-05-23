@@ -4,25 +4,46 @@
   height: 100%;
   width: 100%;
 }
-textarea {
-  resize: none;
+.main {
+  padding-bottom: 16px;
+}
+.main-textarea {
   height: 100%;
-  width: 100%;
+  padding-bottom: 20px;
+}
+textarea,
+.preview {
+  resize: none;
   margin: 0;
   padding: 0.5rem;
   background-color: var(--background-color);
   border: none !important;
   font-weight: normal !important;
 }
+textarea {
+  height: 100%;
+  width: 100%;
+}
+.preview {
+  color: #fff;
+}
 textarea:focus {
   outline: none;
 }
 .footer {
+  position: absolute;
+  width: calc(100% - 0.5rem);
+  left: 0;
+  bottom: 0;
   display: flex;
-  justify-content: end;
+  justify-content: space-between;
   background-color: var(--secondary-color);
   padding: 0 0.2rem;
 }
 span {
-  font-weight: normal;
+  font-weight: normal !important;
+}
+.form-switch {
+  display: flex;
+  align-items: center;
 }

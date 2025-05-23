@@ -18,8 +18,12 @@ export class ExplorerComponent implements OnInit {
   currentPath: string[] = [];
   searchTerm: string = '';
   pathInput: string = '';
+  windowWidth = window.innerWidth;
 
   viewList = true;
+
+  pathHistory: string[] = ['/'];
+  historyIndex: number = 0;
 
   constructor(private windowManagerService: WindowManagerService) { }
 
@@ -27,6 +31,55 @@ export class ExplorerComponent implements OnInit {
     this.pathInput =
       '/' + (this.data ? this.data['content'] : this.currentPath.join('/'));
     this.goToTypedPath();
+  }
+
+  goUp() {
+    if (this.currentPath.length > 0) {
+      this.currentPath.pop();
+      this.pathInput = '/' + this.currentPath.join('/');
+      this.updatePathHistory(this.pathInput);
+    }
+  }
+
+  resetPathInput() {
+    this.pathInput = '/' + this.currentPath.join('/');
+  }
+
+  updatePathHistory(newPath: string): void {
+    if (this.historyIndex < this.pathHistory.length - 1) {
+      this.pathHistory = this.pathHistory.slice(0, this.historyIndex + 1);
+    }
+    this.pathHistory.push(newPath);
+    this.historyIndex = this.pathHistory.length - 1;
+  }
+
+  goBack(): void {
+    if (this.historyIndex > 0) {
+      this.historyIndex--;
+      this.navigateToPath(this.pathHistory[this.historyIndex]);
+    }
+  }
+
+  goForward(): void {
+    if (this.historyIndex < this.pathHistory.length - 1) {
+      this.historyIndex++;
+      this.navigateToPath(this.pathHistory[this.historyIndex]);
+    }
+  }
+
+  navigateToPath(path: string): void {
+    const parts = path.split('/').filter(Boolean);
+    let dir = this.filesystem;
+    for (const part of parts) {
+      const next = dir.children?.find(
+        (child) => child.name === part && child.type === 'directory'
+      );
+      if (!next) return;
+      dir = next;
+    }
+    this.currentPath = parts;
+    this.pathInput = '/' + this.currentPath.join('/');
+    this.searchTerm = '';
   }
 
   get currentDir(): FileNode {
@@ -54,37 +107,52 @@ export class ExplorerComponent implements OnInit {
   }
 
   getFileIcon(type: string): string {
-    if (type === 'directory' || type === 'shortcut') return 'bi-folder';
-    if (type === 'md') return 'bi-file-earmark-text';
-    if (type === 'png') return 'bi-image';
-    if (type === 'mp3') return 'bi-music-note';
-    if (type === 'mp4') return 'bi-film';
-    return 'bi-file-earmark';
+    switch (type) {
+      case 'directory':
+      case 'shortcut':
+        return 'bi-folder';
+      case 'md':
+        return 'bi-file-earmark-text';
+      case 'png':
+        return 'bi-image';
+      case 'mp3':
+        return 'bi-music-note';
+      case 'mp4':
+        return 'bi-film';
+      case 'url':
+        return 'bi-link-45deg';
+      default:
+        return 'bi-file-earmark';
+    }
   }
 
-  openItem(item: FileNode) {
-    if (item.type === 'directory') {
-      this.currentPath.push(item.name);
-      this.pathInput = '/' + this.currentPath.join('/');
+  openItem(file: FileNode) {
+    if (file.type === 'directory') {
+      this.currentPath.push(file.name);
+      const newPath = '/' + this.currentPath.join('/');
+      this.pathInput = newPath;
       this.searchTerm = '';
+      this.updatePathHistory(newPath);
       return;
     }
-    if (item.type === 'shortcut') {
-      if (!item.content)
+    if (file.type === 'shortcut') {
+      if (!file.content)
         return console.error('Failed to open shortcut location');
-      this.currentPath = item.content.split('/').filter(Boolean);
-      this.pathInput = item.content;
+      this.currentPath = file.content.split('/').filter(Boolean);
+      const newPath = file.content;
+      this.pathInput = newPath;
+      this.updatePathHistory(newPath);
       return;
     }
 
-    switch (item.type) {
+    switch (file.type) {
       case 'png':
         this.windowManagerService.addWindow({
           application: 'Photos',
           icon: 'bi-image',
           data: {
-            title: item.name,
-            content: this.pathInput + '/' + item.name || '',
+            title: file.name,
+            content: this.pathInput + '/' + file.name || '',
             type: 'image',
           },
         });
@@ -95,34 +163,26 @@ export class ExplorerComponent implements OnInit {
           application: 'Media player',
           icon: 'bi-play-circle',
           data: {
-            title: item.name,
-            content: this.pathInput + '/' + item.name || '',
+            title: file.name,
+            content: this.pathInput + '/' + file.name || '',
             type: 'media',
           },
         });
+        break;
+      case 'url':
+        window.open(file.content, '_blank');
         break;
       default:
         this.windowManagerService.addWindow({
           application: 'Notepad',
           icon: 'bi-file-earmark-text',
           data: {
-            title: item.name,
-            content: item.content || '',
+            title: file.name,
+            content: file.content || '',
             type: 'text',
           },
         });
     }
-  }
-
-  goUp() {
-    if (this.currentPath.length > 0) {
-      this.currentPath.pop();
-      this.pathInput = '/' + this.currentPath.join('/');
-    }
-  }
-
-  resetPathInput() {
-    this.pathInput = '/' + this.currentPath.join('/');
   }
 
   goToTypedPath() {
@@ -148,5 +208,6 @@ export class ExplorerComponent implements OnInit {
     }
     this.currentPath = parts;
     this.searchTerm = '';
+    this.updatePathHistory(this.pathInput);
   }
 }

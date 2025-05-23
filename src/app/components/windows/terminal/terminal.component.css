@@ -10,7 +10,7 @@
 input {
   background-color: #0000;
   border: none;
-  width: 100%;
+  width: max-content;
 }
 input:focus {
   outline: none;
