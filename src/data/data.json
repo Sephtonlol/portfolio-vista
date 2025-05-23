@@ -3,144 +3,218 @@
   "type": "directory",
   "children": [
     {
-      "name": "aboutMe",
+      "name": "over-mij",
       "type": "directory",
       "children": [
         {
-          "name": "aboutme",
+          "name": "over-mij",
           "type": "md",
-          "content": "Hello! I am a software developer passionate about creating impactful projects."
+          "content": "Hoi!! Ik ben een software developer. (ja moet gwn wat dingen hier schrijven)"
         },
         {
-          "name": "Contact",
+          "name": "contact",
           "type": "md",
-          "content": "Mobile: +31687627550, Email: Alexander Wu,"
+          "content": "Mobile: +31687627550\nEmail: alexanderwu271206@gmail.com"
         },
         {
-          "name": "picture",
+          "name": "foto",
           "type": "png",
           "content": "https://brandingforthepeople.com/wp-content/uploads/2019/04/Stock-Photography-vs-Real-Imagery.jpg"
         },
         {
-          "name": "technologies",
+          "name": "technologieën",
           "type": "md",
-          "content": "Technologies I use: JavaScript, React, Node.js, Python, Docker, and more."
+          "content": "Technologieën die ik gebruik\n\nJavaScript\nTypescript\nNode.js\nPython\nC#\nGodot\nAngular\nNuxt\nExpress"
         }
       ]
     },
     {
-      "name": "workProcesses",
+      "name": "werkprocessen",
       "type": "directory",
       "children": [
         {
-          "name": "k1-w1",
+          "name": "k1",
           "type": "directory",
           "children": [
             {
-              "name": "projectAlpha",
-              "type": "shortcut",
-              "content": "/projects/projectAlpha"
+              "name": "w1",
+              "type": "directory",
+              "children": []
+            },
+            {
+              "name": "w2",
+              "type": "directory",
+              "children": []
+            },
+            {
+              "name": "w3",
+              "type": "directory",
+              "children": []
+            },
+            {
+              "name": "w4",
+              "type": "directory",
+              "children": []
+            },
+            {
+              "name": "w5",
+              "type": "directory",
+              "children": []
             }
           ]
         },
         {
-          "name": "k1-w2",
+          "name": "k2",
           "type": "directory",
           "children": [
             {
-              "name": "projectBeta",
-              "type": "shortcut",
-              "content": "/projects/projectBeta"
-            }
-          ]
-        },
-        {
-          "name": "k1-w3",
-          "type": "directory",
-          "children": [
+              "name": "w1",
+              "type": "directory",
+              "children": []
+            },
             {
-              "name": "projectGamma",
-              "type": "shortcut",
-              "content": "/projects/projectGamma"
+              "name": "w2",
+              "type": "directory",
+              "children": []
+            },
+            {
+              "name": "w3",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "profielpagina",
+                  "type": "shortcut",
+                  "content": "/projecten/stimuliz-v2/profielpagina/reflectie"
+                }
+              ]
             }
           ]
-        },
-        {
-          "name": "k1-w4",
-          "type": "directory",
-          "children": []
-        },
-        {
-          "name": "k1-w5",
-          "type": "directory",
-          "children": []
-        },
-        {
-          "name": "k2-w1",
-          "type": "directory",
-          "children": []
-        },
-        {
-          "name": "k2-w2",
-          "type": "directory",
-          "children": []
-        },
-        {
-          "name": "k2-w3",
-          "type": "directory",
-          "children": []
         }
       ]
     },
     {
-      "name": "projects",
+      "name": "projecten",
       "type": "directory",
       "children": [
         {
-          "name": "projectAlpha",
+          "name": "quiz-app",
           "type": "directory",
           "children": [
             {
-              "name": "readme",
+              "name": "README",
               "type": "md",
-              "content": "Project Alpha is a social media dashboard."
+              "content": "super cool dat er geen echte data is"
             },
             {
               "name": "screenshot",
               "type": "png",
               "content": "https://brandingforthepeople.com/wp-content/uploads/2019/04/Stock-Photography-vs-Real-Imagery.jpg"
+            },
+            {
+              "name": "repository",
+              "type": "url",
+              "content": "https://github.com/Sephtonlol/HboKeuzedeel"
             }
           ]
         },
         {
-          "name": "projectBeta",
+          "name": "kunst-theater-media",
           "type": "directory",
           "children": [
             {
-              "name": "readme",
-              "type": "md",
-              "content": "Project Beta is a task tracking app."
+              "name": "frontend",
+              "type": "directory",
+              "children": []
             },
             {
-              "name": "demo",
-              "type": "mp4",
-              "content": "https://www.w3schools.com/html/mov_bbb.mp4"
+              "name": "backend",
+              "type": "directory",
+              "children": []
+            },
+            {
+              "name": "cms",
+              "type": "directory",
+              "children": []
             }
           ]
         },
         {
-          "name": "projectGamma",
+          "name": "stimuliz-v2",
           "type": "directory",
           "children": [
             {
-              "name": "readme",
+              "name": "README",
               "type": "md",
-              "content": "Project Gamma is a music recommendation engine."
+              "content": "##### Stimuliz-v2\nStimuliz is een platform uit Heerlen dat motorische ontwikkeling van kinderen meet en inzicht geeft aan scholen en sportorganisaties. Het is een onderdeel van Hellosunshine.\n\nVoor mijn stage help ik mee om de frontend van Stimuliz volledig opnieuw te bouwen met Nuxt 3, de nieuwste versie van het framework, om de gebruikerservaring te verbeteren."
             },
             {
-              "name": "logo",
-              "type": "png",
-              "content": "https://brandingforthepeople.com/wp-content/uploads/2019/04/Stock-Photography-vs-Real-Imagery.jpg"
+              "name": "technologieën",
+              "type": "md",
+              "content": "Gebruikte technologieën\n\nNuxt\nDocker\nTailwind"
+            },
+            {
+              "name": "profielpagina",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "reflectie",
+                  "type": "directory",
+                  "children": [
+                    {
+                      "name": "verslag",
+                      "type": "md",
+                      "content": "##### Reflectie op profielpagina ontwikkeling - Stimuliz\n\n**Wat ging goed**\n- De profielpagina ondersteunt alle gevraagde user stories: persoonsgegevens wijzigen, e-mail aanpassen, wachtwoord wijzigen, 2FA methodes beheren, en accountrollen bekijken.\n- De functionaliteit werkt technisch goed en valideert de velden correct.\n- Door de laatste aanpassing kan ik direct mijn gegevens wijzigen zonder extra stappen, wat de gebruiksvriendelijkheid sterk verbetert.\n- Deze aanpak zorgt ook voor minder complexe code, wat onderhoud makkelijker maakt.\n\n**Reden voor aanpassing**\n- De eerste versie werkte met een extra knop 'Aanpassen' en een modal om velden te bewerken, wat veel extra code en stappen voor mij betekende.\n- Door over te stappen op inline bewerken zonder modal, is de code flink eenvoudiger geworden.\n- Dit zorgt voor een snellere, directere gebruikerservaring met minder stappen.\n- Danny gaf aan beide manieren prima te vinden, maar heeft een voorkeur voor deze methode vanwege minder code en betere UX.\n\n**Verbeterpunten en feedback**\n- De eerste versie vereiste een extra knop ('Aanpassen') en een modal om velden te wijzigen. Dit werd door het team als minder prettig ervaren, omdat het mij extra stappen kostte.\n- Na feedback van Danny heb ik dit aangepast naar inline bewerken zonder modal, wat de UX verbetert doordat het sneller en intuïtiever is.\n- Danny gaf aan beide versies te waarderen, maar vindt de huidige aanpak beter vanwege de kortere gebruikersflow en minder code.\n- Dit laat zien dat ik goed kan luisteren naar feedback en snel kan schakelen om de gebruikservaring te verbeteren.\n\n**Reflectie op het proces**\n- Ik heb actief gereflecteerd op mijn eigen werk en teamfeedback, wat een belangrijke vaardigheid is in een ontwikkelteam (B1-K2).\n- Mijn reactie op feedback was effectief: ik heb de oplossing aangepast en verbeterd op basis van suggesties (B1-K2-W3).\n- Door dit proces heb ik niet alleen de code verbeterd, maar ook mijn inzicht in gebruiksvriendelijkheid en teamwork vergroot."
+                    },
+                    {
+                      "name": "profielpagina-oud",
+                      "type": "directory",
+                      "children": [
+                        {
+                          "name": "profielpagina-oud-1",
+                          "type": "png",
+                          "content": "/assets/stimuliz/profile/reflection/profile-old-1.png"
+                        },
+                        {
+                          "name": "profielpagina-oud-2",
+                          "type": "png",
+                          "content": "/assets/stimuliz/profile/reflection/profile-old-2.png"
+                        },
+                        {
+                          "name": "profielpagina-oud-3",
+                          "type": "png",
+                          "content": "/assets/stimuliz/profile/reflection/profile-old-3.png"
+                        },
+                        {
+                          "name": "profielpagina-oud-4",
+                          "type": "png",
+                          "content": "/assets/stimuliz/profile/reflection/profile-old-4.png"
+                        }
+                      ]
+                    },
+                    {
+                      "name": "profielpagina-nieuw",
+                      "type": "directory",
+                      "children": [
+                        {
+                          "name": "profielpagina-nieuw-1",
+                          "type": "png",
+                          "content": "/assets/stimuliz/profile/reflection/profile-new-1.png"
+                        },
+                        {
+                          "name": "profielpagina-nieuw-2",
+                          "type": "png",
+                          "content": "/assets/stimuliz/profile/reflection/profile-new-2.png"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "name": "README",
+                  "type": "md",
+                  "content": "Feature: Profielbeheer\nDeze feature stelt ingelogde gebruikers in staat om hun profiel te beheren. Gebruikers kunnen hun persoonlijke gegevens en voorkeuren aanpassen, zodat hun account actueel en veilig blijft.\n\nBelangrijkste mogelijkheden:\n- Persoonsgegevens en e-mailadres wijzigen\n- Wachtwoord aanpassen\n- Inzicht in gekoppelde accounts en rollen\n- Inzien en aanpassen van de actieve 2FA-methode\n- Verwijderen van 2FA via sms\n- Aanpassen van specifieke accountinstellingen\n\nOpmerkingen:\n- De bestaande URL-structuur blijft gehandhaafd\n- Formulieren bevatten relevante validaties\n- Styling volgt de huidige layout; geen extra opmaak nodig\nDeze feature bestaat uit meerdere subtaken, waaronder het wijzigen van gegevens, wachtwoord, 2FA-methodes, accounts en instellingen."
+                }
+              ]
             }
           ]
         }
