@@ -9,7 +9,7 @@
         {
           "name": "over-mij",
           "type": "md",
-          "content": "Hoi!! Ik ben een software developer. (ja moet gwn wat dingen hier schrijven)"
+          "content": "Hoi!! Ik ben een software developer gespecialiseerd in webdevelopment. Ik heb echt een passie voor het bouwen van interactieve en gebruiksvriendelijke webapplicaties.\nVan front-end tot back-end: ik vind het geweldig om ideeën om te zetten in iets dat werkt en er goed uitziet. Ik blijf mezelf verbeteren en leren over nieuwe tools, technologieën en best practices binnen het vakgebied."
         },
         {
           "name": "contact",
@@ -19,12 +19,12 @@
         {
           "name": "foto",
           "type": "png",
-          "content": "https://brandingforthepeople.com/wp-content/uploads/2019/04/Stock-Photography-vs-Real-Imagery.jpg"
+          "content": "assets/images/profile.jpg"
         },
         {
           "name": "technologieën",
           "type": "md",
-          "content": "Technologieën die ik gebruik\n\nJavaScript\nTypescript\nNode.js\nPython\nC#\nGodot\nAngular\nNuxt\nExpress"
+          "content": "# Technologieën die ik gebruik\n\nJavaScript\nTypescript\nNode.js\nPython\nC#\nGodot\nAngular\nNuxt\nExpress"
         }
       ]
     },
@@ -39,12 +39,46 @@
             {
               "name": "w1",
               "type": "directory",
-              "children": []
+              "children": [
+                {
+                  "name": "quiz-app",
+                  "type": "directory",
+                  "children": [
+                    {
+                      "name": "quiz-app",
+                      "type": "shortcut",
+                      "content": "/projecten/quiz-app/documentatie"
+                    },
+                    {
+                      "name": "quiz-app",
+                      "type": "md",
+                      "content": "# Planning van de quiz-app\n## B1-K1-W1: Plant werkzaamheden en bewaakt de voortgang\nDeze competentie wordt beschreven en aangetoond in de volgende twee bestanden:\n- behoefteanalyse\n- functioneel-ontwerp"
+                    }
+                  ]
+                }
+              ]
             },
             {
               "name": "w2",
               "type": "directory",
-              "children": []
+              "children": [
+                {
+                  "name": "quiz-app",
+                  "type": "directory",
+                  "children": [
+                    {
+                      "name": "quiz-app",
+                      "type": "shortcut",
+                      "content": "/projecten/quiz-app/documentatie"
+                    },
+                    {
+                      "name": "quiz-app",
+                      "type": "md",
+                      "content": "# Ontwerpen van de quiz-app\n## B1-K1-W2: Ontwerpt software\nDeze competentie wordt beschreven en aangetoond in het volgende bestand:\n- technisch-ontwerp"
+                    }
+                  ]
+                }
+              ]
             },
             {
               "name": "w3",
@@ -82,88 +116,34 @@
               "type": "directory",
               "children": [
                 {
-                  "name": "profielpagina",
-                  "type": "shortcut",
-                  "content": "/projecten/stimuliz-v2/profielpagina/reflectie"
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "projecten",
-      "type": "directory",
-      "children": [
-        {
-          "name": "quiz-app",
-          "type": "directory",
-          "children": [
-            {
-              "name": "README",
-              "type": "md",
-              "content": "super cool dat er geen echte data is"
-            },
-            {
-              "name": "screenshot",
-              "type": "png",
-              "content": "https://brandingforthepeople.com/wp-content/uploads/2019/04/Stock-Photography-vs-Real-Imagery.jpg"
-            },
-            {
-              "name": "repository",
-              "type": "url",
-              "content": "https://github.com/Sephtonlol/HboKeuzedeel"
-            }
-          ]
-        },
-        {
-          "name": "kunst-theater-media",
-          "type": "directory",
-          "children": [
-            {
-              "name": "frontend",
-              "type": "directory",
-              "children": []
-            },
-            {
-              "name": "backend",
-              "type": "directory",
-              "children": []
-            },
-            {
-              "name": "cms",
-              "type": "directory",
-              "children": []
-            }
-          ]
-        },
-        {
-          "name": "stimuliz-v2",
-          "type": "directory",
-          "children": [
-            {
-              "name": "README",
-              "type": "md",
-              "content": "##### Stimuliz-v2\nStimuliz is een platform uit Heerlen dat motorische ontwikkeling van kinderen meet en inzicht geeft aan scholen en sportorganisaties. Het is een onderdeel van Hellosunshine.\n\nVoor mijn stage help ik mee om de frontend van Stimuliz volledig opnieuw te bouwen met Nuxt 3, de nieuwste versie van het framework, om de gebruikerservaring te verbeteren."
-            },
-            {
-              "name": "technologieën",
-              "type": "md",
-              "content": "Gebruikte technologieën\n\nNuxt\nDocker\nTailwind"
-            },
-            {
-              "name": "profielpagina",
-              "type": "directory",
-              "children": [
-                {
-                  "name": "reflectie",
+                  "name": "quiz-app",
                   "type": "directory",
                   "children": [
                     {
                       "name": "verslag",
                       "type": "md",
-                      "content": "##### Reflectie op profielpagina ontwikkeling - Stimuliz\n\n**Wat ging goed**\n- De profielpagina ondersteunt alle gevraagde user stories: persoonsgegevens wijzigen, e-mail aanpassen, wachtwoord wijzigen, 2FA methodes beheren, en accountrollen bekijken.\n- De functionaliteit werkt technisch goed en valideert de velden correct.\n- Door de laatste aanpassing kan ik direct mijn gegevens wijzigen zonder extra stappen, wat de gebruiksvriendelijkheid sterk verbetert.\n- Deze aanpak zorgt ook voor minder complexe code, wat onderhoud makkelijker maakt.\n\n**Reden voor aanpassing**\n- De eerste versie werkte met een extra knop 'Aanpassen' en een modal om velden te bewerken, wat veel extra code en stappen voor mij betekende.\n- Door over te stappen op inline bewerken zonder modal, is de code flink eenvoudiger geworden.\n- Dit zorgt voor een snellere, directere gebruikerservaring met minder stappen.\n- Danny gaf aan beide manieren prima te vinden, maar heeft een voorkeur voor deze methode vanwege minder code en betere UX.\n\n**Verbeterpunten en feedback**\n- De eerste versie vereiste een extra knop ('Aanpassen') en een modal om velden te wijzigen. Dit werd door het team als minder prettig ervaren, omdat het mij extra stappen kostte.\n- Na feedback van Danny heb ik dit aangepast naar inline bewerken zonder modal, wat de UX verbetert doordat het sneller en intuïtiever is.\n- Danny gaf aan beide versies te waarderen, maar vindt de huidige aanpak beter vanwege de kortere gebruikersflow en minder code.\n- Dit laat zien dat ik goed kan luisteren naar feedback en snel kan schakelen om de gebruikservaring te verbeteren.\n\n**Reflectie op het proces**\n- Ik heb actief gereflecteerd op mijn eigen werk en teamfeedback, wat een belangrijke vaardigheid is in een ontwikkelteam (B1-K2).\n- Mijn reactie op feedback was effectief: ik heb de oplossing aangepast en verbeterd op basis van suggesties (B1-K2-W3).\n- Door dit proces heb ik niet alleen de code verbeterd, maar ook mijn inzicht in gebruiksvriendelijkheid en teamwork vergroot."
+                      "content": "# Reflectie ontwikkeling quiz-app - HBO-keuzedeel\n\n**Situatie**\nVoor het keuzedeelproject heb ik een interactieve quiz-app ontwikkeld met real-time functionaliteit. Het doel was om een systeem te bouwen waarmee meerdere gebruikers tegelijk een quiz kunnen spelen, met live scores, feedback en gebruiksvriendelijke bediening. De applicatie moest volledig werken in een full-stack omgeving.\n\n**Taak**\nMijn taak was om zelfstandig een werkende quiz-app op te zetten, inclusief front-end, back-end, database, real-time communicatie, beveiliging en testscenario's. Alles moest in de cloud kunnen draaien en het project moest voldoen aan eisen rond UX, schaalbaarheid en technische degelijkheid.\n\n**Actie**\nIk koos voor Angular en Bootstrap voor de front-end, Express.js en Socket.IO voor de back-end en MongoDB als database client. Ik maakte duidelijke use cases, netwerkdiagrammen en schema's. Tijdens het bouwen testte ik alles actief met meerdere scenario's (goede en foute antwoorden, scores na afloop). Inputvalidatie, vergrendelde rooms en afgeschermde serverroutes zijn toegevoegd voor veiligheid.\n\n**Resultaat**\nDe applicatie draait stabiel in de cloud en voldoet aan alle functionele eisen. Gebruikers kunnen quizzen aanmaken, deelnemen via een toegangscode en in real-time feedback ontvangen. Alle scores en antwoorden worden correct verwerkt. Ondanks dat Azure-hosting nog niet af is, zijn de API's en real-time events volledig getest en werkend. De code is gestructureerd en geschreven in TypeScript voor meer betrouwbaarheid en onderhoudbaarheid.\n\n**Reflectie**\nIk heb geleerd hoe ik zelfstandig een compleet systeem ontwerp en realiseer. Mijn leervermogen kwam goed van pas bij het werken met nieuwe tools zoals Socket.IO. Door het opzetten van een goede testaanpak en het actief zoeken naar oplossingen, ben ik beter geworden in probleemoplossend denken. Een aandachtspunt blijft heldere communicatie in documentatie en tijdens presentaties, iets waar ik actief aan ga werken in volgende projecten."
+                    },
+                    {
+                      "name": "README",
+                      "type": "md",
+                      "content": "# README - Reflectie quiz-app\n\nDit bestand bevat een reflectie over de ontwikkeling van een interactieve quiz-app.\nVoor de reflectie heb ik gebruik gemaakt van de STARR-methode: Situatie, Taak, Actie, Resultaat en Reflectie."
+                    }
+                  ]
+                },
+                {
+                  "name": "stimuliz-profielpagina",
+                  "type": "directory",
+                  "children": [
+                    {
+                      "name": "verslag",
+                      "type": "md",
+                      "content": "# Reflectie op profielpagina ontwikkeling - Stimuliz\n\n**Situatie**\nTijdens de ontwikkeling van de profielpagina voor Stimuliz was het doel om een pagina te maken waar gebruikers hun persoonsgegevens kunnen beheren. In de eerste versie werd gewerkt met een 'Aanpassen'-knop en een modal om wijzigingen door te voeren.\n\n**Taak**\nMijn taak was om ervoor te zorgen dat de profielpagina alle user stories ondersteunt: persoonsgegevens wijzigen, e-mail aanpassen, wachtwoord wijzigen, 2FA-methodes beheren en accountrollen bekijken. Daarnaast moest de gebruikerservaring zo eenvoudig mogelijk zijn.\n\n**Actie**\nIn eerste instantie bouwde ik de functionaliteit met een aparte knop en modal voor bewerkingen. Na feedback van Danny, die aangaf dat dit omslachtig was, heb ik de pagina aangepast naar inline bewerken. Hierdoor worden velden direct bewerkbaar zonder extra stappen. Dit zorgde voor minder code en een vloeiendere UX.\n\n**Resultaat**\nDe aangepaste versie ondersteunt alle user stories, valideert correct en is gebruiksvriendelijker geworden. De inline bewerking maakt het eenvoudiger voor gebruikers om gegevens aan te passen en zorgt voor minder complexe code. Danny gaf aan dat deze aanpak de voorkeur heeft vanwege de betere UX en kortere gebruikersflow.\n\n**Reflectie**\nDoor goed te luisteren naar feedback en hier snel op te reageren, heb ik de gebruikerservaring verbeterd én de code vereenvoudigd. Ik heb actief gereflecteerd op mijn keuzes en ingezien hoe belangrijk het is om flexibel te zijn in het ontwikkelproces. Dit heeft niet alleen mijn technische werk verbeterd, maar ook mijn samenwerking binnen het team versterkt."
+                    },
+                    {
+                      "name": "README",
+                      "type": "md",
+                      "content": "# README - Reflectie Stimuliz - Profielpagina\n\nDit bestand bevat een reflectie over het aanpassen van de profielpagina binnen het Stimuliz-project.\nVoor de reflectie heb ik gebruik gemaakt van de STARR-methode: Situatie, Taak, Actie, Resultaat en Reflectie."
                     },
                     {
                       "name": "profielpagina-oud",
@@ -208,11 +188,107 @@
                       ]
                     }
                   ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "projecten",
+      "type": "directory",
+      "children": [
+        {
+          "name": "quiz-app",
+          "type": "directory",
+          "children": [
+            {
+              "name": "README",
+              "type": "md",
+              "content": "# Quiz-app - HBO keuzedeel\n\nVoor deze challenge was de opdracht om een interactieve multiplayer quiz te maken voor de open dag van Zuyd Hogeschool. Ik had ervoor gekozen om deze uitdaging aan te pakken door een eigen remake van Kahoot te bouwen."
+            },
+            {
+              "name": "technologieën",
+              "type": "md",
+              "content": "# Gebruikte technologieën\n\nAngular\nExpressJS\nBootstrap\nMongoDB\nSocketIO\nTypescript"
+            },
+            {
+              "name": "opdracht",
+              "type": "url",
+              "content": "assets/quiz-app/opdracht.pdf"
+            },
+            {
+              "name": "repository",
+              "type": "url",
+              "content": "https://github.com/Sephtonlol/HboKeuzedeel"
+            },
+            {
+              "name": "documentatie",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "functioneel-ontwerp",
+                  "type": "url",
+                  "content": "assets/quiz-app/functioneel-ontwerp.pdf"
                 },
+                {
+                  "name": "behoefteanalyse",
+                  "type": "url",
+                  "content": "assets/quiz-app/behoefteanalyse.pdf"
+                },
+                {
+                  "name": "technisch-ontwerp",
+                  "type": "url",
+                  "content": "assets/quiz-app/technisch-ontwerp.pdf"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "kunst-theater-media",
+          "type": "directory",
+          "children": [
+            {
+              "name": "frontend",
+              "type": "directory",
+              "children": []
+            },
+            {
+              "name": "backend",
+              "type": "directory",
+              "children": []
+            },
+            {
+              "name": "cms",
+              "type": "directory",
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "stimuliz-v2",
+          "type": "directory",
+          "children": [
+            {
+              "name": "README",
+              "type": "md",
+              "content": "# Stimuliz-v2\nStimuliz is een platform uit Heerlen dat motorische ontwikkeling van kinderen meet en inzicht geeft aan scholen en sportorganisaties. Het is een onderdeel van Hellosunshine.\n\nVoor mijn stage help ik mee om de frontend van Stimuliz volledig opnieuw te bouwen met Nuxt 3, de nieuwste versie van het framework."
+            },
+            {
+              "name": "technologieën",
+              "type": "md",
+              "content": "# Gebruikte technologieën\n\nNuxt\nDocker\nTailwind"
+            },
+            {
+              "name": "profielpagina",
+              "type": "directory",
+              "children": [
                 {
                   "name": "README",
                   "type": "md",
-                  "content": "Feature: Profielbeheer\nDeze feature stelt ingelogde gebruikers in staat om hun profiel te beheren. Gebruikers kunnen hun persoonlijke gegevens en voorkeuren aanpassen, zodat hun account actueel en veilig blijft.\n\nBelangrijkste mogelijkheden:\n- Persoonsgegevens en e-mailadres wijzigen\n- Wachtwoord aanpassen\n- Inzicht in gekoppelde accounts en rollen\n- Inzien en aanpassen van de actieve 2FA-methode\n- Verwijderen van 2FA via sms\n- Aanpassen van specifieke accountinstellingen\n\nOpmerkingen:\n- De bestaande URL-structuur blijft gehandhaafd\n- Formulieren bevatten relevante validaties\n- Styling volgt de huidige layout; geen extra opmaak nodig\nDeze feature bestaat uit meerdere subtaken, waaronder het wijzigen van gegevens, wachtwoord, 2FA-methodes, accounts en instellingen."
+                  "content": "# Feature: Profielbeheer\nDeze feature stelt ingelogde gebruikers in staat om hun profiel te beheren. Gebruikers kunnen hun persoonlijke gegevens en voorkeuren aanpassen, zodat hun account actueel en veilig blijft.\n\nBelangrijkste mogelijkheden:\n- Persoonsgegevens en e-mailadres wijzigen\n- Wachtwoord aanpassen\n- Inzicht in gekoppelde accounts en rollen\n- Inzien en aanpassen van de actieve 2FA-methode\n- Verwijderen van 2FA via sms\n- Aanpassen van specifieke accountinstellingen\n\nOpmerkingen:\n- De bestaande URL-structuur blijft gehandhaafd\n- Formulieren bevatten relevante validaties\n- Styling volgt de huidige layout; geen extra opmaak nodig\nDeze feature bestaat uit meerdere subtaken, waaronder het wijzigen van gegevens, wachtwoord, 2FA-methodes, accounts en instellingen."
                 }
               ]
             }

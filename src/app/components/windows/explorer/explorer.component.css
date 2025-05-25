@@ -67,6 +67,7 @@ input:focus {
   flex-direction: column;
   height: min-content;
   i {
+    left: 35px;
     font-size: 2rem;
     width: max-content;
   }

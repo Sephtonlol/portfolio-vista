@@ -1,4 +1,10 @@
-import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import {
+  Component,
+  Input,
+  OnChanges,
+  OnInit,
+  SimpleChanges,
+} from '@angular/core';
 import { Data } from '../../../interfaces/window.interface';
 import { FormsModule } from '@angular/forms';
 import MarkdownIt from 'markdown-it';
@@ -46,11 +52,27 @@ export class NotepadComponent implements OnChanges, OnInit {
         } else {
           return hljs.highlightAuto(code).value;
         }
-      }
+      },
     });
+
+    this.md.renderer.rules['heading_open'] = (tokens, idx) => {
+      const token = tokens[idx];
+      const level = Number(token.tag.slice(1));
+
+      const newTag = level === 1 ? 'h5' : level === 2 ? 'h6' : token.tag;
+      return `<${newTag}>`;
+    };
+
+    this.md.renderer.rules['heading_close'] = (tokens, idx) => {
+      const token = tokens[idx];
+      const level = Number(token.tag.slice(1));
+
+      const newTag = level === 1 ? 'h5' : level === 2 ? 'h6' : token.tag;
+      return `</${newTag}>`;
+    };
   }
   ngOnInit(): void {
-    this.preview = !!this.contentValue
+    this.preview = !!this.contentValue;
   }
 
   ngOnChanges(changes: SimpleChanges): void {

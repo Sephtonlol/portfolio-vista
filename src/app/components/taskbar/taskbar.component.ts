@@ -45,6 +45,13 @@ export class TaskbarComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    const storedPinned = localStorage.getItem('pinnedApps');
+    if (storedPinned) {
+      try {
+        this.pinnedApps = JSON.parse(storedPinned);
+      } catch {}
+    }
+
     this.windowManagerService.windows$.subscribe((windows) => {
       this.windows = windows;
       this.groupedApps = this.groupWindowsByApplication(windows);
@@ -177,9 +184,10 @@ export class TaskbarComponent implements OnInit {
 
     if (!this.isPinned(appName)) {
       this.pinnedApps.push(appName);
-      return;
+    } else {
+      this.pinnedApps = this.pinnedApps.filter((name) => name !== appName);
     }
-    this.pinnedApps = this.pinnedApps.filter((name) => name !== appName);
+    localStorage.setItem('pinnedApps', JSON.stringify(this.pinnedApps));
   }
 
   allApps() {

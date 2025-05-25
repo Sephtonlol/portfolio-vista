@@ -130,6 +130,7 @@ export class SettingsService {
   }
 
   resetSettings() {
+    localStorage.clear();
     this.settingsSubject.next(this.defaultSettings);
     this.saveSettings(this.defaultSettings);
     this.applyTheme(this.defaultSettings.theme);

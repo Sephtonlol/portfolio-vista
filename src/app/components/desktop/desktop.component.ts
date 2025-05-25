@@ -25,6 +25,7 @@ export class DesktopComponent {
   ) {}
 
   ngOnInit(): void {
+    this.linkedinOpened = !!localStorage.getItem('linkedinOpened');
     this.windowManagerService.windows$.subscribe((windows) => {
       this.windows = windows;
     });
@@ -36,6 +37,7 @@ export class DesktopComponent {
 
   openLinkedin() {
     this.linkedinOpened = true;
+    localStorage.setItem('linkedinOpened', 'true');
     const linkedinUrl = 'https://www.linkedin.com/in/alexander-wu-b63038241/';
     window.open(linkedinUrl, '_blank');
   }

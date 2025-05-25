@@ -4,6 +4,8 @@
     <div class="carousel-item" [class.active]="$index === currentIndex">
       <img [src]="image.url" class="d-block w-100" alt="Photo" />
     </div>
+    }@empty {
+    <span>Image(s) not found</span>
     }
   </div>
 
