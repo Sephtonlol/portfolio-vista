@@ -96,7 +96,8 @@ html {
 .hljs-function,
 .hljs-number,
 .hljs-variable,
-.hljs-built_in {
+.hljs-built_in,
+.hljs-title {
   margin: 0;
   font-weight: normal;
 }
