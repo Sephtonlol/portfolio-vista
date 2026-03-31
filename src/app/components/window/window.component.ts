@@ -18,6 +18,7 @@ import { SettingsComponent } from '../windows/settings/settings.component';
 import { Subscription } from 'rxjs';
 import { WindowManagerService } from '../../services/window-manager.service';
 import { Window } from '../../interfaces/window.interface';
+import { BrowserComponent } from '../windows/browser/browser.component';
 
 @Component({
   selector: 'app-window',
@@ -30,6 +31,7 @@ import { Window } from '../../interfaces/window.interface';
     PhotosComponent,
     PlayerComponent,
     SettingsComponent,
+    BrowserComponent,
   ],
   templateUrl: './window.component.html',
   styleUrl: './window.component.css',
@@ -67,7 +69,7 @@ export class WindowComponent implements AfterViewInit, OnInit {
   constructor(
     private el: ElementRef,
     private windowManagerService: WindowManagerService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
   ) {}
   ngOnInit(): void {
     if (window.innerWidth < 992) {
@@ -132,7 +134,7 @@ export class WindowComponent implements AfterViewInit, OnInit {
           this.windowEl.style.transform = `translate(25vw, 100vh) scale(0, 0)`;
           this.windowData.minimized = true;
         }
-      }
+      },
     );
 
     this.windowEl.addEventListener('mousedown', (event: MouseEvent) => {
@@ -146,7 +148,7 @@ export class WindowComponent implements AfterViewInit, OnInit {
       this.windowManagerService.focusWindow(
         this.id || '',
         false,
-        isHeader && !isControlButton
+        isHeader && !isControlButton,
       );
     });
 
@@ -272,7 +274,7 @@ export class WindowComponent implements AfterViewInit, OnInit {
         isOnTop = false;
 
         const allWindows = Array.from(
-          document.querySelectorAll('.window')
+          document.querySelectorAll('.window'),
         ) as HTMLElement[];
 
         for (const win of allWindows) {
@@ -394,7 +396,7 @@ export class WindowComponent implements AfterViewInit, OnInit {
         this.windowEl.style.width = '50%';
         this.windowEl.setAttribute(
           'data-x',
-          (this.screenWidth / 2).toString() + '.1'
+          (this.screenWidth / 2).toString() + '.1',
         );
         this.windowEl.setAttribute('data-y', '0.1');
         break;

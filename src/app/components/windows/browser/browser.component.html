@@ -1,0 +1,42 @@
+<!-- TAB BAR -->
+<div class="tab-bar">
+  @for (tab of tabs; track tab.id) {
+    <div class="tab" [class.active]="tab.id === activeTabId">
+      <span (click)="switchTab(tab.id)">
+        {{ tab.query ? tab.query : "New Tab" }}
+      </span>
+
+      <button class="close-tab" (click)="closeTab(tab.id)">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+  }
+
+  <button class="new-tab" (click)="addTab()"><i class="bi bi-plus"></i></button>
+</div>
+
+<!-- SEARCH -->
+<div class="search-bar">
+  <input type="text" [(ngModel)]="activeTab.query" placeholder="Search..." />
+
+  <button (click)="onSearch()">Search</button>
+</div>
+
+<!-- RESULTS -->
+<div>
+  <h1>Results</h1>
+
+  @for (result of activeTab.results; track result) {
+    <div>
+      <img [src]="result.favicon" />
+
+      <a [href]="sanitize(result.link)" target="_blank">
+        {{ result.title }}
+      </a>
+
+      <p>{{ result.snippet }}</p>
+
+      <hr />
+    </div>
+  }
+</div>

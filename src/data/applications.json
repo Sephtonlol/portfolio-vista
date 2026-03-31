@@ -1,5 +1,6 @@
 [
   { "application": "Explorer", "icon": "bi-folder" },
+  { "application": "Browser", "icon": "bi-globe" },
   { "application": "Terminal", "icon": "bi-terminal" },
   { "application": "Settings", "icon": "bi-gear" },
   { "application": "Calculator", "icon": "bi-calculator" },
