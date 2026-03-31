@@ -2,7 +2,7 @@
 <div class="tab-bar">
   @for (tab of tabs; track tab.id) {
     <div class="tab" [class.active]="tab.id === activeTabId">
-      <span (click)="switchTab(tab.id)">
+      <span class="tab-title" (click)="switchTab(tab.id)">
         {{ tab.query ? tab.query : "New Tab" }}
       </span>
 
