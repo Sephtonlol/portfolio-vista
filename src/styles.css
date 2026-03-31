@@ -37,6 +37,11 @@ button {
   font-weight: bold;
   color: var(--text-color);
 }
+
+button {
+  user-select: none;
+}
+
 p {
   font-weight: normal;
 }

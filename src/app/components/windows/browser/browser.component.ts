@@ -2,7 +2,12 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { BrowserService } from '../../../services/api/browser.service';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
-import { Result, Tab } from '../../../interfaces/browser.interface';
+import {
+  BrowserView,
+  ImageResult,
+  Result,
+  Tab,
+} from '../../../interfaces/browser.interface';
 
 @Component({
   selector: 'app-browser',
@@ -30,7 +35,13 @@ export class BrowserComponent {
     const newTab: Tab = {
       id: this.nextId++,
       query: '',
+      view: 'sites',
       results: [],
+      imageResults: [],
+      lastSitesQuery: '',
+      lastImagesQuery: '',
+      isLoadingSites: false,
+      isLoadingImages: false,
     };
 
     this.tabs.push(newTab);
@@ -49,14 +60,79 @@ export class BrowserComponent {
     this.activeTabId = id;
   }
 
+  setView(view: BrowserView) {
+    const tab = this.activeTab;
+    tab.view = view;
+
+    void this.loadIfNeeded(tab);
+  }
+
   async onSearch() {
     const tab = this.activeTab;
+    const query = tab.query.trim();
+
+    if (!query) {
+      tab.results = [];
+      tab.imageResults = [];
+      tab.lastSitesQuery = '';
+      tab.lastImagesQuery = '';
+      return;
+    }
 
     try {
-      const res = await this.browserService.search(tab.query);
-      tab.results = res.results as Result[];
+      if (tab.view === 'images') {
+        await this.fetchImages(tab, query);
+      } else {
+        await this.fetchSites(tab, query);
+      }
     } catch (err) {
       console.error(err);
+    }
+  }
+
+  private async fetchSites(tab: Tab, query: string) {
+    if (tab.isLoadingSites) return;
+
+    tab.isLoadingSites = true;
+    tab.lastSitesQuery = query;
+
+    try {
+      const res = await this.browserService.search(query);
+      tab.results = (res.results ?? []) as Result[];
+    } finally {
+      tab.isLoadingSites = false;
+    }
+  }
+
+  private async loadIfNeeded(tab: Tab) {
+    const query = tab.query.trim();
+    if (!query) return;
+
+    if (tab.view === 'images') {
+      if (tab.isLoadingImages) return;
+      if (tab.lastImagesQuery === query) return;
+
+      await this.fetchImages(tab, query);
+      return;
+    }
+
+    if (tab.isLoadingSites) return;
+    if (tab.lastSitesQuery === query) return;
+
+    await this.fetchSites(tab, query);
+  }
+
+  private async fetchImages(tab: Tab, query: string) {
+    if (tab.isLoadingImages) return;
+
+    tab.isLoadingImages = true;
+    tab.lastImagesQuery = query;
+
+    try {
+      const res = await this.browserService.images(query);
+      tab.imageResults = (res.results ?? []) as ImageResult[];
+    } finally {
+      tab.isLoadingImages = false;
     }
   }
 

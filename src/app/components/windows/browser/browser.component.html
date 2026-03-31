@@ -22,21 +22,62 @@
   <button (click)="onSearch()">Search</button>
 </div>
 
+<!-- MODE TABS -->
+<div class="mode-tabs">
+  <button
+    class="mode-tab"
+    [class.active]="activeTab.view === 'sites'"
+    (click)="setView('sites')"
+  >
+    Sites
+  </button>
+
+  <button
+    class="mode-tab"
+    [class.active]="activeTab.view === 'images'"
+    (click)="setView('images')"
+  >
+    Images
+  </button>
+</div>
+
 <!-- RESULTS -->
-<div>
-  <h1>Results</h1>
+@if (activeTab.isLoadingSites || activeTab.isLoadingImages) {
+  <p>Loading...</p>
+}
+<div class="results {{ activeTab.view === 'sites' ? 'sites' : 'images' }}">
+  @if (activeTab.view === "sites") {
+    @for (result of activeTab.results; track result.link) {
+      <div>
+        <img [src]="result.favicon" />
 
-  @for (result of activeTab.results; track result) {
-    <div>
-      <img [src]="result.favicon" />
+        <a [href]="sanitize(result.link)" target="_blank">
+          {{ result.title }}
+        </a>
 
-      <a [href]="sanitize(result.link)" target="_blank">
-        {{ result.title }}
-      </a>
+        <p>{{ result.snippet }}</p>
 
-      <p>{{ result.snippet }}</p>
+        <hr />
+      </div>
+    }
+  } @else {
+    @for (image of activeTab.imageResults; track image.image) {
+      <div class="image-result">
+        <a [href]="sanitize(image.source)" target="_blank">
+          <img
+            class="image-thumb"
+            [src]="image.thumbnail"
+            [alt]="image.title"
+          />
+        </a>
 
+        <div class="image-meta">
+          <a [href]="sanitize(image.source)" target="_blank">{{
+            image.title
+          }}</a>
+        </div>
+      </div>
       <hr />
-    </div>
+    }
   }
 </div>
