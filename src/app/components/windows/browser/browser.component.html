@@ -62,21 +62,23 @@
     }
   } @else {
     @for (image of activeTab.imageResults; track image.image) {
-      <div class="image-result">
-        <a [href]="sanitize(image.source)" target="_blank">
-          <img
-            class="image-thumb"
-            [src]="image.thumbnail"
-            [alt]="image.title"
-          />
-        </a>
+      @if (image.source) {
+        <div class="image-result">
+          <a [href]="sanitize(image.source)" target="_blank">
+            <img
+              class="image-thumb"
+              [src]="image.thumbnail"
+              [alt]="image.title"
+            />
+          </a>
 
-        <div class="image-meta">
-          <a [href]="sanitize(image.source)" target="_blank">{{
-            image.title
-          }}</a>
+          <div class="image-meta">
+            <a [href]="sanitize(image.source)" target="_blank">{{
+              image.title
+            }}</a>
+          </div>
         </div>
-      </div>
+      }
       <hr />
     }
   }

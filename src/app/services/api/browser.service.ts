@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../enviroments/enviroment';
 import {
@@ -16,14 +16,20 @@ export class BrowserService {
   constructor(private http: HttpClient) {}
 
   async search(query: string): Promise<SearchResponse> {
+    const params = new HttpParams().set('q', query);
     return await firstValueFrom(
-      this.http.get<SearchResponse>(`${this.baseUrl}/browser/search/${query}`),
+      this.http.get<SearchResponse>(`${this.baseUrl}/browser/search`, {
+        params,
+      }),
     );
   }
 
   async images(query: string): Promise<ImagesResponse> {
+    const params = new HttpParams().set('q', query);
     return await firstValueFrom(
-      this.http.get<ImagesResponse>(`${this.baseUrl}/browser/images/${query}`),
+      this.http.get<ImagesResponse>(`${this.baseUrl}/browser/images`, {
+        params,
+      }),
     );
   }
 }

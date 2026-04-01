@@ -149,3 +149,7 @@ i {
 .sites {
   max-width: 650px;
 }
+a {
+  text-decoration: none;
+  color: var(--text-color);
+}
