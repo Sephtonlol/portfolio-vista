@@ -30,7 +30,13 @@ export class TaskbarComponent implements OnInit {
   windows: Window[] = [];
   groupedApps: [string, IndexedWindow[]][] = [];
   applications: Window[] = applications as Window[];
-  pinnedApps: string[] = ['Explorer', 'Terminal', 'Notepad', 'Calculator'];
+  pinnedApps: string[] = [
+    'Browser',
+    'Explorer',
+    'Terminal',
+    'Notepad',
+    'Calculator',
+  ];
 
   contextMenuApp: string | null = null;
   contextMenuElement: HTMLElement | null = null;
@@ -41,7 +47,7 @@ export class TaskbarComponent implements OnInit {
 
   constructor(
     public windowManagerService: WindowManagerService,
-    private eRef: ElementRef
+    private eRef: ElementRef,
   ) {}
 
   ngOnInit() {
@@ -193,7 +199,7 @@ export class TaskbarComponent implements OnInit {
   allApps() {
     const active = this.groupedApps.map((e) => e[0]);
     const pinnedFirst = this.pinnedApps.concat(
-      active.filter((app) => !this.pinnedApps.includes(app))
+      active.filter((app) => !this.pinnedApps.includes(app)),
     );
     return pinnedFirst;
   }

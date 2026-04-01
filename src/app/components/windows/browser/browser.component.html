@@ -17,7 +17,12 @@
 
 <!-- SEARCH -->
 <div class="search-bar">
-  <input type="text" [(ngModel)]="activeTab.query" placeholder="Search..." />
+  <input
+    type="text"
+    [(ngModel)]="activeTab.query"
+    placeholder="Search..."
+    (keydown.enter)="onSearch()"
+  />
 
   <button (click)="onSearch()">Search</button>
 </div>
@@ -45,10 +50,14 @@
 @if (activeTab.isLoadingSites || activeTab.isLoadingImages) {
   <p>Loading...</p>
 }
-<div class="results {{ activeTab.view === 'sites' ? 'sites' : 'images' }}">
+<div
+  class="results {{ activeTab.view === 'sites' ? 'sites' : 'images' }} {{
+    activeTab.results.length > 0 ? 'has-results' : ''
+  }}"
+>
   @if (activeTab.view === "sites") {
     @for (result of activeTab.results; track result.link) {
-      <div>
+      <div class="search-result">
         <img [src]="result.favicon" />
 
         <a [href]="sanitize(result.link)" target="_blank">
@@ -60,18 +69,16 @@
         <hr />
       </div>
     }
-  } @else {
+  } @else if (activeTab.view === "images") {
     @for (image of activeTab.imageResults; track image.image) {
       @if (image.source) {
         <div class="image-result">
-          <a [href]="sanitize(image.source)" target="_blank">
-            <img
-              class="image-thumb"
-              [src]="image.thumbnail"
-              [alt]="image.title"
-            />
-          </a>
-
+          <img
+            class="image-thumb"
+            [src]="image.thumbnail"
+            [alt]="image.title"
+            (click)="openImagePreview(image, $event)"
+          />
           <div class="image-meta">
             <a [href]="sanitize(image.source)" target="_blank">{{
               image.title
@@ -83,3 +90,24 @@
     }
   }
 </div>
+
+@if (imagePreview.isOpen && imagePreviewRect) {
+  <div class="image-preview-overlay" (click)="closeImagePreview()">
+    <div
+      class="image-preview-backdrop"
+      [class.active]="imagePreview.stage === 'end'"
+    ></div>
+
+    <img
+      class="image-preview-image"
+      [src]="imagePreview.src"
+      [alt]="imagePreview.alt"
+      [style.top.px]="imagePreviewRect.top"
+      [style.left.px]="imagePreviewRect.left"
+      [style.width.px]="imagePreviewRect.width"
+      [style.height.px]="imagePreviewRect.height"
+      [style.border-radius.px]="imagePreviewRect.borderRadius"
+      (click)="$event.stopPropagation()"
+    />
+  </div>
+}

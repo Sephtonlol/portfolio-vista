@@ -38,7 +38,7 @@
     } @else if (windowData.application === "Settings") {
       <app-settings />
     } @else if (windowData.application === "Browser") {
-      <app-browser />
+      <app-browser [id]="id" />
     } @else if (windowData.application === "Notepad") {
       <app-notepad [data]="windowData.data" />
     } @else if (windowData.application === "Photos") {
