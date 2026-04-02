@@ -37,15 +37,27 @@
 <div class="setting-groups-outer">
   <h4>Display</h4>
   <div class="setting-group has-border">
-    <h4>Theme</h4>
+    <h4>Color mode</h4>
     <select
-      id="fitSelect"
+      id="modeSelect"
       class="form-select"
-      [value]="settings.theme"
-      (change)="setTheme($event)"
+      [value]="settings.colorMode"
+      (change)="setColorMode($event)"
     >
-      <option value="dark">Dark</option>
       <option value="light">Light</option>
+      <option value="dark">Dark</option>
+    </select>
+  </div>
+
+  <div class="setting-group has-border">
+    <h4>Accent</h4>
+    <select
+      id="accentSelect"
+      class="form-select"
+      [value]="settings.accent"
+      (change)="setAccent($event)"
+    >
+      <option value="default">Default</option>
       <option value="red">Red</option>
       <option value="green">Green</option>
       <option value="blue">Blue</option>

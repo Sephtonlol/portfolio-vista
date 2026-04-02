@@ -10,7 +10,9 @@
   touch-action: none;
 }
 .focused {
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  box-shadow:
+    0 0 0 2px var(--accent-soft),
+    0 0 10px rgba(0, 0, 0, 0.3);
 }
 .window-header {
   background-color: var(--primary-color);

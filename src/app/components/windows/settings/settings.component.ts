@@ -37,9 +37,14 @@ export class SettingsComponent implements OnInit {
     this.settingsService.setBackgroundFit(select.value as any);
   }
 
-  setTheme(event: Event) {
+  setColorMode(event: Event) {
     const select = event.target as HTMLSelectElement;
-    this.settingsService.setTheme(select.value);
+    this.settingsService.setColorMode(select.value as any);
+  }
+
+  setAccent(event: Event) {
+    const select = event.target as HTMLSelectElement;
+    this.settingsService.setAccent(select.value as any);
   }
 
   toggleAnimations() {

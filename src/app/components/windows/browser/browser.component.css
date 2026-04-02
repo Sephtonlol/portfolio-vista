@@ -34,7 +34,7 @@
 
 .tab.active {
   background: var(--hover-color);
-  border-bottom: 2px solid var(--text-color);
+  border-bottom: 2px solid var(--accent-color);
 }
 
 .tab button {
@@ -100,7 +100,7 @@ hr {
 
 .mode-tab.active {
   background: var(--hover-color);
-  border-bottom: 2px solid var(--text-color);
+  border-bottom: 2px solid var(--accent-color);
 }
 
 .mode-tab:hover {

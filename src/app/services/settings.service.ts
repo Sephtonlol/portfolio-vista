@@ -1,13 +1,33 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { AppSettings } from '../interfaces/settings.interface';
+import {
+  AccentTheme,
+  AppSettings,
+  ColorMode,
+} from '../interfaces/settings.interface';
 
 const SETTINGS_KEY = 'app_settings';
+
+const COLOR_MODES: readonly ColorMode[] = ['dark', 'light'] as const;
+const ACCENT_THEMES: readonly AccentTheme[] = [
+  'default',
+  'red',
+  'green',
+  'blue',
+  'pink',
+] as const;
+const BACKGROUND_FITS: readonly AppSettings['backgroundFit'][] = [
+  'cover',
+  'contain',
+  'stretch',
+  'repeat',
+] as const;
 
 @Injectable({ providedIn: 'root' })
 export class SettingsService {
   private defaultSettings: AppSettings = {
-    theme: 'dark',
+    colorMode: 'dark',
+    accent: 'default',
     animations: true,
     backgroundImage: null,
     backgroundFit: 'cover',
@@ -17,15 +37,69 @@ export class SettingsService {
   settings$: ReturnType<BehaviorSubject<AppSettings>['asObservable']>;
 
   constructor() {
-    const saved = localStorage.getItem(SETTINGS_KEY);
-    const initial = saved
-      ? { ...this.defaultSettings, ...JSON.parse(saved) }
-      : this.defaultSettings;
+    const initial = this.loadInitialSettings();
     this.settingsSubject = new BehaviorSubject<AppSettings>(initial);
     this.settings$ = this.settingsSubject.asObservable();
 
-    this.applyTheme(initial.theme);
+    this.applyColorMode(initial.colorMode);
+    this.applyAccent(initial.accent);
     this.applyAnimations(initial.animations);
+  }
+
+  private loadInitialSettings(): AppSettings {
+    const saved = localStorage.getItem(SETTINGS_KEY);
+    if (!saved) return this.defaultSettings;
+
+    try {
+      const parsed = JSON.parse(saved) as Partial<AppSettings> & {
+        theme?: unknown;
+      };
+      const normalized = this.normalizeSettings(parsed);
+      this.saveSettings(normalized);
+      return normalized;
+    } catch {
+      return this.defaultSettings;
+    }
+  }
+
+  private normalizeSettings(
+    saved: Partial<AppSettings> & { theme?: unknown },
+  ): AppSettings {
+    const normalized: AppSettings = { ...this.defaultSettings };
+
+    if (saved && typeof saved === 'object') {
+      if (COLOR_MODES.includes(saved.colorMode as ColorMode)) {
+        normalized.colorMode = saved.colorMode as ColorMode;
+      }
+
+      if (ACCENT_THEMES.includes(saved.accent as AccentTheme)) {
+        normalized.accent = saved.accent as AccentTheme;
+      }
+
+      if (typeof saved.animations === 'boolean') {
+        normalized.animations = saved.animations;
+      }
+
+      if ('backgroundImage' in saved) {
+        normalized.backgroundImage = (saved as any).backgroundImage ?? null;
+      }
+
+      if (BACKGROUND_FITS.includes(saved.backgroundFit as any)) {
+        normalized.backgroundFit =
+          saved.backgroundFit as AppSettings['backgroundFit'];
+      }
+
+      // Legacy single "theme" setting migration.
+      if (typeof saved.theme === 'string') {
+        if (saved.theme === 'light') normalized.colorMode = 'light';
+        else if (saved.theme === 'dark') normalized.colorMode = 'dark';
+        else if ((ACCENT_THEMES as readonly string[]).includes(saved.theme)) {
+          normalized.accent = saved.theme as AccentTheme;
+        }
+      }
+    }
+
+    return normalized;
   }
 
   private saveSettings(settings: AppSettings) {
@@ -46,66 +120,41 @@ export class SettingsService {
     this.saveSettings(updated);
   }
 
-  setTheme(theme: string) {
+  setColorMode(mode: ColorMode) {
     const current = this.settingsSubject.value;
-    const updated = { ...current, theme };
+    const updated = { ...current, colorMode: mode };
     this.settingsSubject.next(updated);
     this.saveSettings(updated);
-    this.applyTheme(theme);
+    this.applyColorMode(mode);
   }
 
-  private applyTheme(theme: string) {
-    const root = document.documentElement;
-    switch (theme) {
-      case 'light':
-        root.style.setProperty('--background-color', '#f2f2f2');
-        root.style.setProperty('--primary-color', '#f0f0f0');
-        root.style.setProperty('--secondary-color', '#e0e0e0');
-        root.style.setProperty('--hover-color', '#00000010');
-        root.style.setProperty('--text-color', '#000');
-        root.style.setProperty('--terminal-color', '#fff');
-        break;
-      case 'red':
-        root.style.setProperty('--background-color', '#c96160');
-        root.style.setProperty('--primary-color', '#bd4041');
-        root.style.setProperty('--secondary-color', '#d58081');
-        root.style.setProperty('--hover-color', '#df9fa030');
-        root.style.setProperty('--text-color', '#fff');
-        root.style.setProperty('--terminal-color', '#7a1f1f');
-        break;
-      case 'green':
-        root.style.setProperty('--background-color', '#54a254');
-        root.style.setProperty('--primary-color', '#4d754d');
-        root.style.setProperty('--secondary-color', '#70c470');
-        root.style.setProperty('--hover-color', '#9ad39a30');
-        root.style.setProperty('--text-color', '#fff');
-        root.style.setProperty('--terminal-color', '#1f7a3a');
-        break;
-      case 'blue':
-        root.style.setProperty('--background-color', '#c2d6f6');
-        root.style.setProperty('--primary-color', '#92b6f0');
-        root.style.setProperty('--secondary-color', '#b2cbf2');
-        root.style.setProperty('--hover-color', '#698ceb30');
-        root.style.setProperty('--text-color', '#000');
-        root.style.setProperty('--terminal-color', '#1f3a7a');
-        break;
-      case 'pink':
-        root.style.setProperty('--background-color', '#ead0d9');
-        root.style.setProperty('--primary-color', '#ffd6e4');
-        root.style.setProperty('--secondary-color', '#ffc4da');
-        root.style.setProperty('--hover-color', '#fff0f030');
-        root.style.setProperty('--text-color', '#000');
-        root.style.setProperty('--terminal-color', '#7a1f4d');
-        break;
-      default:
-        root.style.setProperty('--background-color', '#1e1e1e');
-        root.style.setProperty('--primary-color', '#202020');
-        root.style.setProperty('--secondary-color', '#212123');
-        root.style.setProperty('--hover-color', '#ffffff0b');
-        root.style.setProperty('--text-color', '#fff');
-        root.style.setProperty('--terminal-color', '#fff');
-        break;
+  setAccent(accent: AccentTheme) {
+    const current = this.settingsSubject.value;
+    const updated = { ...current, accent };
+    this.settingsSubject.next(updated);
+    this.saveSettings(updated);
+    this.applyAccent(accent);
+  }
+
+  // Backward-compatible legacy API (maps old single "theme" to mode/accent).
+  setTheme(theme: string) {
+    if ((COLOR_MODES as readonly string[]).includes(theme)) {
+      this.setColorMode(theme as ColorMode);
+      return;
     }
+    if ((ACCENT_THEMES as readonly string[]).includes(theme)) {
+      this.setAccent(theme as AccentTheme);
+    }
+  }
+
+  private applyColorMode(mode: ColorMode) {
+    const root = document.documentElement;
+    root.setAttribute('data-mode', mode);
+  }
+
+  private applyAccent(accent: AccentTheme) {
+    const root = document.documentElement;
+    root.setAttribute('data-accent', accent);
   }
 
   toggleAnimations() {
@@ -130,10 +179,11 @@ export class SettingsService {
   }
 
   resetSettings() {
-    localStorage.clear();
+    localStorage.removeItem(SETTINGS_KEY);
     this.settingsSubject.next(this.defaultSettings);
     this.saveSettings(this.defaultSettings);
-    this.applyTheme(this.defaultSettings.theme);
+    this.applyColorMode(this.defaultSettings.colorMode);
+    this.applyAccent(this.defaultSettings.accent);
     this.applyAnimations(this.defaultSettings.animations);
   }
 }

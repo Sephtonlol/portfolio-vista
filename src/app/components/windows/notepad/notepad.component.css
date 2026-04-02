@@ -25,7 +25,7 @@ textarea {
   width: 100%;
 }
 .preview {
-  color: #fff;
+  color: var(--text-color);
 }
 textarea:focus {
   outline: none;

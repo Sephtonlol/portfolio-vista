@@ -56,7 +56,7 @@ i {
   position: absolute;
   width: 10px;
   height: 10px;
-  background-color: var(--text-color);
+  background-color: var(--accent-color);
   z-index: -1;
   border-radius: 6px;
 }
