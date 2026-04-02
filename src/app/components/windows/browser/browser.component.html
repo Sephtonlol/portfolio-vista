@@ -46,6 +46,34 @@
   </button>
 </div>
 
+@if (
+  activeTab.view === "sites" &&
+  !activeTab.isLoadingSites &&
+  activeTab.lastSitesQuery === activeTab.query.trim() &&
+  activeTab.lastSitesDurationMs !== null &&
+  activeTab.lastSitesResultCount !== null
+) {
+  <p class="results-meta">
+    About {{ activeTab.lastSitesResultCount }} results ({{
+      activeTab.lastSitesDurationMs / 1000
+    }}
+    seconds)
+  </p>
+} @else if (
+  activeTab.view === "images" &&
+  !activeTab.isLoadingImages &&
+  activeTab.lastImagesQuery === activeTab.query.trim() &&
+  activeTab.lastImagesDurationMs !== null &&
+  activeTab.lastImagesResultCount !== null
+) {
+  <p class="results-meta">
+    About {{ activeTab.lastImagesResultCount }} results ({{
+      activeTab.lastImagesDurationMs / 1000
+    }}
+    seconds)
+  </p>
+}
+
 <!-- RESULTS -->
 @if (activeTab.isLoadingSites || activeTab.isLoadingImages) {
   <p>Loading...</p>

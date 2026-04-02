@@ -1,6 +1,8 @@
 export interface SearchResponse {
   success: boolean;
   query: string;
+  durationMs: number;
+  resultCount: number;
   results?: Result[];
 }
 
@@ -15,6 +17,8 @@ export interface Result {
 export interface ImagesResponse {
   success: boolean;
   query: string;
+  durationMs: number;
+  resultCount: number;
   results?: ImageResult[];
 }
 
@@ -35,6 +39,10 @@ export interface Tab {
   imageResults: ImageResult[];
   lastSitesQuery: string;
   lastImagesQuery: string;
+  lastSitesDurationMs: number | null;
+  lastImagesDurationMs: number | null;
+  lastSitesResultCount: number | null;
+  lastImagesResultCount: number | null;
   isLoadingSites: boolean;
   isLoadingImages: boolean;
 }

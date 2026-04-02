@@ -200,3 +200,8 @@ a {
 .search-result {
   width: 100%;
 }
+
+.results-meta {
+  margin: 0 10px 10px;
+  opacity: 0.85;
+}

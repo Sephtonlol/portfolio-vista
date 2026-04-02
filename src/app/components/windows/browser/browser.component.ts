@@ -83,6 +83,10 @@ export class BrowserComponent {
       imageResults: [],
       lastSitesQuery: '',
       lastImagesQuery: '',
+      lastSitesDurationMs: null,
+      lastImagesDurationMs: null,
+      lastSitesResultCount: null,
+      lastImagesResultCount: null,
       isLoadingSites: false,
       isLoadingImages: false,
     };
@@ -122,6 +126,10 @@ export class BrowserComponent {
       tab.imageResults = [];
       tab.lastSitesQuery = '';
       tab.lastImagesQuery = '';
+      tab.lastSitesDurationMs = null;
+      tab.lastImagesDurationMs = null;
+      tab.lastSitesResultCount = null;
+      tab.lastImagesResultCount = null;
       return;
     }
 
@@ -144,7 +152,9 @@ export class BrowserComponent {
 
     try {
       const res = await this.browserService.search(query);
-      tab.results = (res.results ?? []) as Result[];
+      tab.results = res.results ?? [];
+      tab.lastSitesDurationMs = res.durationMs;
+      tab.lastSitesResultCount = res.resultCount;
     } finally {
       tab.isLoadingSites = false;
     }
@@ -176,7 +186,9 @@ export class BrowserComponent {
 
     try {
       const res = await this.browserService.images(query);
-      tab.imageResults = (res.results ?? []) as ImageResult[];
+      tab.imageResults = res.results ?? [];
+      tab.lastImagesDurationMs = res.durationMs;
+      tab.lastImagesResultCount = res.resultCount;
     } finally {
       tab.isLoadingImages = false;
     }

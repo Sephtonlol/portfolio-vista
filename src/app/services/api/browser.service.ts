@@ -7,6 +7,9 @@ import {
   SearchResponse,
 } from '../../interfaces/browser.interface';
 
+type SearchApiResponse = Omit<SearchResponse, 'durationMs' | 'resultCount'>;
+type ImagesApiResponse = Omit<ImagesResponse, 'durationMs' | 'resultCount'>;
+
 @Injectable({
   providedIn: 'root',
 })
@@ -17,19 +20,39 @@ export class BrowserService {
 
   async search(query: string): Promise<SearchResponse> {
     const params = new HttpParams().set('q', query);
-    return await firstValueFrom(
-      this.http.get<SearchResponse>(`${this.baseUrl}/browser/search`, {
+
+    const start = performance.now();
+    const res = await firstValueFrom(
+      this.http.get<SearchApiResponse>(`${this.baseUrl}/browser/search`, {
         params,
       }),
     );
+    const durationMs = Math.round(performance.now() - start);
+    const resultCount = res.results?.length ?? 0;
+
+    return {
+      ...res,
+      durationMs,
+      resultCount,
+    };
   }
 
   async images(query: string): Promise<ImagesResponse> {
     const params = new HttpParams().set('q', query);
-    return await firstValueFrom(
-      this.http.get<ImagesResponse>(`${this.baseUrl}/browser/images`, {
+
+    const start = performance.now();
+    const res = await firstValueFrom(
+      this.http.get<ImagesApiResponse>(`${this.baseUrl}/browser/images`, {
         params,
       }),
     );
+    const durationMs = Math.round(performance.now() - start);
+    const resultCount = res.results?.length ?? 0;
+
+    return {
+      ...res,
+      durationMs,
+      resultCount,
+    };
   }
 }
