@@ -66,6 +66,8 @@ export class WindowComponent implements AfterViewInit, OnInit {
   private focusSub!: Subscription;
   private minimizeSub!: Subscription;
 
+  private readonly desktopTaskbarHeightRem = 3.5;
+
   constructor(
     private el: ElementRef,
     private windowManagerService: WindowManagerService,
@@ -202,8 +204,6 @@ export class WindowComponent implements AfterViewInit, OnInit {
               const currentY = parseFloat(target.getAttribute('data-y')!);
               let y = (isNaN(currentY) ? 50 : currentY) + event.dy;
 
-              console.log(event.client.y, y);
-
               if (window.innerWidth < 992) {
                 x =
                   (parseFloat(target.getAttribute('data-x')!) || 0) + event.dx;
@@ -239,6 +239,13 @@ export class WindowComponent implements AfterViewInit, OnInit {
               }
               if (this.isLeftSnap || this.isRightSnap) {
                 this.snapWindow();
+              } else if (
+                !this.maximizing &&
+                !this.isSnapped &&
+                !this.isMaximized
+              ) {
+                this.clampWindowToLowestVisibleHeader();
+                this.saveLast();
               }
               this.isLeftSnap = false;
               this.isRightSnap = false;
@@ -277,6 +284,9 @@ export class WindowComponent implements AfterViewInit, OnInit {
             target.setAttribute('data-y', y.toString());
           },
           end: () => {
+            if (!this.isMaximized && !this.isSnapped) {
+              this.clampWindowToLowestVisibleHeader();
+            }
             this.saveLast();
             setTimeout(() => {
               this.shouldAnimate = true;
@@ -335,6 +345,41 @@ export class WindowComponent implements AfterViewInit, OnInit {
     }, 250);
 
     window.addEventListener('resize', this.handleResponsiveMaximize.bind(this));
+  }
+
+  private getDesktopTaskbarHeightPx(): number {
+    const rootFontSizePx = parseFloat(
+      window.getComputedStyle(document.documentElement).fontSize || '16',
+    );
+    return rootFontSizePx * this.desktopTaskbarHeightRem;
+  }
+
+  private clampWindowToLowestVisibleHeader(): void {
+    if (!this.windowEl) return;
+
+    const header = this.windowEl.querySelector(
+      '.window-header',
+    ) as HTMLElement | null;
+    const headerHeight = header?.offsetHeight ?? 0;
+
+    const reservedBottom =
+      window.innerWidth < 992 ? 0 : this.getDesktopTaskbarHeightPx();
+    const maxY = Math.max(
+      0,
+      window.innerHeight - reservedBottom - headerHeight,
+    );
+
+    let currentX = parseFloat(this.windowEl.getAttribute('data-x') ?? '');
+    let currentY = parseFloat(this.windowEl.getAttribute('data-y') ?? '');
+    if (Number.isNaN(currentX)) currentX = this.lastPosition.x ?? 0;
+    if (Number.isNaN(currentY)) currentY = this.lastPosition.y ?? 0;
+
+    if (currentY <= maxY) return;
+
+    const clampedY = maxY;
+    this.windowEl.style.transform = `translate(${currentX}px, ${clampedY}px)`;
+    this.windowEl.setAttribute('data-x', currentX.toString());
+    this.windowEl.setAttribute('data-y', clampedY.toString());
   }
 
   handleResponsiveMaximize() {
