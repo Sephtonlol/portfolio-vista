@@ -12,7 +12,7 @@
 .focused {
   box-shadow:
     0 0 0 2px var(--accent-soft),
-    0 0 10px rgba(0, 0, 0, 0.3);
+    0 0 15px rgba(0, 0, 0, 0.8);
 }
 .window-header {
   background-color: var(--primary-color);
