@@ -123,13 +123,12 @@ hr {
 }
 
 .image-preview-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
+  position: absolute;
+  z-index: 10;
 }
 
 .image-preview-backdrop {
-  position: fixed;
+  position: absolute;
   inset: 0;
   background: var(--tertiary-color);
   opacity: 0;
@@ -141,7 +140,7 @@ hr {
 }
 
 .image-preview-image {
-  position: fixed;
+  position: absolute;
   object-fit: contain;
   background: var(--background-color);
   border: 2px solid var(--tertiary-color);

@@ -1,11 +1,10 @@
-import { Component, HostListener, Input } from '@angular/core';
+import { Component, ElementRef, HostListener, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { BrowserService } from '../../../services/api/browser.service';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import {
   BrowserView,
   ImageResult,
-  Result,
   Tab,
 } from '../../../interfaces/browser.interface';
 import { WindowManagerService } from '../../../services/window-manager.service';
@@ -39,13 +38,17 @@ export class BrowserComponent {
   activeTabId: number = 0;
   private nextId = 1;
 
-  private readonly imagePreviewTransitionMs = 220;
+  private previewResizeObserver: ResizeObserver | null = null;
+  private previewContentEl: HTMLElement | null = null;
+
+  private readonly imagePreviewTransitionMs = 200;
 
   imagePreview: {
     isOpen: boolean;
     stage: ImagePreviewStage;
     src: string;
     alt: string;
+    containerRect: ContainerRect | null;
     startRect: ImagePreviewRect | null;
     endRect: ImagePreviewRect | null;
   } = {
@@ -53,6 +56,7 @@ export class BrowserComponent {
     stage: 'start',
     src: '',
     alt: '',
+    containerRect: null,
     startRect: null,
     endRect: null,
   };
@@ -61,13 +65,23 @@ export class BrowserComponent {
     private browserService: BrowserService,
     private sanitizer: DomSanitizer,
     private windowManagerService: WindowManagerService,
+    private elementRef: ElementRef<HTMLElement>,
   ) {
     this.addTab(); // start with 1 tab
+  }
+
+  ngOnDestroy(): void {
+    this.disconnectPreviewObserver();
   }
 
   @HostListener('document:keydown.escape')
   onEscapeKey() {
     this.closeImagePreview();
+  }
+
+  @HostListener('window:resize')
+  onWindowResize() {
+    this.refreshImagePreviewLayout();
   }
 
   get activeTab(): Tab {
@@ -216,11 +230,14 @@ export class BrowserComponent {
     const rect = imgEl.getBoundingClientRect();
     if (rect.width === 0 || rect.height === 0) return;
 
-    const containerRect = this.getPreviewContainerRect(imgEl);
+    const { windowTop, windowLeft, containerRect, contentEl } =
+      this.getPreviewContainerRect(imgEl);
+
+    if (containerRect.width === 0 || containerRect.height === 0) return;
 
     const startRect: ImagePreviewRect = {
-      top: rect.top - containerRect.top,
-      left: rect.left - containerRect.left,
+      top: rect.top - windowTop - containerRect.top,
+      left: rect.left - windowLeft - containerRect.left,
       width: rect.width,
       height: rect.height,
       borderRadius: 5,
@@ -236,9 +253,12 @@ export class BrowserComponent {
       stage: 'start',
       src: image.image || image.thumbnail,
       alt: image.title ?? 'Image preview',
+      containerRect,
       startRect,
       endRect,
     };
+
+    this.ensurePreviewObserver(contentEl);
 
     requestAnimationFrame(() => {
       if (!this.imagePreview.isOpen) return;
@@ -259,8 +279,11 @@ export class BrowserComponent {
       this.imagePreview.isOpen = false;
       this.imagePreview.src = '';
       this.imagePreview.alt = '';
+      this.imagePreview.containerRect = null;
       this.imagePreview.startRect = null;
       this.imagePreview.endRect = null;
+
+      this.disconnectPreviewObserver();
     }, this.imagePreviewTransitionMs);
   }
 
@@ -289,23 +312,96 @@ export class BrowserComponent {
     };
   }
 
-  private getPreviewContainerRect(imgEl: HTMLImageElement): ContainerRect {
-    const containerEl = imgEl.closest('.window') as HTMLElement | null;
-    if (!containerEl) {
+  private getPreviewContainerRect(imgEl: HTMLImageElement): {
+    windowTop: number;
+    windowLeft: number;
+    containerRect: ContainerRect;
+    contentEl: HTMLElement | null;
+  } {
+    const windowEl = imgEl.closest('.window') as HTMLElement | null;
+    const contentEl =
+      (imgEl.closest('.window-content') as HTMLElement | null) ??
+      (windowEl?.querySelector('.window-content') as HTMLElement | null) ??
+      null;
+
+    if (!windowEl || !contentEl) {
       return {
-        top: 0,
-        left: 0,
-        width: window.innerWidth,
-        height: window.innerHeight,
+        windowTop: 0,
+        windowLeft: 0,
+        containerRect: {
+          top: 0,
+          left: 0,
+          width: window.innerWidth,
+          height: window.innerHeight,
+        },
+        contentEl,
       };
     }
 
-    const rect = containerEl.getBoundingClientRect();
+    const windowRect = windowEl.getBoundingClientRect();
+    const contentRect = contentEl.getBoundingClientRect();
+
     return {
-      top: rect.top,
-      left: rect.left,
-      width: rect.width,
-      height: rect.height,
+      windowTop: windowRect.top,
+      windowLeft: windowRect.left,
+      containerRect: {
+        top: contentRect.top - windowRect.top,
+        left: contentRect.left - windowRect.left,
+        width: contentRect.width,
+        height: contentRect.height,
+      },
+      contentEl,
     };
+  }
+
+  private ensurePreviewObserver(contentEl: HTMLElement | null) {
+    if (!contentEl) return;
+    if (this.previewContentEl === contentEl && this.previewResizeObserver)
+      return;
+
+    this.disconnectPreviewObserver();
+    this.previewContentEl = contentEl;
+
+    this.previewResizeObserver = new ResizeObserver(() => {
+      this.refreshImagePreviewLayout();
+    });
+    this.previewResizeObserver.observe(contentEl);
+  }
+
+  private disconnectPreviewObserver() {
+    this.previewResizeObserver?.disconnect();
+    this.previewResizeObserver = null;
+    this.previewContentEl = null;
+  }
+
+  private refreshImagePreviewLayout() {
+    if (!this.imagePreview.isOpen) return;
+
+    const hostEl = this.elementRef.nativeElement;
+    const windowEl = hostEl.closest('.window') as HTMLElement | null;
+    const contentEl =
+      (hostEl.closest('.window-content') as HTMLElement | null) ??
+      (windowEl?.querySelector('.window-content') as HTMLElement | null) ??
+      null;
+
+    if (!windowEl || !contentEl) return;
+
+    const windowRect = windowEl.getBoundingClientRect();
+    const contentRect = contentEl.getBoundingClientRect();
+
+    const containerRect: ContainerRect = {
+      top: contentRect.top - windowRect.top,
+      left: contentRect.left - windowRect.left,
+      width: contentRect.width,
+      height: contentRect.height,
+    };
+
+    this.imagePreview.containerRect = containerRect;
+    this.imagePreview.endRect = this.computeCenteredPreviewRect(
+      containerRect.width,
+      containerRect.height,
+    );
+
+    this.ensurePreviewObserver(contentEl);
   }
 }

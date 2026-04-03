@@ -119,8 +119,15 @@
   }
 </div>
 
-@if (imagePreview.isOpen && imagePreviewRect) {
-  <div class="image-preview-overlay" (click)="closeImagePreview()">
+@if (imagePreview.isOpen && imagePreviewRect && imagePreview.containerRect) {
+  <div
+    class="image-preview-overlay"
+    (click)="closeImagePreview()"
+    [style.top.px]="imagePreview.containerRect.top"
+    [style.left.px]="imagePreview.containerRect.left"
+    [style.width.px]="imagePreview.containerRect.width"
+    [style.height.px]="imagePreview.containerRect.height"
+  >
     <div
       class="image-preview-backdrop"
       [class.active]="imagePreview.stage === 'end'"
