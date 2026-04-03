@@ -180,6 +180,7 @@ export class SettingsService {
 
   resetSettings() {
     localStorage.removeItem(SETTINGS_KEY);
+    localStorage.removeItem('linkedinOpened');
     this.settingsSubject.next(this.defaultSettings);
     this.saveSettings(this.defaultSettings);
     this.applyColorMode(this.defaultSettings.colorMode);

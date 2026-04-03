@@ -54,11 +54,14 @@ app-taskbar {
 .spinner-border {
   height: 4rem;
   width: 4rem;
-  color: var(--text-color);
+  color: #f5f5f5;
 
   margin-bottom: 0.5rem;
 }
 p {
   color: white;
   font-weight: bold;
+}
+h4 {
+  color: #f5f5f5;
 }

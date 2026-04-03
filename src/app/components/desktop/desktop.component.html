@@ -9,38 +9,46 @@
     settings?.backgroundFit === 'repeat'
       ? 'auto'
       : settings?.backgroundFit === 'stretch'
-      ? '100% 100%'
-      : settings?.backgroundFit || 'cover'
+        ? '100% 100%'
+        : settings?.backgroundFit || 'cover'
   "
   [style.backgroundRepeat]="
     settings?.backgroundFit === 'repeat' ? 'repeat' : 'no-repeat'
   "
 >
-  @for(window of windows; track window.id){
-  <app-window [windowData]="window" [id]="window.id" />
+  @for (window of windows; track window.id) {
+    <app-window [windowData]="window" [id]="window.id" />
   }
   <app-desktop-application
-    [application]="{ name: 'over-mij', type: 'shortcut', content: '/about-me',  }"
+    [application]="{ name: 'over-mij', type: 'shortcut', content: '/about-me' }"
     [initialPosition]="{ x: 0, y: 0 }"
     [openContextMenuApp]="openContextMenuApp"
     (openContextMenuAppChange)="openContextMenuApp = $event"
   />
   <app-desktop-application
-    [application]="{ name: 'Github', type: 'url', content: 'https://github.com/Sephtonlol/',  }"
+    [application]="{
+      name: 'Github',
+      type: 'url',
+      content: 'https://github.com/Sephtonlol/',
+    }"
     [initialPosition]="{ x: 0, y: 1 }"
     [openContextMenuApp]="openContextMenuApp"
     (openContextMenuAppChange)="openContextMenuApp = $event"
   />
   <app-desktop-application
-    [application]="{ name: 'Linkedin', type: 'url', content: 'https://www.linkedin.com/in/alexander-wu-b63038241/',  }"
+    [application]="{
+      name: 'Linkedin',
+      type: 'url',
+      content: 'https://www.linkedin.com/in/alexander-wu-b63038241/',
+    }"
     [initialPosition]="{ x: 0, y: 2 }"
     [openContextMenuApp]="openContextMenuApp"
     (openContextMenuAppChange)="openContextMenuApp = $event"
   />
-  @if(!linkedinOpened){
-  <div class="activate-linkedin" (click)="openLinkedin()">
-    <p class="header">Connection required</p>
-    <p>Click here to connect to network</p>
-  </div>
+  @if (!linkedinOpened) {
+    <div class="activate-linkedin" (click)="openLinkedin()">
+      <p class="header">Connection required</p>
+      <p>Click here to connect to network</p>
+    </div>
   }
 </div>
