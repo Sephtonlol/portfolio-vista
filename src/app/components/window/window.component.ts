@@ -197,10 +197,12 @@ export class WindowComponent implements AfterViewInit, OnInit {
               this.windowEl.style.width = `${this.lastSize.width}px`;
               this.windowEl.style.height = `${this.lastSize.height}px`;
             } else {
-              let x =
-                (parseFloat(target.getAttribute('data-x')!) || 100) + event.dx;
-              let y =
-                (parseFloat(target.getAttribute('data-y')!) || 50) + event.dy;
+              const currentX = parseFloat(target.getAttribute('data-x')!);
+              let x = (isNaN(currentX) ? 100 : currentX) + event.dx;
+              const currentY = parseFloat(target.getAttribute('data-y')!);
+              let y = (isNaN(currentY) ? 50 : currentY) + event.dy;
+
+              console.log(event.client.y, y);
 
               if (window.innerWidth < 992) {
                 x =
