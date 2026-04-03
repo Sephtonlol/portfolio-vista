@@ -1,4 +1,5 @@
 import {
+  AfterViewInit,
   Component,
   ElementRef,
   EventEmitter,
@@ -17,19 +18,25 @@ import { FileNode } from '../../interfaces/file.interface';
 import { ShutDownService } from '../../services/shut-down.service';
 import { FormsModule } from '@angular/forms';
 
+type SearchResult =
+  | { kind: 'app'; application: Window }
+  | { kind: 'file'; file: FileNode };
+
 @Component({
   selector: 'app-start-menu',
   templateUrl: './start-menu.component.html',
   styleUrls: ['./start-menu.component.css'],
   imports: [FormsModule],
 })
-export class StartMenuComponent implements OnInit, OnDestroy {
+export class StartMenuComponent implements OnInit, OnDestroy, AfterViewInit {
   @Input() searchQuery: string = '';
   applications: Window[] = applications as Window[];
   fileTree: FileNode = portfolio as FileNode;
 
   filteredApplications: Window[] = [];
   filteredFiles: FileNode[] = [];
+
+  activeSearchResultIndex = -1;
 
   showShutDownPopup = false;
   private globalClickUnlistener!: () => void;
@@ -40,13 +47,13 @@ export class StartMenuComponent implements OnInit, OnDestroy {
     public windowManagerService: WindowManagerService,
     private shutdownService: ShutDownService,
     private elRef: ElementRef,
-    private renderer: Renderer2
+    private renderer: Renderer2,
   ) {}
 
   ngOnInit(): void {
     this.applications = this.applications.filter(
       (app) =>
-        app.application !== 'Media player' && app.application !== 'Photos'
+        app.application !== 'Media player' && app.application !== 'Photos',
     );
 
     this.fileTree = this.removeShortcuts(this.fileTree)!;
@@ -58,14 +65,25 @@ export class StartMenuComponent implements OnInit, OnDestroy {
       (event: MouseEvent) => {
         const clickedInside = this.elRef.nativeElement.contains(event.target);
         const clickedOnPopup = (event.target as HTMLElement).closest(
-          '.show-shut-down'
+          '.show-shut-down',
         );
         if (!clickedInside || !clickedOnPopup) {
           this.showShutDownPopup = false;
         }
-      }
+      },
     );
   }
+
+  ngAfterViewInit(): void {
+    // Make keyboard navigation work immediately after opening the start menu.
+    queueMicrotask(() => {
+      const root = this.elRef.nativeElement.querySelector(
+        '.main-container',
+      ) as HTMLElement | null;
+      root?.focus();
+    });
+  }
+
   ngOnDestroy(): void {
     if (this.globalClickUnlistener) {
       this.globalClickUnlistener();
@@ -77,13 +95,110 @@ export class StartMenuComponent implements OnInit, OnDestroy {
     const query = value.trim().toLowerCase();
     if (query !== '') {
       this.filteredApplications = this.applications.filter((app) =>
-        app.application.toLowerCase().includes(query)
+        app.application.toLowerCase().includes(query),
       );
       this.filteredFiles = this.searchFiles(this.fileTree, query);
+      this.resetActiveSearchResult();
     } else {
       this.filteredApplications = [];
       this.filteredFiles = [];
+      this.activeSearchResultIndex = -1;
     }
+  }
+
+  onKeyDown(event: KeyboardEvent) {
+    if (!this.searchQuery?.trim()) return;
+    const resultsCount = this.getSearchResultsCount();
+    if (resultsCount < 1) return;
+
+    const key = event.key;
+
+    // Move selection
+    if (key === 'ArrowDown' || (key === 'Tab' && !event.shiftKey)) {
+      event.preventDefault();
+      this.moveActiveSearchResult(1);
+      return;
+    }
+    if (key === 'ArrowUp' || (key === 'Tab' && event.shiftKey)) {
+      event.preventDefault();
+      this.moveActiveSearchResult(-1);
+      return;
+    }
+
+    // Open selection
+    if (key === 'Enter') {
+      event.preventDefault();
+      this.openActiveSearchResult();
+    }
+  }
+
+  private getSearchResultsCount(): number {
+    return this.filteredApplications.length + this.filteredFiles.length;
+  }
+
+  private resetActiveSearchResult(): void {
+    this.activeSearchResultIndex = this.getSearchResultsCount() > 0 ? 0 : -1;
+    queueMicrotask(() => this.scrollActiveSearchResultIntoView());
+  }
+
+  private moveActiveSearchResult(delta: number): void {
+    const resultsCount = this.getSearchResultsCount();
+    if (resultsCount < 1) {
+      this.activeSearchResultIndex = -1;
+      return;
+    }
+
+    const currentIndex = this.activeSearchResultIndex;
+    const startIndex = currentIndex >= 0 ? currentIndex : 0;
+    const nextIndex = (startIndex + delta + resultsCount) % resultsCount;
+    this.activeSearchResultIndex = nextIndex;
+    queueMicrotask(() => this.scrollActiveSearchResultIntoView());
+  }
+
+  private scrollActiveSearchResultIntoView(): void {
+    if (this.activeSearchResultIndex < 0) return;
+    const element = this.elRef.nativeElement.querySelector(
+      `[data-result-index="${this.activeSearchResultIndex}"]`,
+    ) as HTMLElement | null;
+    element?.scrollIntoView({ block: 'nearest' });
+  }
+
+  isActiveApplication(index: number): boolean {
+    return this.activeSearchResultIndex === index;
+  }
+
+  isActiveFile(index: number): boolean {
+    return (
+      this.activeSearchResultIndex === this.filteredApplications.length + index
+    );
+  }
+
+  private getActiveSearchResult(): SearchResult | null {
+    const index = this.activeSearchResultIndex;
+    if (index < 0) return null;
+
+    if (index < this.filteredApplications.length) {
+      return { kind: 'app', application: this.filteredApplications[index] };
+    }
+
+    const fileIndex = index - this.filteredApplications.length;
+    if (fileIndex >= 0 && fileIndex < this.filteredFiles.length) {
+      return { kind: 'file', file: this.filteredFiles[fileIndex] };
+    }
+
+    return null;
+  }
+
+  openActiveSearchResult(): void {
+    const result = this.getActiveSearchResult();
+    if (!result) return;
+
+    if (result.kind === 'app') {
+      this.newWindow(result.application.application, result.application.icon);
+      return;
+    }
+
+    this.openFile(result.file);
   }
 
   toggleShutDownPopup() {
@@ -160,13 +275,15 @@ export class StartMenuComponent implements OnInit, OnDestroy {
       const query = this.searchQuery.trim().toLowerCase();
       if (query !== '') {
         this.filteredApplications = this.applications.filter((app) =>
-          app.application.toLowerCase().includes(query)
+          app.application.toLowerCase().includes(query),
         );
 
         this.filteredFiles = this.searchFiles(this.fileTree, query);
+        this.resetActiveSearchResult();
       } else {
         this.filteredApplications = [];
         this.filteredFiles = [];
+        this.activeSearchResultIndex = -1;
       }
     }
   }

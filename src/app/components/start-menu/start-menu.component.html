@@ -1,4 +1,9 @@
-<div class="main-container" [class.search]="searchQuery">
+<div
+  class="main-container"
+  [class.search]="searchQuery"
+  tabindex="0"
+  (keydown)="onKeyDown($event)"
+>
   <div class="system">
     <i class="bi bi-list"></i>
     <div class="systems-footer">
@@ -28,65 +33,74 @@
   <div class="applications main-applications" [class.search]="searchQuery">
     <div class="applications-outer-inner">
       @if (searchQuery) {
-      <span>Search Results</span>
-      @if(filteredFiles.length < 1 && filteredApplications.length < 1){
-      <span class="sub-header">No results found for '{{ searchQuery }}'</span>
-      }
-      <div class="applications">
-        @if(filteredApplications.length > 0){
-        <span class="sub-header">Applications</span>
-        }
-        <div class="search-inner">
-          @for (application of filteredApplications; track $index) {
-          <div
-            class="application"
-            (click)="newWindow(application.application, application.icon)"
+        <span>Search Results</span>
+        @if (filteredFiles.length < 1 && filteredApplications.length < 1) {
+          <span class="sub-header"
+            >No results found for '{{ searchQuery }}'</span
           >
-            <i class="bi {{ application.icon }}"></i>
-            <p>{{ application.application }}</p>
-          </div>
-          }
-        </div>
-        @if(filteredFiles.length> 0){
-        <span class="sub-header">Files</span>
         }
-        <div class="search-inner">
-          @for (file of filteredFiles; track $index) {
-          <div class="application" (click)="openFile(file)">
-            @if(file.type === "shortcut"){
-            <i class="bi bi-arrow-up-right-square-fill shortcut"></i>
-            }
-            <i class="bi {{ getFileIcon(file.type) }}"></i>
-            @if(file.type !== "directory" && file.type !== "shortcut"){
-            <div class="application-inner">
-              <p>{{ file.name }}.{{ file.type }}</p>
-              <span> {{ file.path }}.{{ file.type }} </span>
-            </div>
-            }@else {
-            <div class="application-inner">
-              <p>{{ file.name }}</p>
-              <span>
-                {{ file.path }}
-              </span>
-            </div>
+        <div class="applications">
+          @if (filteredApplications.length > 0) {
+            <span class="sub-header">Applications</span>
+          }
+          <div class="search-inner">
+            @for (application of filteredApplications; track $index) {
+              <div
+                class="application"
+                [class.active]="isActiveApplication($index)"
+                [attr.data-result-index]="$index"
+                (click)="newWindow(application.application, application.icon)"
+              >
+                <i class="bi {{ application.icon }}"></i>
+                <p>{{ application.application }}</p>
+              </div>
             }
           </div>
+          @if (filteredFiles.length > 0) {
+            <span class="sub-header">Files</span>
           }
+          <div class="search-inner">
+            @for (file of filteredFiles; track $index) {
+              <div
+                class="application"
+                [class.active]="isActiveFile($index)"
+                [attr.data-result-index]="filteredApplications.length + $index"
+                (click)="openFile(file)"
+              >
+                @if (file.type === "shortcut") {
+                  <i class="bi bi-arrow-up-right-square-fill shortcut"></i>
+                }
+                <i class="bi {{ getFileIcon(file.type) }}"></i>
+                @if (file.type !== "directory" && file.type !== "shortcut") {
+                  <div class="application-inner">
+                    <p>{{ file.name }}.{{ file.type }}</p>
+                    <span> {{ file.path }}.{{ file.type }} </span>
+                  </div>
+                } @else {
+                  <div class="application-inner">
+                    <p>{{ file.name }}</p>
+                    <span>
+                      {{ file.path }}
+                    </span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
         </div>
-      </div>
       } @else {
-      <span>Applications</span>
-      <div class="applications-inner">
-        @for (application of applications; track $index) {
-        <div
-          class="application"
-          (click)="newWindow(application.application, application.icon)"
-        >
-          <i class="bi {{ application.icon }}"></i>
-          <p>{{ application.application }}</p>
+        <span>Applications</span>
+        <div class="applications-inner">
+          @for (application of applications; track $index) {
+            <div
+              class="application"
+              (click)="newWindow(application.application, application.icon)"
+            >
+              <i class="bi {{ application.icon }}"></i>
+              <p>{{ application.application }}</p>
+            </div>
+          }
         </div>
-        }
-      </div>
       }
     </div>
     <input

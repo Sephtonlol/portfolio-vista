@@ -81,6 +81,11 @@ span {
   background-color: var(--hover-color);
   cursor: pointer;
 }
+
+.application.active {
+  transition: background-color 0s;
+  background-color: var(--hover-color);
+}
 .application-inner {
   display: flex;
   flex-direction: column;
