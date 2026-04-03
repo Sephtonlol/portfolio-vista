@@ -81,10 +81,24 @@ export class WindowComponent implements AfterViewInit, OnInit {
     this.screenWidth = window.innerWidth;
     this.screeHeight = window.innerHeight;
     this.windowEl = this.el.nativeElement.querySelector(`.window-${this.id}`);
-    const size =
-      this.windowData.application === 'Calculator'
-        ? (this.minimumSize = this.lastSize = { width: 350, height: 400 })
-        : this.initialSize;
+
+    switch (this.windowData.application) {
+      case 'Calculator':
+        this.initialSize =
+          this.minimumSize =
+          this.lastSize =
+            { width: 350, height: 400 };
+        break;
+
+      case 'Browser':
+        this.initialSize =
+          this.minimumSize =
+          this.lastSize =
+            { width: 900, height: 600 };
+        break;
+    }
+
+    const size = this.initialSize;
 
     setTimeout(() => {
       if (window.innerWidth < 992) {
