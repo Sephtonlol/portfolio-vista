@@ -1,26 +1,25 @@
-@if(!deleted){
-
-<div
-  class="application"
-  [class.no-transition]="!shouldAnimate"
-  (dblclick)="openApplication()"
-  (contextmenu)="contextMenu($event)"
->
-  @if(application.type === "shortcut"){
-  <i class="bi bi-folder"></i>
-  <i class="bi bi-arrow-up-right-square-fill shortcut"></i>
-  }@else {
-  <i class="bi bi-{{ application.name.toLocaleLowerCase() }}"></i>
-  }
-  <span>
-    {{ application.name }}
-  </span>
+@if (!deleted) {
   <div
-    class="context-menu"
-    [class.show-context-menu]="openContextMenuApp === application.name"
+    class="application"
+    [class.no-transition]="!shouldAnimate"
+    (dblclick)="openApplication()"
+    (contextmenu)="contextMenu($event)"
   >
-    <span (click)="openApplication()">Open</span>
-    <span (click)="deleteApplication()">Delete</span>
+    @if (application.type === "shortcut") {
+      <i class="bi bi-folder"></i>
+      <i class="bi bi-arrow-up-right-square-fill shortcut"></i>
+    } @else {
+      <i class="bi bi-{{ application.name.toLocaleLowerCase() }}"></i>
+    }
+    <span class="name">
+      {{ application.name }}
+    </span>
+    <div
+      class="context-menu"
+      [class.show-context-menu]="openContextMenuApp === application.name"
+    >
+      <span (click)="openApplication()">Open</span>
+      <span (click)="deleteApplication()">Delete</span>
+    </div>
   </div>
-</div>
 }
