@@ -4,11 +4,12 @@ import { DesktopComponent } from './components/desktop/desktop.component';
 import { Subscription } from 'rxjs';
 import { ShutDownService } from './services/shut-down.service';
 import { WindowManagerService } from './services/window-manager.service';
+import { LockScreenComponent } from './components/lock-screen/lock-screen.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [TaskbarComponent, DesktopComponent],
+  imports: [TaskbarComponent, DesktopComponent, LockScreenComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })
@@ -21,12 +22,14 @@ export class AppComponent implements OnInit, OnDestroy {
   sleepPointerDelay = false;
   shutDownMessage = '';
 
+  loggedIn = false;
+
   public width = window.innerWidth;
 
   constructor(
     private shutDownService: ShutDownService,
-    private windowManagerService: WindowManagerService
-  ) { }
+    private windowManagerService: WindowManagerService,
+  ) {}
 
   ngOnInit(): void {
     this.shutDownSubscription = this.shutDownService
@@ -49,7 +52,7 @@ export class AppComponent implements OnInit, OnDestroy {
           else {
             this.sleepPointerDelay = false;
           }
-        }
+        },
       );
   }
 
