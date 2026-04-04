@@ -1,6 +1,6 @@
 import { Component, ElementRef, HostListener, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { BrowserService } from '../../../services/api/browser.service';
+import { BrowserService } from '../../../services/api/browser/browser.service';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import {
   BrowserView,

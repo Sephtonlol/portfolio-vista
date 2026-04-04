@@ -1,19 +1,65 @@
-<img src="" alt="" />
+<div class="lock-screen" [class.sign-in-active]="isSignInActive">
+  <div
+    class="background"
+    [style.backgroundImage]="
+      settings?.backgroundImage
+        ? 'url(' + settings?.backgroundImage + ')'
+        : 'url(assets/images/background.jpg)'
+    "
+    [style.backgroundSize]="
+      settings?.backgroundFit === 'repeat'
+        ? 'auto'
+        : settings?.backgroundFit === 'stretch'
+          ? '100% 100%'
+          : settings?.backgroundFit || 'cover'
+    "
+    [style.backgroundRepeat]="
+      settings?.backgroundFit === 'repeat' ? 'repeat' : 'no-repeat'
+    "
+  ></div>
 
-<h1>Alexander Wu</h1>
-<div class="inputs">
-  <input
-    type="{{ passwordHidden ? 'text' : 'password' }}"
-    [(ngModel)]="password"
-  />
+  <div class="shade"></div>
 
-  <button (click)="togglePasswordHidden()">
-    <i
-      class="bi {{ passwordHidden ? 'bi-eye-slash' : 'bi-eye' }}
-   "
-    ></i>
-  </button>
-  <button (click)="signIn()"><i class="bi bi-arrow-right-short"></i></button>
+  <div class="content">
+    <div class="clock">
+      <div class="time">{{ timeText }}</div>
+      <div class="date">{{ dateText }}</div>
+    </div>
+
+    <form class="inputs" (ngSubmit)="signIn()">
+      <input
+        #passwordInput
+        name="password"
+        [type]="passwordHidden ? 'text' : 'password'"
+        [(ngModel)]="password"
+      />
+
+      <button type="button" (click)="togglePasswordHidden()">
+        <i
+          class="bi"
+          [class.bi-eye-slash]="passwordHidden"
+          [class.bi-eye]="!passwordHidden"
+        ></i>
+      </button>
+
+      <button type="submit">
+        <i class="bi bi-arrow-right-short"></i>
+      </button>
+    </form>
+  </div>
+
+  <div class="tip">
+    @if (width > 992) {
+      <p class="main-warning">
+        For the best experience, please use fullscreen mode (F11).
+      </p>
+    } @else {
+      <p class="main-warning">
+        For the best experience, please rotate your phone into landscape mode.
+      </p>
+    }
+    <p class="sub-warning">
+      Some features or layouts may not work properly otherwise.
+    </p>
+  </div>
 </div>
-
-<div class="tips">stuff about tips</div>

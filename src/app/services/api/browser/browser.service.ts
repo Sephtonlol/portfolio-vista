@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { environment } from '../../../enviroments/enviroment';
+import { environment } from '../../../../enviroments/enviroment';
 import {
   ImagesResponse,
   SearchResponse,
-} from '../../interfaces/browser.interface';
+} from '../../../interfaces/browser.interface';
 
 type SearchApiResponse = Omit<SearchResponse, 'durationMs' | 'resultCount'>;
 type ImagesApiResponse = Omit<ImagesResponse, 'durationMs' | 'resultCount'>;

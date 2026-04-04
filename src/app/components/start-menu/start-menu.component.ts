@@ -17,6 +17,7 @@ import portfolio from '../../../data/data.json';
 import { FileNode } from '../../interfaces/file.interface';
 import { ShutDownService } from '../../services/shut-down.service';
 import { FormsModule } from '@angular/forms';
+import { AuthenticationService } from '../../services/api/authentication/authentication.service';
 
 type SearchResult =
   | { kind: 'app'; application: Window }
@@ -48,6 +49,7 @@ export class StartMenuComponent implements OnInit, OnDestroy, AfterViewInit {
     private shutdownService: ShutDownService,
     private elRef: ElementRef,
     private renderer: Renderer2,
+    private authenticationService: AuthenticationService,
   ) {}
 
   ngOnInit(): void {
@@ -208,6 +210,10 @@ export class StartMenuComponent implements OnInit, OnDestroy, AfterViewInit {
   shutDown(message: string) {
     this.closeStartMenu.emit();
     this.shutdownService.shutDown(true, message);
+  }
+
+  lock() {
+    this.authenticationService.logout();
   }
 
   removeShortcuts(node: FileNode): FileNode | null {

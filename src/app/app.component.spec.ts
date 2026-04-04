@@ -1,10 +1,20 @@
 import { TestBed } from '@angular/core/testing';
 import { AppComponent } from './app.component';
+import { AuthenticationService } from './services/api/authentication/authentication.service';
+import { signal } from '@angular/core';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
+      providers: [
+        {
+          provide: AuthenticationService,
+          useValue: {
+            signedIn: signal(false),
+          },
+        },
+      ],
     }).compileComponents();
   });
 
@@ -20,10 +30,10 @@ describe('AppComponent', () => {
     expect(app.title).toEqual('portfolio-vista');
   });
 
-  it('should render title', () => {
+  it('should render lock screen when signed out', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, portfolio-vista');
+    expect(compiled.querySelector('app-lock-screen')).toBeTruthy();
   });
 });

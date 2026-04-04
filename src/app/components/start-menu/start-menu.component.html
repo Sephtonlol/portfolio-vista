@@ -14,6 +14,10 @@
         class="shut-down-popup"
         [class.show-shut-doown-pop]="showShutDownPopup"
       >
+        <div class="shut-down-popup-item" (click)="lock()">
+          <i class="bi bi-lock show-shut-down"> </i>
+          <p>Lock</p>
+        </div>
         <div class="shut-down-popup-item" (click)="shutDown('Sleep')">
           <i class="bi bi-moon show-shut-down"> </i>
           <p>Sleep</p>

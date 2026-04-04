@@ -1,27 +1,130 @@
 :host {
+  width: 100vw;
+  height: 100vh;
+}
+
+.lock-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  color: #f5f5f5;
+}
+
+.background {
+  position: absolute;
+  inset: 0;
+  background-position: center;
+  will-change: filter, transform;
+  transition:
+    filter var(--tertiary-transition),
+    transform var(--tertiary-transition);
+}
+
+.shade {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
+  transition: background var(--tertiary-transition);
+}
+
+.content {
+  position: relative;
+  z-index: 1;
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
   width: 100%;
   height: 100%;
+  transform: translateY(0);
+  transition: transform var(--tertiary-transition);
 }
+
+.clock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+  margin-bottom: 20px;
+  font-weight: bold;
+}
+
+.clock .time {
+  font-size: clamp(56px, 10vw, 96px);
+  line-height: 1;
+}
+
+.clock .date {
+  font-size: clamp(14px, 2vw, 18px);
+}
+
 .inputs {
   display: flex;
   gap: 5px;
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+  transition:
+    opacity var(--primary-transition),
+    transform var(--primary-transition);
+}
+
+.tip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 22px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0 16px;
+}
+
+.main-warning,
+.sub-warning {
+  margin: 0;
+}
+
+.sub-warning {
+  opacity: 0.9;
+}
+
+.lock-screen.sign-in-active .background {
+  filter: blur(25px) brightness(0.9);
+  transform: scale(1.04);
+}
+
+.lock-screen.sign-in-active .shade {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.lock-screen.sign-in-active .content {
+  transform: translateY(-42px);
+}
+
+.lock-screen.sign-in-active .inputs {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
 }
 button,
 input {
   background-color: var(--primary-color);
   color: var(--text-color);
-  border: none;
-}
-button,
-input {
+  border: 2px var(--tertiary-color) solid;
   margin: 0;
   padding: 1px;
   border-radius: 5px;
   transition: all var(--primary-transition);
+}
+
+input {
+  padding: 6px 10px;
+  outline: none;
 }
 button:hover {
   background-color: var(--hover-color);
@@ -31,8 +134,8 @@ i {
   align-items: center;
   justify-content: center;
   display: flex;
-  width: 32px;
   font-size: 20px;
+  width: 32px;
 }
 i:hover {
   background-color: unset;

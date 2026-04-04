@@ -6,6 +6,28 @@
   justify-content: space-between;
   background-color: black;
 }
+
+.logout-flash {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background-color: black;
+  pointer-events: all;
+}
+
+app-lock-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  transform: translateY(0);
+  will-change: transform, opacity;
+  transition: transform var(--tertiary-transition) ease-out;
+}
+
+app-lock-screen.lock-screen-exiting {
+  transform: translateY(-100%);
+  pointer-events: none;
+}
 app-desktop,
 app-taskbar {
   opacity: 0;
