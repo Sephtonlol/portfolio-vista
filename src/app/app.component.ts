@@ -6,11 +6,17 @@ import { ShutDownService } from './services/shut-down.service';
 import { WindowManagerService } from './services/window-manager.service';
 import { LockScreenComponent } from './components/lock-screen/lock-screen.component';
 import { AuthenticationService } from './services/api/authentication/authentication.service';
+import { ContextMenuComponent } from './components/context-menu/context-menu.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [TaskbarComponent, DesktopComponent, LockScreenComponent],
+  imports: [
+    TaskbarComponent,
+    DesktopComponent,
+    LockScreenComponent,
+    ContextMenuComponent,
+  ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })

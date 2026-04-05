@@ -92,31 +92,6 @@ input:focus {
   left: 53px;
 }
 
-.explorer-contextmenu {
-  position: fixed;
-  z-index: 9999;
-  background-color: var(--primary-color);
-  border: 2px solid var(--secondary-color);
-  border-radius: 8px;
-  padding: 0.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  min-width: 180px;
-}
-
-.explorer-contextmenu button {
-  background: transparent;
-  border: none;
-  text-align: left;
-  padding: 0.35rem 0.5rem;
-  border-radius: 6px;
-}
-
-.explorer-contextmenu button:hover {
-  background-color: var(--hover-color);
-}
-
 .explorer-dialog-backdrop {
   position: fixed;
   inset: 0;
@@ -167,5 +142,31 @@ input:focus {
 }
 
 .explorer-dialog-actions button:hover {
+  background-color: var(--hover-color);
+}
+
+.explorer-inline-input {
+  margin: 0.2rem;
+  background-color: var(--background-color);
+  border: 2px solid var(--secondary-color);
+  border-radius: 8px;
+  padding: 0.25rem 0.45rem;
+  width: auto;
+  flex: 1 1 auto;
+  min-width: 120px;
+}
+
+.explorer-inline-input:focus {
+  outline: none;
+}
+
+.explorer-inline-button {
+  background-color: var(--secondary-color);
+  border: none;
+  border-radius: 8px;
+  padding: 0.25rem 0.6rem;
+}
+
+.explorer-inline-button:hover {
   background-color: var(--hover-color);
 }

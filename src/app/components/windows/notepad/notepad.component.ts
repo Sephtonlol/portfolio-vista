@@ -18,8 +18,7 @@ import python from 'highlight.js/lib/languages/python';
 import java from 'highlight.js/lib/languages/java';
 import css from 'highlight.js/lib/languages/css';
 import html from 'highlight.js/lib/languages/xml';
-import { FilesService } from '../../../services/api/files/files.service';
-import { firstValueFrom } from 'rxjs';
+import { FilesStoreService } from '../../../services/files-store.service';
 import { AuthenticationService } from '../../../services/api/authentication/authentication.service';
 import { HttpErrorResponse } from '@angular/common/http';
 
@@ -39,6 +38,7 @@ export class NotepadComponent implements OnChanges, OnInit {
 
   private itemId?: string;
   private parentId: string | null = null;
+  private currentName: string = '';
 
   showSaveDialog = false;
   saveFolderNames: string[] = [];
@@ -50,7 +50,7 @@ export class NotepadComponent implements OnChanges, OnInit {
 
   constructor(
     private sanitizer: DomSanitizer,
-    private filesService: FilesService,
+    private filesStore: FilesStoreService,
     public authenticationService: AuthenticationService,
   ) {
     hljs.registerLanguage('csharp', csharp);
@@ -97,6 +97,7 @@ export class NotepadComponent implements OnChanges, OnInit {
       this.contentValue = this.data.content;
       this.itemId = this.data.itemId;
       this.parentId = this.data.parentId ?? null;
+      this.currentName = this.data.title ?? '';
       this.updateMarkdown();
     }
 
@@ -104,6 +105,7 @@ export class NotepadComponent implements OnChanges, OnInit {
       this.contentValue = '';
       this.itemId = this.data.itemId;
       this.parentId = this.data.parentId ?? null;
+      this.currentName = this.data.title ?? '';
       this.updateMarkdown();
     }
   }
@@ -118,7 +120,7 @@ export class NotepadComponent implements OnChanges, OnInit {
   }
 
   get canSave(): boolean {
-    return this.authenticationService.admin();
+    return true;
   }
 
   private get saveFolderId(): string | null {
@@ -127,29 +129,12 @@ export class NotepadComponent implements OnChanges, OnInit {
 
   async save() {
     if (!this.canSave) return;
-
-    if (this.itemId) {
-      try {
-        await firstValueFrom(
-          this.filesService.update(this.itemId, { content: this.contentValue }),
-        );
-      } catch (err) {
-        this.handleAuthError(err);
-      }
-      return;
-    }
-
-    await this.openSaveDialog();
-  }
-
-  async saveAs() {
-    if (!this.canSave) return;
     await this.openSaveDialog();
   }
 
   private async openSaveDialog() {
     this.showSaveDialog = true;
-    this.saveFileName = this.data?.title || 'notes.md';
+    this.saveFileName = this.currentName || this.data?.title || 'notes.md';
 
     this.saveFolderNames = [];
     this.saveFolderIdStack = [null];
@@ -168,9 +153,7 @@ export class NotepadComponent implements OnChanges, OnInit {
 
   async loadSaveFolders() {
     try {
-      const children = await firstValueFrom(
-        this.filesService.listByParent(this.saveFolderId),
-      );
+      const children = await this.filesStore.list(this.saveFolderId);
       this.saveFolders = children
         .filter((c) => c.type === 'directory' && !!c._id)
         .map((c) => ({ id: c._id!, name: c.name }))
@@ -200,18 +183,44 @@ export class NotepadComponent implements OnChanges, OnInit {
     const name = this.saveFileName.trim();
     if (!name) return;
 
+    const targetParentId = this.saveFolderId;
+
     try {
-      const created = await firstValueFrom(
-        this.filesService.create({
+      if (!this.itemId) {
+        const created = await this.filesStore.create({
           name,
           type: 'md',
-          parentId: this.saveFolderId,
+          parentId: targetParentId,
           content: this.contentValue,
-        }),
-      );
+        });
 
-      this.itemId = created._id;
-      this.parentId = created.parentId ?? this.saveFolderId;
+        this.itemId = created._id;
+        this.parentId = created.parentId ?? targetParentId;
+        this.currentName = created.name;
+        if (this.data) this.data.title = created.name;
+
+        this.showSaveDialog = false;
+        return;
+      }
+
+      // Existing item: save content, and apply rename/move based on picker.
+      await this.filesStore.update(this.itemId, {
+        name: name !== this.currentName ? name : undefined,
+        content: this.contentValue,
+      });
+
+      if ((this.parentId ?? null) !== targetParentId) {
+        await this.filesStore.move(this.itemId, targetParentId);
+        this.parentId = targetParentId;
+      }
+
+      this.currentName = name;
+      if (this.data) {
+        this.data.title = name;
+        this.data.parentId = this.parentId;
+        this.data.itemId = this.itemId;
+      }
+
       this.showSaveDialog = false;
     } catch (err) {
       this.handleAuthError(err);

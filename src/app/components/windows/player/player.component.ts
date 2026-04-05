@@ -13,7 +13,8 @@ export class PlayerComponent {
   @ViewChild('media') mediaRef!: ElementRef<HTMLMediaElement>;
 
   folderPath = '';
-  videos: { id?: string; name: string; url: string }[] = [];
+  videos: { id?: string; name: string; url: string; type?: 'mp4' | 'mp3' }[] =
+    [];
   currentIndex = 0;
   isPlaying = false;
 
@@ -38,8 +39,16 @@ export class PlayerComponent {
       this.filesService.listByParent(folderId),
     );
     this.videos = children
-      .filter((c) => c.type === 'mp4' || c.type === 'mp3')
-      .map((c) => ({ id: c._id, name: c.name, url: c.url ?? c.content ?? '' }))
+      .filter(
+        (c): c is typeof c & { type: 'mp4' | 'mp3' } =>
+          c.type === 'mp4' || c.type === 'mp3',
+      )
+      .map((c) => ({
+        id: c._id,
+        name: c.name,
+        url: c.url ?? c.content ?? '',
+        type: c.type,
+      }))
       .filter((c) => !!c.url);
 
     const selectedId = this.data.selectedId;
@@ -55,6 +64,35 @@ export class PlayerComponent {
 
   get currentVideo() {
     return this.videos[this.currentIndex] ?? { name: '', url: '' };
+  }
+
+  isVideo(item: { url: string; type?: string }): boolean {
+    if (item.type === 'mp4') return true;
+    if (item.type === 'mp3') return false;
+
+    const mime = this.getDataUrlMime(item.url);
+    if (mime?.startsWith('video/')) return true;
+    if (mime?.startsWith('audio/')) return false;
+
+    return this.urlLooksLikeMp4(item.url);
+  }
+
+  private getDataUrlMime(url: string): string | null {
+    if (!url.startsWith('data:')) return null;
+    const commaIdx = url.indexOf(',');
+    const header = (commaIdx >= 0 ? url.slice(5, commaIdx) : url.slice(5))
+      .trim()
+      .toLowerCase();
+    if (!header) return null;
+
+    // Example: data:video/mp4;base64,.... OR data:audio/mpeg;....
+    const semiIdx = header.indexOf(';');
+    const mime = (semiIdx >= 0 ? header.slice(0, semiIdx) : header).trim();
+    return mime || null;
+  }
+
+  private urlLooksLikeMp4(url: string): boolean {
+    return /\.mp4($|[?#])/i.test(url);
   }
 
   next() {

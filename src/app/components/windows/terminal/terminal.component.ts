@@ -1,13 +1,20 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnInit,
+  Output,
+  ViewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
 
 import { Data } from '../../../interfaces/window.interface';
 import { FileNode } from '../../../interfaces/file.interface';
 import { WindowManagerService } from '../../../services/window-manager.service';
-import { FilesService } from '../../../services/api/files/files.service';
 import { AuthenticationService } from '../../../services/api/authentication/authentication.service';
+import { FilesStoreService } from '../../../services/files-store.service';
 
 @Component({
   selector: 'app-terminal',
@@ -20,6 +27,8 @@ export class TerminalComponent implements OnInit {
   @Input() id!: string | undefined;
   @Input() data!: Data | undefined;
 
+  @ViewChild('uploadInput') uploadInput?: ElementRef<HTMLInputElement>;
+
   currentPath: string[] = []; // folder names
   private folderIdStack: (string | null)[] = [null];
 
@@ -31,9 +40,11 @@ export class TerminalComponent implements OnInit {
 
   mobile = false;
 
+  private pendingUploadParentId: string | null = null;
+
   constructor(
     private windowManagerService: WindowManagerService,
-    private filesService: FilesService,
+    private filesStore: FilesStoreService,
     private authenticationService: AuthenticationService,
   ) {}
 
@@ -72,7 +83,7 @@ export class TerminalComponent implements OnInit {
       }$ ${input}`,
     );
 
-    const [cmd, ...args] = input.split(' ');
+    const [cmd, ...args] = this.splitArgs(input);
 
     try {
       switch (cmd) {
@@ -93,6 +104,23 @@ export class TerminalComponent implements OnInit {
           break;
         case 'cat':
           await this.cat(args[0]);
+          break;
+        case 'touch':
+          await this.touch(args[0]);
+          break;
+        case 'mkdir':
+          await this.mkdir(args[0]);
+          break;
+        case 'mv':
+        case 'rename':
+          await this.mv(args[0], args[1]);
+          break;
+        case 'rm':
+        case 'del':
+          await this.rm(args[0]);
+          break;
+        case 'upload':
+          this.upload();
           break;
         case 'help':
         case '--help':
@@ -131,6 +159,43 @@ export class TerminalComponent implements OnInit {
     return `${node.name}.${node.type}`;
   }
 
+  private splitArgs(input: string): string[] {
+    const tokens: string[] = [];
+    let current = '';
+    let quote: '"' | "'" | null = null;
+
+    for (let i = 0; i < input.length; i++) {
+      const ch = input[i];
+
+      if (quote) {
+        if (ch === quote) {
+          quote = null;
+        } else {
+          current += ch;
+        }
+        continue;
+      }
+
+      if (ch === '"' || ch === "'") {
+        quote = ch;
+        continue;
+      }
+
+      if (ch === ' ') {
+        if (current.length) {
+          tokens.push(current);
+          current = '';
+        }
+        continue;
+      }
+
+      current += ch;
+    }
+
+    if (current.length) tokens.push(current);
+    return tokens;
+  }
+
   private matchFile(target: string, node: FileNode): boolean {
     if (
       node.type === 'directory' ||
@@ -151,8 +216,37 @@ export class TerminalComponent implements OnInit {
     return false;
   }
 
+  private normalizeNameForType(raw: string, type: FileNode['type']): string {
+    if (type === 'directory' || type === 'shortcut' || type === 'url') {
+      return raw;
+    }
+
+    const lowerRaw = raw.toLowerCase();
+    const lowerType = String(type).toLowerCase();
+    const suffix = `.${lowerType}`;
+    if (lowerRaw.endsWith(suffix)) {
+      return raw.slice(0, -suffix.length);
+    }
+    return raw;
+  }
+
+  private stripExtension(filename: string): string {
+    const lastDot = filename.lastIndexOf('.');
+    if (lastDot <= 0) return filename;
+    return filename.slice(0, lastDot);
+  }
+
+  private readFileAsDataUrl(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.onload = () => resolve(String(reader.result ?? ''));
+      reader.readAsDataURL(file);
+    });
+  }
+
   private async listChildren(parentId: string | null): Promise<FileNode[]> {
-    return await firstValueFrom(this.filesService.listByParent(parentId));
+    return await this.filesStore.list(parentId);
   }
 
   async list() {
@@ -443,6 +537,228 @@ export class TerminalComponent implements OnInit {
     this.output.push(`cat: "${resolved.fileName}" is not a text file`);
   }
 
+  async touch(path: string) {
+    if (!path) {
+      this.output.push('touch: missing file name');
+      return;
+    }
+
+    const resolved = await this.resolveFolderForPath(path);
+    if (!resolved) {
+      this.output.push(`touch: invalid path: ${path}`);
+      return;
+    }
+
+    const name = this.normalizeNameForType(resolved.fileName, 'md').trim();
+    if (!name) {
+      this.output.push('touch: invalid file name');
+      return;
+    }
+
+    await this.filesStore.create({
+      name,
+      type: 'md',
+      parentId: resolved.folderId,
+      content: '',
+    });
+
+    this.output.push(`created: ${name}.md`);
+  }
+
+  async mkdir(path: string) {
+    if (!path) {
+      this.output.push('mkdir: missing folder name');
+      return;
+    }
+
+    const resolved = await this.resolveFolderForPath(path);
+    if (!resolved) {
+      this.output.push(`mkdir: invalid path: ${path}`);
+      return;
+    }
+
+    const name = resolved.fileName.trim();
+    if (!name) {
+      this.output.push('mkdir: invalid folder name');
+      return;
+    }
+
+    await this.filesStore.create({
+      name,
+      type: 'directory',
+      parentId: resolved.folderId,
+    });
+
+    this.output.push(`created directory: ${name}`);
+  }
+
+  async rm(path: string) {
+    if (!path) {
+      this.output.push('rm: missing file/folder name');
+      return;
+    }
+
+    const resolved = await this.resolveFolderForPath(path);
+    if (!resolved) {
+      this.output.push(`rm: not found: ${path}`);
+      return;
+    }
+
+    const children = await this.listChildren(resolved.folderId);
+    const node = children.find((c) => this.matchFile(resolved.fileName, c));
+    if (!node || !node._id) {
+      this.output.push(`rm: not found: ${resolved.fileName}`);
+      return;
+    }
+
+    await this.filesStore.delete(node._id);
+    this.output.push(`deleted: ${this.displayName(node)}`);
+  }
+
+  private async resolveDirectoryPath(path: string): Promise<string | null> {
+    if (!path) return null;
+    if (path === '/') return null;
+
+    const isAbs = path.startsWith('/');
+    const parts = path.split('/').filter(Boolean);
+    let currentId: string | null = isAbs ? null : this.currentFolderId;
+    const folderNames: string[] = isAbs ? [] : [...this.currentPath];
+
+    for (const part of parts) {
+      if (part === '.') continue;
+      if (part === '..') {
+        if (folderNames.length === 0) return null;
+        folderNames.pop();
+        currentId = await this.resolveFolderIdByNames(folderNames);
+        continue;
+      }
+
+      const children = await this.listChildren(currentId);
+      const next = children.find(
+        (c) => c.type === 'directory' && c.name === part && !!c._id,
+      );
+      if (!next || !next._id) return null;
+
+      currentId = next._id;
+      folderNames.push(next.name);
+    }
+
+    return currentId;
+  }
+
+  async mv(source: string, dest: string) {
+    if (!source || !dest) {
+      this.output.push('mv: usage: mv <source> <dest>');
+      return;
+    }
+
+    const srcResolved = await this.resolveFolderForPath(source);
+    if (!srcResolved) {
+      this.output.push(`mv: not found: ${source}`);
+      return;
+    }
+
+    const srcChildren = await this.listChildren(srcResolved.folderId);
+    const node = srcChildren.find((c) =>
+      this.matchFile(srcResolved.fileName, c),
+    );
+    if (!node || !node._id) {
+      this.output.push(`mv: not found: ${srcResolved.fileName}`);
+      return;
+    }
+
+    let destParentId: string | null;
+    let destName: string;
+
+    if (dest.endsWith('/')) {
+      const dirId = await this.resolveDirectoryPath(dest);
+      if (dirId === null && dest !== '/') {
+        this.output.push(`mv: no such directory: ${dest}`);
+        return;
+      }
+      destParentId = dirId;
+      destName = node.name;
+    } else {
+      const destResolved = await this.resolveFolderForPath(dest);
+      if (!destResolved) {
+        this.output.push(`mv: invalid destination: ${dest}`);
+        return;
+      }
+      destParentId = destResolved.folderId;
+      destName = destResolved.fileName;
+    }
+
+    const normalizedName = this.normalizeNameForType(
+      destName,
+      node.type,
+    ).trim();
+    if (!normalizedName) {
+      this.output.push('mv: invalid destination name');
+      return;
+    }
+
+    const currentParentId = node.parentId ?? null;
+    if (destParentId !== currentParentId) {
+      await this.filesStore.move(node._id, destParentId);
+    }
+    if (normalizedName !== node.name) {
+      await this.filesStore.update(node._id, { name: normalizedName });
+    }
+
+    this.output.push(
+      `updated: ${this.displayName({ ...node, name: normalizedName })}`,
+    );
+  }
+
+  upload() {
+    this.pendingUploadParentId = this.currentFolderId;
+    this.uploadInput?.nativeElement.click();
+  }
+
+  async onUploadSelected(event: Event) {
+    const input = event.target as HTMLInputElement | null;
+    const file = input?.files?.[0] ?? null;
+    if (!file) return;
+
+    input!.value = '';
+
+    const mime = file.type || '';
+    const type = mime.startsWith('image/')
+      ? 'png'
+      : mime.startsWith('video/')
+        ? 'mp4'
+        : mime.startsWith('audio/')
+          ? 'mp3'
+          : null;
+
+    if (!type) {
+      this.output.push('upload: unsupported file type');
+      return;
+    }
+
+    const name = this.stripExtension(file.name).trim();
+    if (!name) {
+      this.output.push('upload: invalid file name');
+      return;
+    }
+
+    try {
+      const dataUrl = await this.readFileAsDataUrl(file);
+      await this.filesStore.create({
+        name,
+        type,
+        parentId: this.pendingUploadParentId ?? this.currentFolderId,
+        url: dataUrl,
+      });
+      this.output.push(`uploaded: ${name}.${type}`);
+    } catch (err) {
+      this.handleAuthError(err);
+      this.output.push('upload: failed');
+    } finally {
+      this.pendingUploadParentId = null;
+    }
+  }
+
   showHelp() {
     this.output.push('Available commands:');
     this.output.push('- ls: List directory contents');
@@ -451,6 +767,11 @@ export class TerminalComponent implements OnInit {
     this.output.push('- echo <text>: Print text');
     this.output.push('- open <file>: Open md, image, or media file');
     this.output.push('- cat <textFiles>: Preview text files');
+    this.output.push('- touch <name>: Create a new text file (.md)');
+    this.output.push('- mkdir <name>: Create a new folder');
+    this.output.push('- mv <src> <dest>: Rename or move an item');
+    this.output.push('- rm <name>: Delete a file or folder');
+    this.output.push('- upload: Upload image/video/audio into current folder');
     this.output.push('- help: Show this help');
     this.output.push('- clear: Clear terminal output');
     this.output.push('- exit: Close terminal session');

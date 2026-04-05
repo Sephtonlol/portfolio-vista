@@ -1,9 +1,17 @@
 <div class="output">
   <p class="empty">Copyright (C) Alexander Wu. All rights reserved.</p>
   @for (line of output; track $index) {
-  <p>{{ line }}</p>
+    <p>{{ line }}</p>
   }
 </div>
+
+<input
+  #uploadInput
+  type="file"
+  accept="image/*,video/*,audio/*"
+  hidden
+  (change)="onUploadSelected($event)"
+/>
 
 <div class="input-line">
   <span class="prompt">

@@ -1,4 +1,7 @@
-<div class="explorer-header d-flex align-items-center gap-2 mb-2">
+<div
+  class="explorer-header d-flex align-items-center gap-2 mb-2"
+  (click)="onListClick($event)"
+>
   <i class="bi bi-arrow-left-short fs-5" (click)="goBack()"></i>
   <i class="bi bi-arrow-right-short fs-5" (click)="goForward()"></i>
   <i class="bi bi-arrow-up-short fs-5" (click)="goUp()"></i>
@@ -11,7 +14,7 @@
   />
 </div>
 
-<div class="sub-header">
+<div class="sub-header" (click)="onListClick($event)">
   <input type="text" [(ngModel)]="searchTerm" placeholder="Search..." />
   <i
     class="bi"
@@ -21,18 +24,58 @@
   ></i>
 </div>
 
+<input
+  #uploadInput
+  type="file"
+  accept="image/*,video/*,audio/*"
+  hidden
+  (change)="onUploadSelected($event)"
+/>
+
 @if (windowWidth < 992) {
   <div
     class="explorer-list"
     [class.explorer-list-tiles]="!viewList"
-    (contextmenu)="onContextMenu($event)"
-    (click)="closeContextMenu()"
+    (contextmenu)="onBackgroundContextMenu($event)"
+    (click)="onListClick($event)"
   >
+    @if (inlineCreateKind) {
+      <div
+        class="explorer-item explorer-inline-create"
+        [class.explorer-item-tiles]="!viewList"
+      >
+        <i
+          class="bi"
+          [class.bi-folder]="inlineCreateKind === 'directory'"
+          [class.bi-file-earmark-text]="inlineCreateKind === 'md'"
+        ></i>
+        <input
+          #inlineCreateInput
+          class="explorer-inline-input"
+          [(ngModel)]="inlineCreateName"
+          spellcheck="false"
+          [placeholder]="
+            inlineCreateKind === 'directory' ? 'New folder' : 'New text file'
+          "
+          (keydown.enter)="confirmInlineCreate()"
+          (keydown.escape)="cancelInlineCreate()"
+        />
+        <button
+          type="button"
+          class="explorer-inline-button"
+          (click)="confirmInlineCreate()"
+        >
+          Create
+        </button>
+      </div>
+    }
+
     @for (file of filteredChildren; track file) {
       <div
         class="explorer-item"
         [class.explorer-item-tiles]="!viewList"
-        (click)="openItem(file)"
+        (click)="onOpenItem(file)"
+        (contextmenu)="onItemContextMenu(file, $event)"
       >
         @if (file.type === "shortcut") {
           <i
@@ -41,9 +84,22 @@
           ></i>
         }
         <i class="bi {{ getFileIcon(file.type) }}"></i>
-        <p>
-          {{ displayName(file) }}
-        </p>
+
+        @if (file._id && renamingId === file._id) {
+          <input
+            #renameInput
+            class="explorer-inline-input"
+            [(ngModel)]="renameValue"
+            spellcheck="false"
+            (keydown.enter)="confirmRename()"
+            (keydown.escape)="cancelRename()"
+            (blur)="confirmRename()"
+          />
+        } @else {
+          <p>
+            {{ displayName(file) }}
+          </p>
+        }
       </div>
     }
   </div>
@@ -51,14 +107,46 @@
   <div
     class="explorer-list"
     [class.explorer-list-tiles]="!viewList"
-    (contextmenu)="onContextMenu($event)"
-    (click)="closeContextMenu()"
+    (contextmenu)="onBackgroundContextMenu($event)"
+    (click)="onListClick($event)"
   >
+    @if (inlineCreateKind) {
+      <div
+        class="explorer-item explorer-inline-create"
+        [class.explorer-item-tiles]="!viewList"
+      >
+        <i
+          class="bi"
+          [class.bi-folder]="inlineCreateKind === 'directory'"
+          [class.bi-file-earmark-text]="inlineCreateKind === 'md'"
+        ></i>
+        <input
+          #inlineCreateInput
+          class="explorer-inline-input"
+          [(ngModel)]="inlineCreateName"
+          spellcheck="false"
+          [placeholder]="
+            inlineCreateKind === 'directory' ? 'New folder' : 'New text file'
+          "
+          (keydown.enter)="confirmInlineCreate()"
+          (keydown.escape)="cancelInlineCreate()"
+        />
+        <button
+          type="button"
+          class="explorer-inline-button"
+          (click)="confirmInlineCreate()"
+        >
+          Create
+        </button>
+      </div>
+    }
+
     @for (file of filteredChildren; track file) {
       <div
         class="explorer-item"
         [class.explorer-item-tiles]="!viewList"
-        (dblclick)="openItem(file)"
+        (dblclick)="onOpenItem(file)"
+        (contextmenu)="onItemContextMenu(file, $event)"
       >
         @if (file.type === "shortcut") {
           <i
@@ -67,48 +155,23 @@
           ></i>
         }
         <i class="bi {{ getFileIcon(file.type) }}"></i>
-        <p>
-          {{ displayName(file) }}
-        </p>
+
+        @if (file._id && renamingId === file._id) {
+          <input
+            #renameInput
+            class="explorer-inline-input"
+            [(ngModel)]="renameValue"
+            spellcheck="false"
+            (keydown.enter)="confirmRename()"
+            (keydown.escape)="cancelRename()"
+            (blur)="confirmRename()"
+          />
+        } @else {
+          <p>
+            {{ displayName(file) }}
+          </p>
+        }
       </div>
     }
-  </div>
-}
-
-@if (showContextMenu) {
-  <div
-    class="explorer-contextmenu"
-    [style.left.px]="contextX"
-    [style.top.px]="contextY"
-    (click)="$event.stopPropagation()"
-  >
-    <button type="button" (click)="openCreate('directory')">New folder</button>
-    <button type="button" (click)="openCreate('md')">New text document</button>
-    <button type="button" (click)="openCreate('png')">New image (URL)</button>
-  </div>
-}
-
-@if (showCreateDialog) {
-  <div class="explorer-dialog-backdrop" (click)="cancelCreate()">
-    <div class="explorer-dialog" (click)="$event.stopPropagation()">
-      <h6 class="m-1">Create new</h6>
-
-      <div class="explorer-dialog-field">
-        <label>Name</label>
-        <input [(ngModel)]="newName" spellcheck="false" />
-      </div>
-
-      @if (createKind === "png") {
-        <div class="explorer-dialog-field">
-          <label>Image URL</label>
-          <input [(ngModel)]="newUrl" spellcheck="false" />
-        </div>
-      }
-
-      <div class="explorer-dialog-actions">
-        <button type="button" (click)="cancelCreate()">Cancel</button>
-        <button type="button" (click)="confirmCreate()">Create</button>
-      </div>
-    </div>
   </div>
 }

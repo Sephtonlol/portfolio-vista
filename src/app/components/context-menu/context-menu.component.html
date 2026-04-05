@@ -1,0 +1,20 @@
+@if (contextMenu.state().isOpen) {
+  <div
+    #menuEl
+    class="pv-contextmenu"
+    [style.left.px]="x"
+    [style.top.px]="y"
+    (click)="onMenuClick($event)"
+  >
+    @for (item of contextMenu.state().items; track item.label) {
+      <button
+        type="button"
+        class="pv-contextmenu-item"
+        [disabled]="item.disabled"
+        (click)="run(item)"
+      >
+        {{ item.label }}
+      </button>
+    }
+  </div>
+}

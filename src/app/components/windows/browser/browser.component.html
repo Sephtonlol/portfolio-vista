@@ -106,6 +106,7 @@
             [src]="image.thumbnail"
             [alt]="image.title"
             (click)="openImagePreview(image, $event)"
+            (contextmenu)="onImageContextMenu(image, $event)"
           />
           <div class="image-meta">
             <a [href]="sanitize(image.source)" target="_blank">{{
@@ -118,6 +119,58 @@
     }
   }
 </div>
+
+@if (showDownloadDialog) {
+  <div class="browser-dialog-backdrop" (click)="closeDownloadDialog()">
+    <div class="browser-dialog" (click)="$event.stopPropagation()">
+      <div class="browser-dialog-header">
+        <h6 class="m-1">Download image</h6>
+      </div>
+
+      <div class="browser-dialog-path">
+        <button
+          type="button"
+          class="btn btn-sm btn-secondary"
+          (click)="upDownloadFolder()"
+        >
+          Up
+        </button>
+        <span>/{{ downloadFolderNames.join("/") }}</span>
+      </div>
+
+      <div class="browser-dialog-list">
+        @for (folder of downloadFolders; track folder.id) {
+          <div class="browser-folder" (dblclick)="enterDownloadFolder(folder)">
+            <i class="bi bi-folder"></i>
+            <span>{{ folder.name }}</span>
+          </div>
+        }
+      </div>
+
+      <div class="browser-dialog-field">
+        <label>File name</label>
+        <input [(ngModel)]="downloadFileName" spellcheck="false" />
+      </div>
+
+      <div class="browser-dialog-actions">
+        <button
+          type="button"
+          class="btn btn-sm btn-secondary"
+          (click)="closeDownloadDialog()"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          class="btn btn-sm btn-secondary"
+          (click)="confirmDownloadToFolder()"
+        >
+          Save
+        </button>
+      </div>
+    </div>
+  </div>
+}
 
 @if (imagePreview.isOpen && imagePreviewRect && imagePreview.containerRect) {
   <div

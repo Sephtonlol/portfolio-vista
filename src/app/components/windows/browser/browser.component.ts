@@ -8,6 +8,8 @@ import {
   Tab,
 } from '../../../interfaces/browser.interface';
 import { WindowManagerService } from '../../../services/window-manager.service';
+import { FilesStoreService } from '../../../services/files-store.service';
+import { ContextMenuService } from '../../../services/context-menu.service';
 
 type ImagePreviewStage = 'start' | 'end';
 
@@ -61,11 +63,23 @@ export class BrowserComponent {
     endRect: null,
   };
 
+  // Right-click download flow
+  private contextImage: ImageResult | null = null;
+
+  showDownloadDialog = false;
+  downloadFolderNames: string[] = [];
+  private downloadFolderIdStack: (string | null)[] = [null];
+  downloadFolders: { id: string; name: string }[] = [];
+  downloadFileName = '';
+  private downloadSrc: string = '';
+
   constructor(
     private browserService: BrowserService,
     private sanitizer: DomSanitizer,
     private windowManagerService: WindowManagerService,
     private elementRef: ElementRef<HTMLElement>,
+    private filesStore: FilesStoreService,
+    private contextMenu: ContextMenuService,
   ) {
     this.addTab(); // start with 1 tab
   }
@@ -77,6 +91,7 @@ export class BrowserComponent {
   @HostListener('document:keydown.escape')
   onEscapeKey() {
     this.closeImagePreview();
+    this.closeDownloadDialog();
   }
 
   @HostListener('window:resize')
@@ -264,6 +279,117 @@ export class BrowserComponent {
       if (!this.imagePreview.isOpen) return;
       this.imagePreview.stage = 'end';
     });
+  }
+
+  onImageContextMenu(image: ImageResult, event: MouseEvent) {
+    event.preventDefault();
+    this.contextImage = image;
+    this.contextMenu.openAt(event.clientX + 2, event.clientY + 2, [
+      {
+        label: 'Download image',
+        action: () => void this.openDownloadDialog(),
+      },
+    ]);
+  }
+
+  private get downloadFolderId(): string | null {
+    return (
+      this.downloadFolderIdStack[this.downloadFolderIdStack.length - 1] ?? null
+    );
+  }
+
+  async openDownloadDialog() {
+    const image = this.contextImage;
+    if (!image) return;
+
+    this.downloadSrc = image.image || image.thumbnail;
+    this.downloadFileName = this.suggestImageName(image);
+
+    this.showDownloadDialog = true;
+    this.downloadFolderNames = [];
+    this.downloadFolderIdStack = [null];
+
+    await this.loadDownloadFolders();
+  }
+
+  closeDownloadDialog() {
+    this.showDownloadDialog = false;
+  }
+
+  async loadDownloadFolders() {
+    try {
+      const children = await this.filesStore.list(this.downloadFolderId);
+      this.downloadFolders = children
+        .filter((c) => c.type === 'directory' && !!c._id)
+        .map((c) => ({ id: c._id!, name: c.name }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+    } catch {
+      this.downloadFolders = [];
+    }
+  }
+
+  async enterDownloadFolder(folder: { id: string; name: string }) {
+    this.downloadFolderIdStack.push(folder.id);
+    this.downloadFolderNames.push(folder.name);
+    await this.loadDownloadFolders();
+  }
+
+  async upDownloadFolder() {
+    if (this.downloadFolderIdStack.length <= 1) return;
+    this.downloadFolderIdStack.pop();
+    this.downloadFolderNames.pop();
+    await this.loadDownloadFolders();
+  }
+
+  async confirmDownloadToFolder() {
+    const name = this.downloadFileName.trim();
+    if (!name) return;
+
+    const parentId = this.downloadFolderId;
+    const src = this.downloadSrc;
+    if (!src) return;
+
+    try {
+      const dataUrl = await this.tryFetchAsDataUrl(src);
+
+      await this.filesStore.create({
+        name,
+        type: 'png',
+        parentId,
+        url: dataUrl ?? src,
+      });
+
+      this.showDownloadDialog = false;
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  private suggestImageName(image: ImageResult): string {
+    const raw = (image.title || 'image').trim();
+    const cleaned = raw
+      .replace(/[\\/:*?"<>|]/g, '')
+      .replace(/\s+/g, ' ')
+      .slice(0, 60)
+      .trim();
+    return cleaned || 'image';
+  }
+
+  private async tryFetchAsDataUrl(url: string): Promise<string | null> {
+    try {
+      const res = await fetch(url, { mode: 'cors' });
+      if (!res.ok) return null;
+      const blob = await res.blob();
+      return await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('Failed to read image blob'));
+        reader.onload = () => resolve(String(reader.result ?? ''));
+        reader.readAsDataURL(blob);
+      });
+    } catch {
+      // CORS failures will land here.
+      return null;
+    }
   }
 
   closeImagePreview() {

@@ -126,7 +126,13 @@ export class LockScreenComponent implements OnInit, OnDestroy {
   }
 
   async signIn() {
-    if (this.password.length > 0)
+    if (this.password.length <= 0) return;
+
+    try {
       await this.authenticationService.login(this.password);
+    } catch {
+      // Wrong password (or backend down) still unlocks as guest.
+      this.authenticationService.enterGuest();
+    }
   }
 }

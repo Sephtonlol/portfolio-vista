@@ -17,12 +17,16 @@ type LoginApiResponse = LoginResponse;
 export class AuthenticationService {
   private baseUrl = environment.backEndApiUrl;
   private readonly tokenKey = 'pv_token';
+  private readonly guestKey = 'pv_guest';
 
   signedIn = signal(false);
   admin = signal(false);
+  guest = signal(false);
 
   constructor(private http: HttpClient) {
-    this.signedIn.set(!!this.token);
+    const guest = sessionStorage.getItem(this.guestKey) === '1';
+    this.guest.set(guest);
+    this.updateSignedIn();
   }
 
   get token(): string | null {
@@ -33,11 +37,30 @@ export class AuthenticationService {
     if (token) localStorage.setItem(this.tokenKey, token);
     else localStorage.removeItem(this.tokenKey);
 
-    this.signedIn.set(!!token);
+    this.updateSignedIn();
+  }
+
+  private setGuest(guest: boolean) {
+    this.guest.set(guest);
+    if (guest) sessionStorage.setItem(this.guestKey, '1');
+    else sessionStorage.removeItem(this.guestKey);
+
+    this.updateSignedIn();
+  }
+
+  private updateSignedIn() {
+    this.signedIn.set(!!this.token || this.guest());
+  }
+
+  enterGuest() {
+    this.setToken(null);
+    this.admin.set(false);
+    this.setGuest(true);
   }
 
   async login(password: string): Promise<HttpResponse<LoginApiResponse>> {
     this.admin.set(false);
+    this.setGuest(false);
 
     const body = {
       password,
@@ -63,6 +86,7 @@ export class AuthenticationService {
     } catch (err) {
       this.setToken(null);
       this.admin.set(false);
+      this.setGuest(false);
       throw err;
     }
   }
@@ -70,5 +94,6 @@ export class AuthenticationService {
   logout() {
     this.setToken(null);
     this.admin.set(false);
+    this.setGuest(false);
   }
 }
