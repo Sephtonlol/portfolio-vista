@@ -136,7 +136,7 @@ export class TaskbarComponent implements OnInit {
   }
 
   isAnyInstanceOpen(windows: IndexedWindow[]): boolean {
-    return windows.some((w) => !w.minimized);
+    return windows.length > 0;
   }
 
   @HostListener('document:click', ['$event'])

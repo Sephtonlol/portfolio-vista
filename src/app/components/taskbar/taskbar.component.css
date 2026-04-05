@@ -47,9 +47,6 @@ i {
   pointer-events: all;
   visibility: visible;
 }
-.opened-application {
-  background-color: var(--hover-color);
-}
 .opened-application::after {
   opacity: 1;
   content: "";

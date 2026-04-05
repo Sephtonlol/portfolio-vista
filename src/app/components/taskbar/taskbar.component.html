@@ -19,54 +19,56 @@
     />
 
     @for (appName of allApps(); track appName) {
-    <div class="application-outer">
-      <i
-        class="bi {{ getIcon(appName) }}"
-        [class.opened-application]="isAnyInstanceOpen(getWindowsByApp(appName))"
-        (click)="
-          $event.stopPropagation();
-          getWindowsByApp(appName).length === 0
-            ? newWindow(appName, getIcon(appName))
-            : getWindowsByApp(appName).length > 1
-            ? toggleContextMenu(appName, $event)
-            : toggleWindow(getWindowsByApp(appName)[0].id)
-        "
-        (contextmenu)="
-          $event.preventDefault(); toggleContextMenu(appName, $event)
-        "
-      ></i>
+      <div class="application-outer">
+        <i
+          class="bi {{ getIcon(appName) }}"
+          [class.opened-application]="
+            isAnyInstanceOpen(getWindowsByApp(appName))
+          "
+          (click)="
+            $event.stopPropagation();
+            getWindowsByApp(appName).length === 0
+              ? newWindow(appName, getIcon(appName))
+              : getWindowsByApp(appName).length > 1
+                ? toggleContextMenu(appName, $event)
+                : toggleWindow(getWindowsByApp(appName)[0].id)
+          "
+          (contextmenu)="
+            $event.preventDefault(); toggleContextMenu(appName, $event)
+          "
+        ></i>
 
-      <div
-        class="taskbar-popup"
-        [class.show-taskbar-popup]="contextMenuApp === appName"
-      >
-        @for (win of getWindowsByApp(appName); track win.id) {
-        <div class="taskbar-popup-item" (click)="toggleWindow(win.id)">
-          <div class="taskbar-popup-item-inner">
-            <i class="bi {{ win.icon }}"></i>
-            <span>{{ win.application }} #{{ win.index + 1 }}</span>
+        <div
+          class="taskbar-popup"
+          [class.show-taskbar-popup]="contextMenuApp === appName"
+        >
+          @for (win of getWindowsByApp(appName); track win.id) {
+            <div class="taskbar-popup-item" (click)="toggleWindow(win.id)">
+              <div class="taskbar-popup-item-inner">
+                <i class="bi {{ win.icon }}"></i>
+                <span>{{ win.application }} #{{ win.index + 1 }}</span>
+              </div>
+              <i
+                class="bi bi-x-lg taskbar-popup-close"
+                (click)="closeWindow(win.id)"
+              ></i>
+            </div>
+          }
+
+          <div
+            class="taskbar-popup-item item-default"
+            (click)="newWindow(appName, getIcon(appName))"
+          >
+            <span>New window</span>
           </div>
-          <i
-            class="bi bi-x-lg taskbar-popup-close"
-            (click)="closeWindow(win.id)"
-          ></i>
-        </div>
-        }
-
-        <div
-          class="taskbar-popup-item item-default"
-          (click)="newWindow(appName, getIcon(appName))"
-        >
-          <span>New window</span>
-        </div>
-        <div
-          class="taskbar-popup-item item-default"
-          (click)="togglePinApp(appName)"
-        >
-          <span>{{ isPinned(appName) ? "Unpin" : "Pin" }} from taskbar</span>
+          <div
+            class="taskbar-popup-item item-default"
+            (click)="togglePinApp(appName)"
+          >
+            <span>{{ isPinned(appName) ? "Unpin" : "Pin" }} from taskbar</span>
+          </div>
         </div>
       </div>
-    </div>
     }
   </div>
   <div class="taskbar-right">

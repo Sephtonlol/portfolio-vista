@@ -17,7 +17,12 @@ import { PlayerComponent } from '../windows/player/player.component';
 import { SettingsComponent } from '../windows/settings/settings.component';
 import { Subscription } from 'rxjs';
 import { WindowManagerService } from '../../services/window-manager.service';
-import { Window } from '../../interfaces/window.interface';
+import {
+  Window,
+  WindowBounds,
+  WindowLayout,
+  WindowLayoutMode,
+} from '../../interfaces/window.interface';
 import { BrowserComponent } from '../windows/browser/browser.component';
 import { ContextMenuService } from '../../services/context-menu.service';
 
@@ -140,6 +145,12 @@ export class WindowComponent implements AfterViewInit, OnInit {
     const size = this.initialSize;
 
     setTimeout(() => {
+      const layout = this.windowData.layout;
+      if (layout) {
+        this.restoreLayout(layout);
+        return;
+      }
+
       if (window.innerWidth < 992) {
         this.lastPosition = { x: 25, y: 25 };
 
@@ -328,6 +339,8 @@ export class WindowComponent implements AfterViewInit, OnInit {
       });
 
     setTimeout(() => {
+      if (this.windowData.layout) return;
+
       const step = 30;
       let x = this.lastPosition.x;
       let y = this.lastPosition.y;
@@ -458,6 +471,8 @@ export class WindowComponent implements AfterViewInit, OnInit {
     }
     this.isMaximized = true;
     this.cdr.detectChanges();
+
+    this.persistLayout('maximized');
   }
 
   unmaximizeWindow() {
@@ -466,13 +481,18 @@ export class WindowComponent implements AfterViewInit, OnInit {
     interact(this.windowEl).resizable({ enabled: true });
     this.isMaximized = false;
     this.cdr.detectChanges();
+
+    this.persistLayout('normal');
   }
 
   snapWindow() {
     this.isSnapped = true;
 
+    let mode: WindowLayoutMode = 'normal';
+
     switch (true) {
       case this.isLeftSnap:
+        mode = 'snap-left';
         if (window.innerWidth < 992) {
           this.windowEl.style.height = '100vh';
         } else {
@@ -484,6 +504,7 @@ export class WindowComponent implements AfterViewInit, OnInit {
         this.windowEl.setAttribute('data-y', '0.1');
         break;
       case this.isRightSnap:
+        mode = 'snap-right';
         if (window.innerWidth < 992) {
           this.windowEl.style.transform = `translate(calc(50vw - 29px), 0px)`;
           this.windowEl.style.height = '100vh';
@@ -502,6 +523,8 @@ export class WindowComponent implements AfterViewInit, OnInit {
         console.error('Failed to snap window.');
         break;
     }
+
+    this.persistLayout(mode);
   }
 
   closeWindow() {
@@ -528,6 +551,8 @@ export class WindowComponent implements AfterViewInit, OnInit {
       width: this.windowEl.offsetWidth,
       height: this.windowEl.offsetHeight,
     };
+
+    this.persistLayout('normal');
   }
 
   applyLast() {
@@ -540,5 +565,64 @@ export class WindowComponent implements AfterViewInit, OnInit {
     this.windowEl.style.height = `${this.lastSize.height}px`;
     this.windowEl.setAttribute('data-x', this.lastPosition.x.toString());
     this.windowEl.setAttribute('data-y', this.lastPosition.y.toString());
+  }
+
+  private getBoundsFromLast(): WindowBounds {
+    return {
+      x: this.lastPosition.x,
+      y: this.lastPosition.y,
+      width: this.lastSize.width,
+      height: this.lastSize.height,
+    };
+  }
+
+  private persistLayout(mode: WindowLayoutMode): void {
+    const id = this.id;
+    if (!id) return;
+
+    const normalBounds = this.getBoundsFromLast();
+    const layout: WindowLayout = {
+      mode,
+      bounds: normalBounds,
+      normalBounds,
+    };
+
+    this.windowManagerService.updateWindow(id, { layout });
+  }
+
+  private restoreLayout(layout: WindowLayout): void {
+    // Restore the last "normal" bounds first so unmaximize/restore works.
+    this.lastPosition = { x: layout.normalBounds.x, y: layout.normalBounds.y };
+    this.lastSize = {
+      width: layout.normalBounds.width,
+      height: layout.normalBounds.height,
+    };
+
+    // Clear flags; restore will set them.
+    this.isSnapped = false;
+    this.isMaximized = false;
+
+    switch (layout.mode) {
+      case 'maximized':
+        this.maximizeWindow(false);
+        return;
+      case 'snap-left':
+        this.isLeftSnap = true;
+        this.isRightSnap = false;
+        this.snapWindow();
+        this.isLeftSnap = false;
+        return;
+      case 'snap-right':
+        this.isRightSnap = true;
+        this.isLeftSnap = false;
+        this.snapWindow();
+        this.isRightSnap = false;
+        return;
+      case 'normal':
+      default:
+        // Use applyLast() so mobile offset math stays consistent.
+        this.applyLast();
+        return;
+    }
   }
 }

@@ -27,6 +27,13 @@ export class WindowManagerService {
     this.windowsSource.next([...currentItems, windowWithId]);
   }
 
+  updateWindow(windowId: string, patch: Partial<Window>) {
+    const updated = this.windowsSource.value.map((win) =>
+      win.id === windowId ? { ...win, ...patch } : win,
+    );
+    this.windowsSource.next(updated);
+  }
+
   focusWindow(windowId: string, unminimize = false, drag = false) {
     const updated = this.windowsSource.value.map((win) => ({
       ...win,
@@ -50,12 +57,16 @@ export class WindowManagerService {
 
   closeWindow(windowId: string) {
     const updated = this.windowsSource.value.filter(
-      (window) => window.id !== windowId
+      (window) => window.id !== windowId,
     );
     this.windowsSource.next(updated);
   }
 
   minimizeWindow(windowId: string) {
+    const updated = this.windowsSource.value.map((win) =>
+      win.id === windowId ? { ...win, minimized: true, focused: false } : win,
+    );
+    this.windowsSource.next(updated);
     this.minimizeSource.next(windowId);
   }
 
