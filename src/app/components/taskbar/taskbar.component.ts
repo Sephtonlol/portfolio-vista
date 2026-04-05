@@ -73,10 +73,6 @@ export class TaskbarComponent implements OnInit {
       this.focusedApplication = app;
     });
 
-    this.windowManagerService.focusedApplicationType$.subscribe((type) => {
-      this.focusedApplicationType = type;
-    });
-
     this.updateDateTime();
     setInterval(() => this.updateDateTime(), 1000);
   }

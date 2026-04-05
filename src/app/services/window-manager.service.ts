@@ -27,35 +27,8 @@ export class WindowManagerService {
     distinctUntilChanged(),
   );
 
-  focusedApplicationType$ = this.focusedWindow$.pipe(
-    map((win) => (win ? this.getApplicationType(win) : null)),
-    distinctUntilChanged(),
-  );
-
   private findWindow(windowId: string): Window | undefined {
     return this.windowsSource.value.find((win) => win.id === windowId);
-  }
-
-  private getApplicationType(win: Window): FocusedApplicationType {
-    switch (win.application) {
-      case 'Explorer':
-      case 'Settings':
-        return 'system';
-      case 'Terminal':
-      case 'Notepad':
-      case 'Calculator':
-        return 'utility';
-      case 'Browser':
-        return 'web';
-      case 'Photos':
-      case 'Media player':
-        return 'media';
-      default:
-        // Best-effort fallback: infer from window content type when available.
-        if (win.data?.type === 'image' || win.data?.type === 'media')
-          return 'media';
-        return 'other';
-    }
   }
 
   private focusSource = new BehaviorSubject<{
