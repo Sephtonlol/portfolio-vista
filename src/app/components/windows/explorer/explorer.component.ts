@@ -62,6 +62,8 @@ export class ExplorerComponent implements OnInit, OnDestroy {
   renamingId: string | null = null;
   renameValue = '';
 
+  private inlineCreateTimer: number | null = null;
+
   private childrenSub?: Subscription;
 
   constructor(
@@ -376,15 +378,37 @@ export class ExplorerComponent implements OnInit, OnDestroy {
   startInlineCreate(kind: 'directory' | 'md') {
     this.contextMenu.close();
     this.cancelRename();
-    this.inlineCreateKind = kind;
+
+    // Defer enabling inline-create until after the context-menu click finishes.
+    // Otherwise the same click event will trigger our document:click handler
+    // and immediately cancel inline-create.
+    if (this.inlineCreateTimer !== null) {
+      window.clearTimeout(this.inlineCreateTimer);
+      this.inlineCreateTimer = null;
+    }
+
+    this.inlineCreateKind = null;
     this.inlineCreateName = '';
 
-    window.setTimeout(() => {
-      this.inlineCreateInput?.nativeElement.focus();
+    this.inlineCreateTimer = window.setTimeout(() => {
+      this.inlineCreateTimer = null;
+      this.inlineCreateKind = kind;
+      this.inlineCreateName = '';
+
+      // Wait one more tick so Angular renders the input & ViewChild resolves.
+      window.setTimeout(() => {
+        const el = this.inlineCreateInput?.nativeElement;
+        el?.focus();
+        el?.select();
+      }, 0);
     }, 0);
   }
 
   cancelInlineCreate() {
+    if (this.inlineCreateTimer !== null) {
+      window.clearTimeout(this.inlineCreateTimer);
+      this.inlineCreateTimer = null;
+    }
     this.inlineCreateKind = null;
     this.inlineCreateName = '';
   }

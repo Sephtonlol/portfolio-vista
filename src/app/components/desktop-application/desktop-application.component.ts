@@ -1,8 +1,10 @@
-import { Component, Input, AfterViewInit, ElementRef } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input } from '@angular/core';
 import interact from 'interactjs';
-import { FileNode } from '../../interfaces/file.interface';
+import { FileNode, FileNodeType } from '../../interfaces/file.interface';
 import { WindowManagerService } from '../../services/window-manager.service';
 import { ContextMenuService } from '../../services/context-menu.service';
+import { FilesStoreService } from '../../services/files-store.service';
+import { fileDisplayName } from '../../utils/file-utils';
 
 @Component({
   selector: 'app-desktop-application',
@@ -13,6 +15,8 @@ import { ContextMenuService } from '../../services/context-menu.service';
 export class DesktopApplicationComponent implements AfterViewInit {
   @Input() application!: FileNode;
   @Input() initialPosition: { x: number; y: number } = { x: 0, y: 0 };
+  @Input() deletable = true;
+
   shouldAnimate = true;
   private gridSize = 100;
 
@@ -22,6 +26,7 @@ export class DesktopApplicationComponent implements AfterViewInit {
     private elRef: ElementRef,
     private windowManagerService: WindowManagerService,
     private contextMenuService: ContextMenuService,
+    private filesStore: FilesStoreService,
   ) {}
 
   ngAfterViewInit() {
@@ -136,37 +141,237 @@ export class DesktopApplicationComponent implements AfterViewInit {
       .styleCursor(false);
   }
 
-  openApplication() {
-    if (this.application.type === 'shortcut') {
+  displayName(): string {
+    return fileDisplayName(this.application);
+  }
+
+  iconClass(): string {
+    const node = this.getEffectiveNode();
+
+    if (node.type === 'url') {
+      const name = (node.name || '').toLowerCase();
+      if (name === 'github') return 'bi-github';
+      if (name === 'linkedin') return 'bi-linkedin';
+      return 'bi-link-45deg';
+    }
+
+    return this.getFileIcon(node.type);
+  }
+
+  thumbnailKind(): 'image' | 'video' | null {
+    const node = this.getEffectiveNode();
+    if (node.type === 'png' && this.thumbnailUrl()) return 'image';
+    if (node.type === 'mp4' && this.thumbnailUrl()) return 'video';
+    return null;
+  }
+
+  thumbnailUrl(): string | null {
+    const node = this.getEffectiveNode();
+    if (node.type === 'png' || node.type === 'mp4') {
+      const url = node.url ?? node.content ?? '';
+      return url ? url : null;
+    }
+    return null;
+  }
+
+  private getEffectiveNode(): FileNode {
+    if (this.application.type !== 'shortcut') return this.application;
+
+    const target = this.application.shortcutTo ?? this.application.content;
+    if (!target) return this.application;
+    if (target.startsWith('/')) return this.application;
+
+    const resolved = this.filesStore.getById(target);
+    return resolved ?? this.application;
+  }
+
+  openApplication(): void {
+    const node = this.application;
+
+    if (node.type === 'directory') {
+      if (!node._id) return;
       this.windowManagerService.addWindow({
         application: 'Explorer',
         icon: 'bi-folder',
         data: {
-          title: this.application.name,
-          content: [this.application.name].join('/'),
+          title: node.name,
+          content: '',
           type: 'directory',
+          folderId: node._id,
         },
       });
-    } else {
-      window.open(this.application.content, '_blank');
+      return;
+    }
+
+    if (node.type === 'shortcut') {
+      const target = node.shortcutTo ?? node.content;
+      if (!target) return;
+
+      if (target.startsWith('/')) {
+        this.windowManagerService.addWindow({
+          application: 'Explorer',
+          icon: 'bi-folder',
+          data: {
+            title: node.name,
+            content: target,
+            type: 'directory',
+          },
+        });
+        return;
+      }
+
+      const resolved = this.filesStore.getById(target);
+      if (resolved && resolved._id && resolved._id !== node._id) {
+        this.openResolvedNode(resolved);
+        return;
+      }
+
+      // Best effort: treat as a folder id.
+      this.windowManagerService.addWindow({
+        application: 'Explorer',
+        icon: 'bi-folder',
+        data: {
+          title: node.name,
+          content: '',
+          type: 'directory',
+          folderId: target,
+        },
+      });
+      return;
+    }
+
+    if (node.type === 'url') {
+      const url = node.url ?? node.content ?? '';
+      if (!url) return;
+      window.open(url, '_blank');
+      return;
+    }
+
+    if (node.type === 'png') {
+      this.windowManagerService.addWindow({
+        application: 'Photos',
+        icon: 'bi-image',
+        data: {
+          title: node.name,
+          content: node.url ?? node.content ?? '',
+          type: 'image',
+          folderId: node.parentId ?? null,
+          selectedId: node._id,
+          url: node.url,
+        },
+      });
+      return;
+    }
+
+    if (node.type === 'mp4' || node.type === 'mp3') {
+      this.windowManagerService.addWindow({
+        application: 'Media player',
+        icon: 'bi-play-circle',
+        data: {
+          title: node.name,
+          content: node.url ?? node.content ?? '',
+          type: 'media',
+          folderId: node.parentId ?? null,
+          selectedId: node._id,
+          url: node.url,
+        },
+      });
+      return;
+    }
+
+    // Default: treat as a text file.
+    this.windowManagerService.addWindow({
+      application: 'Notepad',
+      icon: 'bi-file-earmark-text',
+      data: {
+        title: node.name,
+        content: node.content || '',
+        type: 'text',
+        itemId: node._id,
+        parentId: node.parentId ?? null,
+      },
+    });
+  }
+
+  private openResolvedNode(node: FileNode): void {
+    if (node.type === 'directory') {
+      if (!node._id) return;
+      this.windowManagerService.addWindow({
+        application: 'Explorer',
+        icon: 'bi-folder',
+        data: {
+          title: node.name,
+          content: '',
+          type: 'directory',
+          folderId: node._id,
+        },
+      });
+      return;
+    }
+
+    // For non-directories, just reuse the main handler.
+    const previous = this.application;
+    this.application = node;
+    try {
+      this.openApplication();
+    } finally {
+      this.application = previous;
     }
   }
 
-  deleteApplication() {
+  async deleteApplication(): Promise<void> {
+    if (!this.deletable) return;
+    const id = this.application._id;
+    if (!id) {
+      this.deleted = true;
+      return;
+    }
+
     this.deleted = true;
+    await this.filesStore.delete(id);
   }
 
   contextMenu(event: MouseEvent) {
     event.preventDefault();
-    this.contextMenuService.openAt(event.clientX + 2, event.clientY + 2, [
+
+    const entries = [
       {
         label: 'Open',
         action: () => this.openApplication(),
       },
-      {
+    ];
+
+    if (this.deletable) {
+      entries.push({
         label: 'Delete',
-        action: () => this.deleteApplication(),
-      },
-    ]);
+        action: () => void this.deleteApplication(),
+      });
+    }
+
+    this.contextMenuService.openAt(
+      event.clientX + 2,
+      event.clientY + 2,
+      entries,
+    );
+  }
+
+  private getFileIcon(type: FileNodeType): string {
+    switch (type) {
+      case 'directory':
+      case 'shortcut':
+        return 'bi-folder';
+      case 'md':
+        return 'bi-file-earmark-text';
+      case 'png':
+        return 'bi-image';
+      case 'mp3':
+        return 'bi-music-note';
+      case 'mp4':
+        return 'bi-film';
+      case 'url':
+        return 'bi-link-45deg';
+      default:
+        return 'bi-file-earmark';
+    }
   }
 }

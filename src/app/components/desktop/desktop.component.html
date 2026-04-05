@@ -19,21 +19,23 @@
   @for (window of windows; track window.id) {
     <app-window [windowData]="window" [id]="window.id" />
   }
+
+  @for (item of desktopItems; track item._id ?? item.name; let i = $index) {
+    <app-desktop-application
+      [application]="item"
+      [initialPosition]="desktopPosition(i)"
+    />
+  }
+
   <app-desktop-application
-    [application]="{
-      name: 'Github',
-      type: 'url',
-      content: 'https://github.com/Sephtonlol/',
-    }"
+    [application]="socialShortcuts[0]"
     [initialPosition]="{ x: 0, y: 0 }"
+    [deletable]="false"
   />
   <app-desktop-application
-    [application]="{
-      name: 'Linkedin',
-      type: 'url',
-      content: 'https://www.linkedin.com/in/alexander-wu-b63038241/',
-    }"
+    [application]="socialShortcuts[1]"
     [initialPosition]="{ x: 0, y: 1 }"
+    [deletable]="false"
   />
   @if (!linkedinOpened) {
     <div class="activate-linkedin" (click)="openLinkedin()">
