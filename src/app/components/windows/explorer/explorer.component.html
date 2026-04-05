@@ -74,6 +74,7 @@
       <div
         class="explorer-item"
         [class.explorer-item-tiles]="!viewList"
+        [class.explorer-item-cut]="isCut(file)"
         (click)="onOpenItem(file)"
         (contextmenu)="onItemContextMenu(file, $event)"
       >
@@ -145,6 +146,7 @@
       <div
         class="explorer-item"
         [class.explorer-item-tiles]="!viewList"
+        [class.explorer-item-cut]="isCut(file)"
         (dblclick)="onOpenItem(file)"
         (contextmenu)="onItemContextMenu(file, $event)"
       >

@@ -53,32 +53,3 @@ i:hover {
   position: absolute;
   bottom: -25px;
 }
-.context-menu {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  background-color: var(--background-color);
-  position: absolute;
-  top: 60%;
-  transform: translate(-20px, -50%);
-  left: 80px;
-  border-radius: 6px;
-  opacity: 0;
-  transition: all var(--primary-transition);
-  pointer-events: none;
-  span {
-    user-select: none;
-    padding: 0.4rem;
-    margin: 0;
-    border-radius: 6px;
-    transition: all var(--primary-transition);
-  }
-  span:hover {
-    background-color: var(--hover-color);
-  }
-}
-.show-context-menu {
-  pointer-events: all;
-  opacity: 1;
-  transform: translate(0, -50%);
-}

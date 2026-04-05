@@ -14,12 +14,5 @@
     <span class="name">
       {{ application.name }}
     </span>
-    <div
-      class="context-menu"
-      [class.show-context-menu]="openContextMenuApp === application.name"
-    >
-      <span (click)="openApplication()">Open</span>
-      <span (click)="deleteApplication()">Delete</span>
-    </div>
   </div>
 }

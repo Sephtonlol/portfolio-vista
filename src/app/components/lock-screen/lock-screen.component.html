@@ -28,6 +28,7 @@
 
     <form class="inputs" (ngSubmit)="signIn()">
       <input
+        autocomplete="off"
         #passwordInput
         name="password"
         [type]="passwordHidden ? 'text' : 'password'"

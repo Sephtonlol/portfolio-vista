@@ -17,11 +17,10 @@ export class DesktopComponent {
   settings: AppSettings | null = null;
 
   linkedinOpened = false;
-  openContextMenuApp: string | null = null;
 
   constructor(
     private windowManagerService: WindowManagerService,
-    private settingsService: SettingsService
+    private settingsService: SettingsService,
   ) {}
 
   ngOnInit(): void {
@@ -40,17 +39,5 @@ export class DesktopComponent {
     localStorage.setItem('linkedinOpened', 'true');
     const linkedinUrl = 'https://www.linkedin.com/in/alexander-wu-b63038241/';
     window.open(linkedinUrl, '_blank');
-  }
-
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent) {
-    const target = event.target as HTMLElement;
-    if (
-      this.openContextMenuApp &&
-      !target.closest('.context-menu') &&
-      !target.closest('.context-menu-trigger')
-    ) {
-      this.openContextMenuApp = null;
-    }
   }
 }

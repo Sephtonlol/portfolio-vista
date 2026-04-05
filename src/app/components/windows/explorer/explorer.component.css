@@ -76,6 +76,11 @@ input:focus {
   background-color: var(--hover-color);
   cursor: pointer;
 }
+
+.explorer-item-cut {
+  opacity: 0.45;
+  filter: grayscale(1);
+}
 .bi-grid {
   font-size: 1.25rem;
 }

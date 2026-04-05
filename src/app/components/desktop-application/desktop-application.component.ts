@@ -1,14 +1,8 @@
-import {
-  Component,
-  Input,
-  Output,
-  EventEmitter,
-  AfterViewInit,
-  ElementRef,
-} from '@angular/core';
+import { Component, Input, AfterViewInit, ElementRef } from '@angular/core';
 import interact from 'interactjs';
 import { FileNode } from '../../interfaces/file.interface';
 import { WindowManagerService } from '../../services/window-manager.service';
+import { ContextMenuService } from '../../services/context-menu.service';
 
 @Component({
   selector: 'app-desktop-application',
@@ -19,8 +13,6 @@ import { WindowManagerService } from '../../services/window-manager.service';
 export class DesktopApplicationComponent implements AfterViewInit {
   @Input() application!: FileNode;
   @Input() initialPosition: { x: number; y: number } = { x: 0, y: 0 };
-  @Input() openContextMenuApp: string | null = null;
-  @Output() openContextMenuAppChange = new EventEmitter<string | null>();
   shouldAnimate = true;
   private gridSize = 100;
 
@@ -28,7 +20,8 @@ export class DesktopApplicationComponent implements AfterViewInit {
 
   constructor(
     private elRef: ElementRef,
-    private windowManagerService: WindowManagerService
+    private windowManagerService: WindowManagerService,
+    private contextMenuService: ContextMenuService,
   ) {}
 
   ngAfterViewInit() {
@@ -101,7 +94,7 @@ export class DesktopApplicationComponent implements AfterViewInit {
                 isOverlapping = false;
 
                 const allApplications = Array.from(
-                  document.querySelectorAll('.application')
+                  document.querySelectorAll('.application'),
                 ) as HTMLElement[];
 
                 for (const sibling of allApplications) {
@@ -127,7 +120,7 @@ export class DesktopApplicationComponent implements AfterViewInit {
                 iterationCount++;
                 if (iterationCount > maxIterations) {
                   console.error(
-                    'Failed to resolve overlap after maximum attempts.'
+                    'Failed to resolve overlap after maximum attempts.',
                   );
                   break;
                 }
@@ -144,7 +137,6 @@ export class DesktopApplicationComponent implements AfterViewInit {
   }
 
   openApplication() {
-    this.openContextMenuAppChange.emit(null);
     if (this.application.type === 'shortcut') {
       this.windowManagerService.addWindow({
         application: 'Explorer',
@@ -166,10 +158,15 @@ export class DesktopApplicationComponent implements AfterViewInit {
 
   contextMenu(event: MouseEvent) {
     event.preventDefault();
-    if (this.openContextMenuApp === this.application.name) {
-      this.openContextMenuAppChange.emit(null);
-    } else {
-      this.openContextMenuAppChange.emit(this.application.name);
-    }
+    this.contextMenuService.openAt(event.clientX + 2, event.clientY + 2, [
+      {
+        label: 'Open',
+        action: () => this.openApplication(),
+      },
+      {
+        label: 'Delete',
+        action: () => this.deleteApplication(),
+      },
+    ]);
   }
 }

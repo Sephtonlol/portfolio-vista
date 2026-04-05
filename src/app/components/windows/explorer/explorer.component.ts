@@ -16,6 +16,10 @@ import { AuthenticationService } from '../../../services/api/authentication/auth
 import { HttpErrorResponse } from '@angular/common/http';
 import { Subscription } from 'rxjs';
 import { ContextMenuService } from '../../../services/context-menu.service';
+import {
+  ExplorerClipboardEntry,
+  ExplorerClipboardService,
+} from '../../../services/explorer-clipboard.service';
 
 @Component({
   selector: 'app-explorer',
@@ -60,10 +64,12 @@ export class ExplorerComponent implements OnInit, OnDestroy {
     private filesStore: FilesStoreService,
     public authenticationService: AuthenticationService,
     public contextMenu: ContextMenuService,
+    private clipboard: ExplorerClipboardService,
   ) {}
 
   ngOnDestroy(): void {
     this.childrenSub?.unsubscribe();
+    this.clipboard.clear();
   }
 
   @HostListener('window:resize')
@@ -103,7 +109,15 @@ export class ExplorerComponent implements OnInit, OnDestroy {
 
   onBackgroundContextMenu(event: MouseEvent) {
     event.preventDefault();
+
+    const pasteDisabled = !this.canPasteInto(this.currentFolderId);
+
     this.contextMenu.openAt(event.clientX + 2, event.clientY + 2, [
+      {
+        label: 'Paste',
+        action: () => void this.pasteIntoCurrentFolder(),
+        disabled: pasteDisabled,
+      },
       {
         label: 'New folder',
         action: () => this.startInlineCreate('directory'),
@@ -122,18 +136,151 @@ export class ExplorerComponent implements OnInit, OnDestroy {
   onItemContextMenu(file: FileNode, event: MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
+
+    const hasId = !!file._id;
+
     this.contextMenu.openAt(event.clientX + 2, event.clientY + 2, [
+      {
+        label: 'Open',
+        action: () => this.openItem(file),
+        disabled:
+          this.inlineCreateKind !== null ||
+          (hasId && this.renamingId === file._id),
+      },
+      {
+        label: 'Cut',
+        action: () => this.cutItem(file),
+        disabled: !hasId,
+      },
+      {
+        label: 'Copy',
+        action: () => this.copyItem(file),
+        disabled: !hasId,
+      },
       {
         label: 'Edit name',
         action: () => this.startRename(file),
-        disabled: !file._id,
+        disabled: !hasId,
       },
       {
         label: 'Delete',
         action: () => this.deleteItem(file),
-        disabled: !file._id,
+        disabled: !hasId,
       },
     ]);
+  }
+
+  cutItem(file: FileNode) {
+    this.contextMenu.close();
+    this.cancelRename();
+    this.cancelInlineCreate();
+    this.clipboard.cut(file);
+  }
+
+  copyItem(file: FileNode) {
+    this.contextMenu.close();
+    this.cancelRename();
+    this.cancelInlineCreate();
+    this.clipboard.copy(file);
+  }
+
+  private canPasteInto(targetParentId: string | null): boolean {
+    const clip = this.clipboard.get();
+    if (!clip) return false;
+
+    // Prevent pasting a folder into itself.
+    if (clip.mode === 'cut' && clip.itemId === targetParentId) return false;
+
+    // Cut-paste into same folder is a no-op; disable like Windows.
+    if (clip.mode === 'cut' && clip.sourceParentId === targetParentId) {
+      return false;
+    }
+
+    return true;
+  }
+
+  async pasteIntoCurrentFolder(): Promise<void> {
+    this.contextMenu.close();
+
+    const clip = this.clipboard.get();
+    if (!clip) return;
+    if (!this.canPasteInto(this.currentFolderId)) return;
+
+    try {
+      if (clip.mode === 'cut') {
+        await this.filesStore.move(clip.itemId, this.currentFolderId);
+        this.clipboard.clear();
+        return;
+      }
+
+      await this.copyClipboardEntryTo(clip, this.currentFolderId);
+      this.clipboard.clear();
+    } catch (err) {
+      this.handleAuthError(err);
+    }
+  }
+
+  private async copyClipboardEntryTo(
+    clip: ExplorerClipboardEntry,
+    targetParentId: string | null,
+  ): Promise<void> {
+    const source = clip.snapshot;
+
+    const existing = await this.filesStore.list(targetParentId);
+    const usedDisplayNames = new Set(existing.map((c) => this.displayName(c)));
+
+    const nextName = this.nextCopyName(
+      source.name,
+      source.type,
+      usedDisplayNames,
+    );
+
+    await this.filesStore.create({
+      name: nextName,
+      type: source.type,
+      parentId: targetParentId,
+      content: source.content,
+      url: source.url,
+      shortcutTo: source.shortcutTo,
+    });
+  }
+
+  private nextCopyName(
+    originalName: string,
+    type: FileNodeType,
+    usedDisplayNames: Set<string>,
+  ): string {
+    const { base, extSuffix } = this.splitNameForCopy(originalName, type);
+
+    const makeCandidate = (index: number) => {
+      const suffix = index === 1 ? ' - Copy' : ` - Copy (${index})`;
+      return `${base}${suffix}${extSuffix}`;
+    };
+
+    for (let i = 1; i < 10_000; i++) {
+      const candidate = makeCandidate(i);
+      const display = this.displayName({ name: candidate, type } as FileNode);
+      if (!usedDisplayNames.has(display)) return candidate;
+    }
+
+    // Extremely defensive fallback.
+    return `${base} - Copy (${Date.now()})${extSuffix}`;
+  }
+
+  private splitNameForCopy(
+    name: string,
+    type: FileNodeType,
+  ): { base: string; extSuffix: string } {
+    if (type === 'directory' || type === 'shortcut' || type === 'url') {
+      return { base: name, extSuffix: '' };
+    }
+
+    const ext = `.${type}`;
+    if (name.toLowerCase().endsWith(ext)) {
+      return { base: name.slice(0, -ext.length), extSuffix: ext };
+    }
+
+    return { base: name, extSuffix: '' };
   }
 
   openUpload() {
@@ -300,6 +447,9 @@ export class ExplorerComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    // Clipboard only lives as long as this Explorer window is open.
+    this.clipboard.clear();
+
     // Prefer folderId if provided; otherwise resolve a path string.
     if (this.data?.folderId !== undefined) {
       this.currentFolderId = this.data.folderId;
@@ -413,6 +563,16 @@ export class ExplorerComponent implements OnInit, OnDestroy {
     if (this.inlineCreateKind) return;
     if (file._id && this.renamingId === file._id) return;
     this.openItem(file);
+  }
+
+  isCut(file: FileNode): boolean {
+    const clip = this.clipboard.get();
+    if (!clip || clip.mode !== 'cut') return false;
+    if (!file._id) return false;
+    if ((this.currentFolderId ?? null) !== (clip.sourceParentId ?? null)) {
+      return false;
+    }
+    return file._id === clip.itemId;
   }
 
   openItem(file: FileNode) {

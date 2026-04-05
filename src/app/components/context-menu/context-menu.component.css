@@ -4,7 +4,6 @@
   background-color: var(--primary-color);
   border: 2px solid var(--secondary-color);
   border-radius: 8px;
-  padding: 0.25rem;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
@@ -21,4 +20,9 @@
 
 .pv-contextmenu-item:hover {
   background-color: var(--hover-color);
+}
+
+.pv-contextmenu-item:disabled {
+  opacity: 0.55;
+  cursor: default;
 }
