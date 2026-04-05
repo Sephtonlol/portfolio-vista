@@ -3,6 +3,7 @@
     <div [innerHTML]="sanitizedHtml" class="preview"></div>
   } @else {
     <textarea
+      #editorTextarea
       [(ngModel)]="contentValue"
       (ngModelChange)="onContentChange()"
       spellcheck="false"

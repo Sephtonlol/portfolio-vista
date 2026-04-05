@@ -1,6 +1,15 @@
 :host {
   display: flex;
   height: 100%;
+  position: relative;
+}
+
+.keyboard-capture {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 .calculator {
   flex: 1;

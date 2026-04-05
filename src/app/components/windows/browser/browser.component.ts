@@ -1,7 +1,15 @@
-import { Component, ElementRef, HostListener, Input } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  HostListener,
+  Input,
+  ViewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { BrowserService } from '../../../services/api/browser/browser.service';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
+import { Subscription } from 'rxjs';
 import {
   BrowserView,
   ImageResult,
@@ -35,8 +43,12 @@ type ContainerRect = {
   templateUrl: './browser.component.html',
   styleUrl: './browser.component.css',
 })
-export class BrowserComponent {
+export class BrowserComponent implements AfterViewInit {
   @Input() id!: string | undefined;
+
+  @ViewChild('searchInput') searchInput?: ElementRef<HTMLInputElement>;
+
+  private focusSub?: Subscription;
   tabs: Tab[] = [];
   activeTabId: number = 0;
   private nextId = 1;
@@ -84,10 +96,38 @@ export class BrowserComponent {
     private contextMenu: ContextMenuService,
   ) {
     this.addTab(); // start with 1 tab
+
+    this.focusSub = this.windowManagerService.focus$.subscribe((evt) => {
+      if (!evt || !this.id) return;
+      if (evt.id !== this.id) return;
+      this.focusSearch();
+    });
+  }
+
+  ngAfterViewInit(): void {
+    this.focusSearch();
   }
 
   ngOnDestroy(): void {
+    this.focusSub?.unsubscribe();
     this.disconnectPreviewObserver();
+  }
+
+  private focusSearch(): void {
+    if (window.innerWidth < 922) return;
+    if (this.showDownloadDialog) return;
+    if (this.imagePreview.isOpen) return;
+
+    setTimeout(() => {
+      const input = this.searchInput?.nativeElement;
+      if (!input) return;
+      input.focus();
+      try {
+        input.setSelectionRange(input.value.length, input.value.length);
+      } catch {
+        // ignore
+      }
+    }, 0);
   }
 
   @HostListener('document:keydown.escape')

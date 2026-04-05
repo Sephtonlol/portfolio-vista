@@ -1,13 +1,16 @@
 import {
+  AfterViewInit,
   Component,
   ElementRef,
   EventEmitter,
   Input,
+  OnDestroy,
   OnInit,
   Output,
   ViewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 
 import { Data } from '../../../interfaces/window.interface';
 import { FileNode } from '../../../interfaces/file.interface';
@@ -28,12 +31,13 @@ import {
   styleUrl: './terminal.component.css',
   imports: [FormsModule],
 })
-export class TerminalComponent implements OnInit {
+export class TerminalComponent implements OnInit, AfterViewInit, OnDestroy {
   @Output() requestScrollToBottom = new EventEmitter<void>();
   @Input() id!: string | undefined;
   @Input() data!: Data | undefined;
 
   @ViewChild('uploadInput') uploadInput?: ElementRef<HTMLInputElement>;
+  @ViewChild('commandInput') commandInput?: ElementRef<HTMLInputElement>;
 
   currentPath: string[] = []; // folder names
   private folderIdStack: (string | null)[] = [null];
@@ -45,6 +49,8 @@ export class TerminalComponent implements OnInit {
   historyIndex: number = -1;
 
   mobile = false;
+
+  private focusSub?: Subscription;
 
   private pendingUploadParentId: string | null = null;
 
@@ -70,6 +76,36 @@ export class TerminalComponent implements OnInit {
     }
 
     this.mobile = window.innerWidth < 922;
+
+    this.focusSub = this.windowManagerService.focus$.subscribe((evt) => {
+      if (!evt || !this.id) return;
+      if (evt.id !== this.id) return;
+      this.focusMainInput();
+    });
+  }
+
+  ngAfterViewInit(): void {
+    this.focusMainInput();
+  }
+
+  ngOnDestroy(): void {
+    this.focusSub?.unsubscribe();
+  }
+
+  private focusMainInput(): void {
+    if (this.mobile) return;
+
+    setTimeout(() => {
+      const input = this.commandInput?.nativeElement;
+      if (!input) return;
+      input.focus();
+      // keep typing at the end
+      try {
+        input.setSelectionRange(input.value.length, input.value.length);
+      } catch {
+        // ignore (e.g. unsupported input types)
+      }
+    }, 0);
   }
 
   private get currentFolderId(): string | null {

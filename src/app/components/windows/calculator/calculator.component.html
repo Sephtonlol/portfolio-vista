@@ -1,3 +1,13 @@
+<input
+  #keyboardInput
+  class="keyboard-capture"
+  type="text"
+  inputmode="none"
+  aria-hidden="true"
+  tabindex="-1"
+  (keydown)="onKeydown($event)"
+/>
+
 <div class="calculator">
   <div class="display">
     <i

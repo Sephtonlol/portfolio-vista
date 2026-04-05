@@ -1,11 +1,26 @@
-import { Component } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  Input,
+  OnDestroy,
+  ViewChild,
+} from '@angular/core';
+import { Subscription } from 'rxjs';
+import { WindowManagerService } from '../../../services/window-manager.service';
 
 @Component({
   selector: 'app-calculator',
   templateUrl: './calculator.component.html',
   styleUrls: ['./calculator.component.css'],
 })
-export class CalculatorComponent {
+export class CalculatorComponent implements AfterViewInit, OnDestroy {
+  @Input() id!: string | undefined;
+
+  @ViewChild('keyboardInput') keyboardInput?: ElementRef<HTMLInputElement>;
+
+  private focusSub?: Subscription;
+
   display = '';
   topDisplay = '';
   history: string[] = [];
@@ -14,6 +29,75 @@ export class CalculatorComponent {
   private current = '';
   private previous = '';
   private operator = '';
+
+  constructor(private windowManagerService: WindowManagerService) {
+    this.focusSub = this.windowManagerService.focus$.subscribe((evt) => {
+      if (!evt || !this.id) return;
+      if (evt.id !== this.id) return;
+      this.focusKeyboard();
+    });
+  }
+
+  ngAfterViewInit(): void {
+    this.focusKeyboard();
+  }
+
+  ngOnDestroy(): void {
+    this.focusSub?.unsubscribe();
+  }
+
+  private focusKeyboard(): void {
+    if (window.innerWidth < 922) return;
+    setTimeout(() => {
+      this.keyboardInput?.nativeElement?.focus();
+    }, 0);
+  }
+
+  onKeydown(event: KeyboardEvent) {
+    const key = event.key;
+
+    if (key >= '0' && key <= '9') {
+      this.press(key);
+      event.preventDefault();
+      return;
+    }
+
+    if (key === '.' || key === ',') {
+      this.pressDot();
+      event.preventDefault();
+      return;
+    }
+
+    if (key === '+' || key === '-' || key === '*' || key === '/') {
+      this.op(key);
+      event.preventDefault();
+      return;
+    }
+
+    if (key === 'Enter' || key === '=') {
+      this.calc();
+      event.preventDefault();
+      return;
+    }
+
+    if (key === 'Backspace') {
+      this.back();
+      event.preventDefault();
+      return;
+    }
+
+    if (key === 'Escape') {
+      this.clear();
+      event.preventDefault();
+      return;
+    }
+
+    if (key === 'Delete') {
+      this.clearEntry();
+      event.preventDefault();
+      return;
+    }
+  }
 
   press(num: string) {
     this.current += num;

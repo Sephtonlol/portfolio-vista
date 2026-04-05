@@ -1,14 +1,19 @@
 import {
+  AfterViewInit,
   Component,
+  ElementRef,
   Input,
   OnChanges,
+  OnDestroy,
   OnInit,
   SimpleChanges,
+  ViewChild,
 } from '@angular/core';
 import { Data } from '../../../interfaces/window.interface';
 import { FormsModule } from '@angular/forms';
 import MarkdownIt from 'markdown-it';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { Subscription } from 'rxjs';
 
 import hljs from 'highlight.js';
 import csharp from 'highlight.js/lib/languages/csharp';
@@ -21,6 +26,7 @@ import html from 'highlight.js/lib/languages/xml';
 import { FilesStoreService } from '../../../services/files-store.service';
 import { AuthenticationService } from '../../../services/api/authentication/authentication.service';
 import { logoutOn401 } from '../../../utils/file-utils';
+import { WindowManagerService } from '../../../services/window-manager.service';
 
 @Component({
   selector: 'app-notepad',
@@ -29,8 +35,15 @@ import { logoutOn401 } from '../../../utils/file-utils';
   styleUrls: ['./notepad.component.css'],
   standalone: true,
 })
-export class NotepadComponent implements OnChanges, OnInit {
+export class NotepadComponent
+  implements OnChanges, OnInit, AfterViewInit, OnDestroy
+{
+  @Input() id!: string | undefined;
   @Input() data!: Data | undefined;
+
+  @ViewChild('editorTextarea') editorTextarea?: ElementRef<HTMLTextAreaElement>;
+
+  private focusSub?: Subscription;
 
   preview = false;
   contentValue: string = '';
@@ -52,6 +65,8 @@ export class NotepadComponent implements OnChanges, OnInit {
     private sanitizer: DomSanitizer,
     private filesStore: FilesStoreService,
     public authenticationService: AuthenticationService,
+    private windowManagerService: WindowManagerService,
+    private elementRef: ElementRef<HTMLElement>,
   ) {
     hljs.registerLanguage('csharp', csharp);
     hljs.registerLanguage('typescript', typescript);
@@ -88,8 +103,44 @@ export class NotepadComponent implements OnChanges, OnInit {
       return `</${newTag}>`;
     };
   }
+
   ngOnInit(): void {
     this.preview = !!this.contentValue;
+
+    this.focusSub = this.windowManagerService.focus$.subscribe((evt) => {
+      if (!evt || !this.id) return;
+      if (evt.id !== this.id) return;
+      this.focusEditor();
+    });
+  }
+
+  ngAfterViewInit(): void {
+    this.focusEditor();
+  }
+
+  ngOnDestroy(): void {
+    this.focusSub?.unsubscribe();
+  }
+
+  private focusEditor(): void {
+    if (window.innerWidth < 922) return;
+    if (this.preview) return;
+    if (this.showSaveDialog) return;
+
+    setTimeout(() => {
+      const textarea =
+        this.editorTextarea?.nativeElement ??
+        (this.elementRef.nativeElement.querySelector(
+          'textarea',
+        ) as HTMLTextAreaElement | null);
+      if (!textarea) return;
+      textarea.focus();
+      try {
+        textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+      } catch {
+        // ignore
+      }
+    }, 0);
   }
 
   ngOnChanges(changes: SimpleChanges): void {

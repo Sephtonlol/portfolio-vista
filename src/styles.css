@@ -96,6 +96,10 @@ button {
 p {
   font-weight: normal;
 }
+
+input {
+  outline: none;
+}
 i {
   font-size: 2rem;
   color: var(--text-color);

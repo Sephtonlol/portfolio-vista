@@ -20,6 +20,7 @@
     }}$
   </span>
   <input
+    #commandInput
     [(ngModel)]="command"
     (keydown.enter)="handleCommand()"
     (keydown)="handleKey($event)"

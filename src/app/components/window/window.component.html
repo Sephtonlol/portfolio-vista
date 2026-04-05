@@ -35,13 +35,13 @@
     } @else if (windowData.application === "Explorer") {
       <app-explorer [data]="windowData.data" />
     } @else if (windowData.application === "Calculator") {
-      <app-calculator />
+      <app-calculator [id]="id" />
     } @else if (windowData.application === "Settings") {
       <app-settings />
     } @else if (windowData.application === "Browser") {
       <app-browser [id]="id" />
     } @else if (windowData.application === "Notepad") {
-      <app-notepad [data]="windowData.data" />
+      <app-notepad [id]="id" [data]="windowData.data" />
     } @else if (windowData.application === "Photos") {
       <app-photos [data]="windowData.data" />
     } @else if (windowData.application === "Media player") {

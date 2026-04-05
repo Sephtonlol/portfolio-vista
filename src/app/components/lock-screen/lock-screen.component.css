@@ -131,7 +131,6 @@ input {
 
 input {
   padding: 6px 10px;
-  outline: none;
 }
 button:hover {
   background-color: var(--hover-color);
