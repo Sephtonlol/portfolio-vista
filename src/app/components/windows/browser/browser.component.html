@@ -181,6 +181,16 @@
     [style.width.px]="imagePreview.containerRect.width"
     [style.height.px]="imagePreview.containerRect.height"
   >
+    <div class="image-preview-actions" (click)="$event.stopPropagation()">
+      <button
+        type="button"
+        class="btn download-button"
+        (click)="downloadPreviewImage($event)"
+      >
+        <i class="bi bi-download"></i>
+      </button>
+    </div>
+
     <div
       class="image-preview-backdrop"
       [class.active]="imagePreview.stage === 'end'"

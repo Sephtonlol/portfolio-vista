@@ -65,6 +65,7 @@ export class BrowserComponent {
 
   // Right-click download flow
   private contextImage: ImageResult | null = null;
+  private previewImage: ImageResult | null = null;
 
   showDownloadDialog = false;
   downloadFolderNames: string[] = [];
@@ -263,6 +264,8 @@ export class BrowserComponent {
       containerRect.height,
     );
 
+    this.previewImage = image;
+
     this.imagePreview = {
       isOpen: true,
       stage: 'start',
@@ -287,7 +290,7 @@ export class BrowserComponent {
     this.contextMenu.openAt(event.clientX + 2, event.clientY + 2, [
       {
         label: 'Download image',
-        action: () => void this.openDownloadDialog(),
+        action: () => void this.openDownloadDialog(image),
       },
     ]);
   }
@@ -298,8 +301,8 @@ export class BrowserComponent {
     );
   }
 
-  async openDownloadDialog() {
-    const image = this.contextImage;
+  async openDownloadDialog(imageOverride?: ImageResult | null) {
+    const image = imageOverride ?? this.contextImage;
     if (!image) return;
 
     this.downloadSrc = image.image || image.thumbnail;
@@ -314,6 +317,15 @@ export class BrowserComponent {
 
   closeDownloadDialog() {
     this.showDownloadDialog = false;
+  }
+
+  async downloadPreviewImage(event?: MouseEvent) {
+    event?.stopPropagation();
+    this.contextMenu.close();
+
+    const img = this.previewImage;
+    if (!img) return;
+    await this.openDownloadDialog(img);
   }
 
   async loadDownloadFolders() {
@@ -408,6 +420,8 @@ export class BrowserComponent {
       this.imagePreview.containerRect = null;
       this.imagePreview.startRect = null;
       this.imagePreview.endRect = null;
+
+      this.previewImage = null;
 
       this.disconnectPreviewObserver();
     }, this.imagePreviewTransitionMs);
