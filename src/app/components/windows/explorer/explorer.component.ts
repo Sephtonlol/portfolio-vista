@@ -1,9 +1,12 @@
 import { Component, Input, OnInit } from '@angular/core';
-import portfolio from '../../../../data/data.json';
-import { FileNode } from '../../../interfaces/file.interface';
+import { FileNode, FileNodeType } from '../../../interfaces/file.interface';
 import { FormsModule } from '@angular/forms';
 import { WindowManagerService } from '../../../services/window-manager.service';
-import { Data } from '@angular/router';
+import { Data } from '../../../interfaces/window.interface';
+import { FilesService } from '../../../services/api/files/files.service';
+import { AuthenticationService } from '../../../services/api/authentication/authentication.service';
+import { firstValueFrom } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-explorer',
@@ -14,8 +17,11 @@ import { Data } from '@angular/router';
 export class ExplorerComponent implements OnInit {
   @Input() data!: Data | undefined;
 
-  filesystem: FileNode = portfolio as FileNode;
-  currentPath: string[] = [];
+  currentFolderId: string | null = null;
+  currentPath: string[] = []; // folder names from root
+  private folderIdStack: (string | null)[] = [null];
+
+  items: FileNode[] = [];
   searchTerm: string = '';
   pathInput: string = '';
   windowWidth = window.innerWidth;
@@ -25,19 +31,124 @@ export class ExplorerComponent implements OnInit {
   pathHistory: string[] = ['/'];
   historyIndex: number = 0;
 
-  constructor(private windowManagerService: WindowManagerService) { }
+  // Admin-only create UI
+  showContextMenu = false;
+  contextX = 0;
+  contextY = 0;
 
-  ngOnInit(): void {
-    this.pathInput =
-      '/' + (this.data ? this.data['content'] : this.currentPath.join('/'));
-    this.goToTypedPath();
+  showCreateDialog = false;
+  createKind: 'menu' | FileNodeType = 'menu';
+  newName = '';
+  newUrl = '';
+
+  onContextMenu(event: MouseEvent) {
+    if (!this.authenticationService.admin()) return;
+    event.preventDefault();
+    this.contextX = event.clientX;
+    this.contextY = event.clientY;
+    this.showContextMenu = true;
   }
 
-  goUp() {
+  closeContextMenu() {
+    this.showContextMenu = false;
+  }
+
+  openCreate(kind: FileNodeType) {
+    if (!this.authenticationService.admin()) return;
+    this.closeContextMenu();
+    this.createKind = kind;
+    this.newName = '';
+    this.newUrl = '';
+    this.showCreateDialog = true;
+  }
+
+  cancelCreate() {
+    this.showCreateDialog = false;
+    this.createKind = 'menu';
+    this.newName = '';
+    this.newUrl = '';
+  }
+
+  async confirmCreate() {
+    if (!this.authenticationService.admin()) return;
+    if (this.createKind === 'menu') return;
+
+    const name = this.newName.trim();
+    if (!name) return;
+
+    try {
+      const created = await firstValueFrom(
+        this.filesService.create({
+          name,
+          type: this.createKind,
+          parentId: this.currentFolderId,
+          content: this.createKind === 'md' ? '' : undefined,
+          url:
+            this.createKind === 'png' || this.createKind === 'url'
+              ? this.newUrl.trim() || undefined
+              : undefined,
+        }),
+      );
+
+      this.cancelCreate();
+      await this.loadChildren();
+
+      // For new markdown docs, open Notepad right away.
+      if (created.type === 'md') {
+        this.windowManagerService.addWindow({
+          application: 'Notepad',
+          icon: 'bi-file-earmark-text',
+          data: {
+            title: created.name,
+            content: created.content || '',
+            type: 'text',
+            itemId: created._id,
+            parentId: created.parentId ?? this.currentFolderId,
+          },
+        });
+      }
+    } catch (err) {
+      this.handleAuthError(err);
+    }
+  }
+
+  constructor(
+    private windowManagerService: WindowManagerService,
+    private filesService: FilesService,
+    public authenticationService: AuthenticationService,
+  ) {}
+
+  ngOnInit(): void {
+    // Prefer folderId if provided; otherwise resolve a path string.
+    if (this.data?.folderId !== undefined) {
+      this.currentFolderId = this.data.folderId;
+      this.folderIdStack = [null];
+      if (this.currentFolderId) this.folderIdStack.push(this.currentFolderId);
+      this.currentPath = [];
+      this.pathInput = '/';
+      void this.loadChildren();
+      return;
+    }
+
+    const initialPath = this.data?.content ? String(this.data.content) : '';
+    this.pathInput = initialPath
+      ? initialPath.startsWith('/')
+        ? initialPath
+        : '/' + initialPath
+      : '/';
+    void this.goToTypedPath();
+  }
+
+  async goUp() {
     if (this.currentPath.length > 0) {
       this.currentPath.pop();
+      this.folderIdStack.pop();
+      this.currentFolderId =
+        this.folderIdStack[this.folderIdStack.length - 1] ?? null;
       this.pathInput = '/' + this.currentPath.join('/');
+      this.searchTerm = '';
       this.updatePathHistory(this.pathInput);
+      await this.loadChildren();
     }
   }
 
@@ -56,48 +167,26 @@ export class ExplorerComponent implements OnInit {
   goBack(): void {
     if (this.historyIndex > 0) {
       this.historyIndex--;
-      this.navigateToPath(this.pathHistory[this.historyIndex]);
+      void this.navigateToPath(this.pathHistory[this.historyIndex]);
     }
   }
 
   goForward(): void {
     if (this.historyIndex < this.pathHistory.length - 1) {
       this.historyIndex++;
-      this.navigateToPath(this.pathHistory[this.historyIndex]);
+      void this.navigateToPath(this.pathHistory[this.historyIndex]);
     }
   }
 
-  navigateToPath(path: string): void {
-    const parts = path.split('/').filter(Boolean);
-    let dir = this.filesystem;
-    for (const part of parts) {
-      const next = dir.children?.find(
-        (child) => child.name === part && child.type === 'directory'
-      );
-      if (!next) return;
-      dir = next;
-    }
-    this.currentPath = parts;
-    this.pathInput = '/' + this.currentPath.join('/');
-    this.searchTerm = '';
-  }
-
-  get currentDir(): FileNode {
-    let dir = this.filesystem;
-    for (const part of this.currentPath) {
-      const next = dir.children?.find(
-        (child) => child.name === part && child.type === 'directory'
-      );
-      if (next) dir = next;
-    }
-    return dir;
+  async navigateToPath(path: string): Promise<void> {
+    this.pathInput = path || '/';
+    await this.goToTypedPath(false);
   }
 
   get filteredChildren(): FileNode[] {
-    const children = this.currentDir.children || [];
-    return children
+    return (this.items || [])
       .filter((child) =>
-        child.name.toLowerCase().includes(this.searchTerm.toLowerCase())
+        child.name.toLowerCase().includes(this.searchTerm.toLowerCase()),
       )
       .sort((a, b) => {
         if (a.type === 'directory' && b.type !== 'directory') return -1;
@@ -126,22 +215,51 @@ export class ExplorerComponent implements OnInit {
     }
   }
 
+  displayName(file: FileNode): string {
+    if (
+      file.type === 'directory' ||
+      file.type === 'shortcut' ||
+      file.type === 'url'
+    ) {
+      return file.name;
+    }
+
+    if (file.name.toLowerCase().endsWith(`.${file.type}`)) return file.name;
+    return `${file.name}.${file.type}`;
+  }
+
   openItem(file: FileNode) {
     if (file.type === 'directory') {
+      if (!file._id) return;
       this.currentPath.push(file.name);
+      this.folderIdStack.push(file._id);
+      this.currentFolderId = file._id;
+
       const newPath = '/' + this.currentPath.join('/');
       this.pathInput = newPath;
       this.searchTerm = '';
       this.updatePathHistory(newPath);
+      void this.loadChildren();
       return;
     }
     if (file.type === 'shortcut') {
-      if (!file.content)
+      const shortcutTarget = file.shortcutTo ?? file.content;
+      if (!shortcutTarget)
         return console.error('Failed to open shortcut location');
-      this.currentPath = file.content.split('/').filter(Boolean);
-      const newPath = file.content;
-      this.pathInput = newPath;
-      this.updatePathHistory(newPath);
+
+      if (shortcutTarget.startsWith('/')) {
+        this.pathInput = shortcutTarget;
+        void this.goToTypedPath();
+        return;
+      }
+
+      // If the backend stores shortcutTo as an id, we can navigate to that folder id,
+      // but we cannot reconstruct the full path without extra endpoints.
+      this.currentFolderId = shortcutTarget;
+      this.folderIdStack = [null, shortcutTarget];
+      this.currentPath = [];
+      this.pathInput = '/';
+      void this.loadChildren();
       return;
     }
 
@@ -152,8 +270,11 @@ export class ExplorerComponent implements OnInit {
           icon: 'bi-image',
           data: {
             title: file.name,
-            content: this.pathInput + '/' + file.name || '',
+            content: file.url ?? file.content ?? '',
             type: 'image',
+            folderId: this.currentFolderId,
+            selectedId: file._id,
+            url: file.url,
           },
         });
         break;
@@ -164,13 +285,16 @@ export class ExplorerComponent implements OnInit {
           icon: 'bi-play-circle',
           data: {
             title: file.name,
-            content: this.pathInput + '/' + file.name || '',
+            content: file.url ?? file.content ?? '',
             type: 'media',
+            folderId: this.currentFolderId,
+            selectedId: file._id,
+            url: file.url,
           },
         });
         break;
       case 'url':
-        window.open(file.content, '_blank');
+        window.open(file.url ?? file.content ?? '', '_blank');
         break;
       default:
         this.windowManagerService.addWindow({
@@ -180,12 +304,14 @@ export class ExplorerComponent implements OnInit {
             title: file.name,
             content: file.content || '',
             type: 'text',
+            itemId: file._id,
+            parentId: file.parentId ?? this.currentFolderId,
           },
         });
     }
   }
 
-  goToTypedPath() {
+  async goToTypedPath(updateHistory = true) {
     if (this.pathInput === 'cmd') {
       this.windowManagerService.addWindow({
         application: 'Terminal',
@@ -194,20 +320,70 @@ export class ExplorerComponent implements OnInit {
           title: 'Terminal',
           type: 'directory',
           content: [...this.currentPath].join('/'),
+          folderId: this.currentFolderId,
         },
       });
+      return;
     }
-    const parts = this.pathInput.split('/').filter(Boolean);
-    let dir = this.filesystem;
-    for (const part of parts) {
-      const next = dir.children?.find(
-        (child) => child.name === part && child.type === 'directory'
-      );
-      if (!next) return;
-      dir = next;
+
+    const parts = (this.pathInput || '/').split('/').filter(Boolean);
+    const resolution = await this.resolveFolderByPathParts(parts);
+    if (!resolution) {
+      this.resetPathInput();
+      return;
     }
-    this.currentPath = parts;
+
+    this.currentPath = resolution.pathNames;
+    this.folderIdStack = resolution.idStack;
+    this.currentFolderId = resolution.folderId;
+    this.pathInput = '/' + this.currentPath.join('/');
     this.searchTerm = '';
-    this.updatePathHistory(this.pathInput);
+
+    if (updateHistory) this.updatePathHistory(this.pathInput);
+    await this.loadChildren();
+  }
+
+  private async loadChildren(): Promise<void> {
+    try {
+      this.items = await firstValueFrom(
+        this.filesService.listByParent(this.currentFolderId),
+      );
+    } catch (err) {
+      this.items = [];
+      this.handleAuthError(err);
+    }
+  }
+
+  private async resolveFolderByPathParts(parts: string[]): Promise<{
+    folderId: string | null;
+    pathNames: string[];
+    idStack: (string | null)[];
+  } | null> {
+    let currentId: string | null = null;
+    const pathNames: string[] = [];
+    const idStack: (string | null)[] = [null];
+
+    for (const part of parts) {
+      const children: FileNode[] = await firstValueFrom(
+        this.filesService.listByParent(currentId),
+      );
+      const next: FileNode | undefined = children.find(
+        (child) =>
+          child.type === 'directory' && child.name === part && !!child._id,
+      );
+      if (!next || !next._id) return null;
+
+      currentId = next._id;
+      pathNames.push(next.name);
+      idStack.push(currentId);
+    }
+
+    return { folderId: currentId, pathNames, idStack };
+  }
+
+  private handleAuthError(err: unknown) {
+    if (err instanceof HttpErrorResponse && err.status === 401) {
+      this.authenticationService.logout();
+    }
   }
 }

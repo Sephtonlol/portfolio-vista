@@ -40,10 +40,84 @@ textarea:focus {
   background-color: var(--secondary-color);
   padding: 0 0.2rem;
 }
+
+.footer-right {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
 span {
   font-weight: normal !important;
 }
 .form-switch {
   display: flex;
   align-items: center;
+}
+
+.notepad-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.35);
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notepad-dialog {
+  width: min(520px, calc(100vw - 24px));
+  height: min(420px, calc(100vh - 24px));
+  display: flex;
+  flex-direction: column;
+  background-color: var(--primary-color);
+  border: 2px solid var(--secondary-color);
+  border-radius: 10px;
+  padding: 0.5rem;
+}
+
+.notepad-dialog-path {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.notepad-dialog-list {
+  flex: 1;
+  overflow: auto;
+  border: 2px solid var(--secondary-color);
+  border-radius: 10px;
+  background-color: var(--background-color);
+  padding: 0.25rem;
+}
+
+.notepad-folder {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 8px;
+  padding: 0.25rem;
+  user-select: none;
+}
+
+.notepad-folder:hover {
+  background-color: var(--hover-color);
+  cursor: pointer;
+}
+
+.notepad-dialog-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.notepad-dialog-field input {
+  background-color: var(--background-color);
+  border: 2px solid var(--secondary-color);
+  border-radius: 8px;
+  padding: 0.35rem 0.5rem;
+}
+
+.notepad-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.25rem;
 }

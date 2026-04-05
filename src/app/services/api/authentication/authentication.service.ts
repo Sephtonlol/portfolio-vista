@@ -4,6 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../../enviroments/enviroment';
 
 interface LoginResponse {
+  message?: string;
   token: string;
   userId: string;
 }
@@ -15,14 +16,27 @@ type LoginApiResponse = LoginResponse;
 })
 export class AuthenticationService {
   private baseUrl = environment.backEndApiUrl;
+  private readonly tokenKey = 'pv_token';
 
   signedIn = signal(false);
   admin = signal(false);
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    this.signedIn.set(!!this.token);
+  }
+
+  get token(): string | null {
+    return localStorage.getItem(this.tokenKey);
+  }
+
+  private setToken(token: string | null) {
+    if (token) localStorage.setItem(this.tokenKey, token);
+    else localStorage.removeItem(this.tokenKey);
+
+    this.signedIn.set(!!token);
+  }
 
   async login(password: string): Promise<HttpResponse<LoginApiResponse>> {
-    this.signedIn.set(true);
     this.admin.set(false);
 
     const body = {
@@ -36,16 +50,25 @@ export class AuthenticationService {
         }),
       );
 
+      const token = response.body?.token;
+      if (token) {
+        this.setToken(token);
+      } else {
+        this.setToken(null);
+        throw new Error('Login succeeded but token was missing in response.');
+      }
+
       this.admin.set(response.status === 200);
       return response;
     } catch (err) {
+      this.setToken(null);
       this.admin.set(false);
       throw err;
     }
   }
 
   logout() {
-    this.signedIn.set(false);
+    this.setToken(null);
     this.admin.set(false);
   }
 }

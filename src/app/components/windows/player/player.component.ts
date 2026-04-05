@@ -1,6 +1,7 @@
-import { Component, Input, ViewChild, ElementRef } from '@angular/core';
+import { Component, Input, ViewChild, ElementRef, OnInit } from '@angular/core';
 import { Data } from '../../../interfaces/window.interface';
-import portfolio from '../../../../data/data.json';
+import { FilesService } from '../../../services/api/files/files.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-player',
@@ -12,40 +13,48 @@ export class PlayerComponent {
   @ViewChild('media') mediaRef!: ElementRef<HTMLMediaElement>;
 
   folderPath = '';
-  videos: { name: string; url: string }[] = [];
+  videos: { id?: string; name: string; url: string }[] = [];
   currentIndex = 0;
   isPlaying = false;
 
-  ngOnInit() {
+  constructor(private filesService: FilesService) {}
+
+  async ngOnInit() {
     if (!this.data?.content) return;
 
-    const fullPath = this.data.content;
-
-    if (fullPath.startsWith('http')) {
-      this.videos = [{ name: 'video', url: fullPath }];
+    const url = this.data.url ?? this.data.content;
+    if (url.startsWith('http')) {
+      this.videos = [{ name: this.data.title || 'media', url }];
       return;
     }
 
-    const lastSlash = fullPath.lastIndexOf('/');
-    this.folderPath = fullPath.slice(0, lastSlash);
-    const targetName = fullPath.slice(lastSlash + 1);
-
-    const folderNode = this.getNodeByPath(this.folderPath);
-    if (!folderNode) {
-      console.error(`PlayerComponent: No folder at path "${this.folderPath}"`);
+    const folderId = this.data.folderId ?? null;
+    if (!folderId) {
+      this.videos = [{ name: this.data.title || 'media', url }];
       return;
     }
 
-    this.videos = folderNode.children
-      .filter((child: any) => child.type === 'mp4' || child.type === 'mp3')
-      .map((child: any) => ({ name: child.name, url: child.content }));
+    const children = await firstValueFrom(
+      this.filesService.listByParent(folderId),
+    );
+    this.videos = children
+      .filter((c) => c.type === 'mp4' || c.type === 'mp3')
+      .map((c) => ({ id: c._id, name: c.name, url: c.url ?? c.content ?? '' }))
+      .filter((c) => !!c.url);
 
-    this.currentIndex = this.videos.findIndex((vid) => vid.name === targetName);
+    const selectedId = this.data.selectedId;
+    if (selectedId) {
+      const idx = this.videos.findIndex((vid) => vid.id === selectedId);
+      this.currentIndex = idx >= 0 ? idx : 0;
+    } else {
+      this.currentIndex = 0;
+    }
+
     this.autoplay();
   }
 
   get currentVideo() {
-    return this.videos[this.currentIndex];
+    return this.videos[this.currentIndex] ?? { name: '', url: '' };
   }
 
   next() {
@@ -69,22 +78,5 @@ export class PlayerComponent {
         this.isPlaying = true;
       }
     }, 100);
-  }
-
-  getNodeByPath(path: string): any {
-    const parts = path.split('/').filter(Boolean);
-    let node: any = portfolio;
-
-    for (const part of parts) {
-      const next = node.children?.find(
-        (child: any) => child.name === part && child.type === 'directory'
-      );
-      if (!next) {
-        return null;
-      }
-      node = next;
-    }
-
-    return node;
   }
 }

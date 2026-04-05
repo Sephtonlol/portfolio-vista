@@ -21,58 +21,94 @@
   ></i>
 </div>
 
-@if(windowWidth < 992){
-<div class="explorer-list" [class.explorer-list-tiles]="!viewList">
-  @for (file of filteredChildren; track file) {
+@if (windowWidth < 992) {
   <div
-    class="explorer-item"
-    [class.explorer-item-tiles]="!viewList"
-    (click)="openItem(file)"
+    class="explorer-list"
+    [class.explorer-list-tiles]="!viewList"
+    (contextmenu)="onContextMenu($event)"
+    (click)="closeContextMenu()"
   >
-    @if(file.type === "shortcut"){
-    <i
-      class="bi bi-arrow-up-right-square-fill shortcut"
-      [class.shortcut-list-tiles]="!viewList"
-    ></i>
+    @for (file of filteredChildren; track file) {
+      <div
+        class="explorer-item"
+        [class.explorer-item-tiles]="!viewList"
+        (click)="openItem(file)"
+      >
+        @if (file.type === "shortcut") {
+          <i
+            class="bi bi-arrow-up-right-square-fill shortcut"
+            [class.shortcut-list-tiles]="!viewList"
+          ></i>
+        }
+        <i class="bi {{ getFileIcon(file.type) }}"></i>
+        <p>
+          {{ displayName(file) }}
+        </p>
+      </div>
     }
-    <i class="bi {{ getFileIcon(file.type) }}"></i>
-    <p>
-      {{
-        file.type === "directory" || file.type === "shortcut"
-          ? file.name
-          : file.name + "." + file.type
-      }}
-    </p>
   </div>
-  }
-</div>
-
-}@else{
-
-<div class="explorer-list" [class.explorer-list-tiles]="!viewList">
-  @for (file of filteredChildren; track file) {
+} @else {
   <div
-    class="explorer-item"
-    [class.explorer-item-tiles]="!viewList"
-    (dblclick)="openItem(file)"
+    class="explorer-list"
+    [class.explorer-list-tiles]="!viewList"
+    (contextmenu)="onContextMenu($event)"
+    (click)="closeContextMenu()"
   >
-    @if(file.type === "shortcut"){
-    <i
-      class="bi bi-arrow-up-right-square-fill shortcut"
-      [class.shortcut-list-tiles]="!viewList"
-    ></i>
+    @for (file of filteredChildren; track file) {
+      <div
+        class="explorer-item"
+        [class.explorer-item-tiles]="!viewList"
+        (dblclick)="openItem(file)"
+      >
+        @if (file.type === "shortcut") {
+          <i
+            class="bi bi-arrow-up-right-square-fill shortcut"
+            [class.shortcut-list-tiles]="!viewList"
+          ></i>
+        }
+        <i class="bi {{ getFileIcon(file.type) }}"></i>
+        <p>
+          {{ displayName(file) }}
+        </p>
+      </div>
     }
-    <i class="bi {{ getFileIcon(file.type) }}"></i>
-    <p>
-      {{
-        file.type === "directory" ||
-        file.type === "shortcut" ||
-        file.type === "url"
-          ? file.name
-          : file.name + "." + file.type
-      }}
-    </p>
   </div>
-  }
-</div>
+}
+
+@if (showContextMenu) {
+  <div
+    class="explorer-contextmenu"
+    [style.left.px]="contextX"
+    [style.top.px]="contextY"
+    (click)="$event.stopPropagation()"
+  >
+    <button type="button" (click)="openCreate('directory')">New folder</button>
+    <button type="button" (click)="openCreate('md')">New text document</button>
+    <button type="button" (click)="openCreate('png')">New image (URL)</button>
+  </div>
+}
+
+@if (showCreateDialog) {
+  <div class="explorer-dialog-backdrop" (click)="cancelCreate()">
+    <div class="explorer-dialog" (click)="$event.stopPropagation()">
+      <h6 class="m-1">Create new</h6>
+
+      <div class="explorer-dialog-field">
+        <label>Name</label>
+        <input [(ngModel)]="newName" spellcheck="false" />
+      </div>
+
+      @if (createKind === "png") {
+        <div class="explorer-dialog-field">
+          <label>Image URL</label>
+          <input [(ngModel)]="newUrl" spellcheck="false" />
+        </div>
+      }
+
+      <div class="explorer-dialog-actions">
+        <button type="button" (click)="cancelCreate()">Cancel</button>
+        <button type="button" (click)="confirmCreate()">Create</button>
+      </div>
+    </div>
+  </div>
 }

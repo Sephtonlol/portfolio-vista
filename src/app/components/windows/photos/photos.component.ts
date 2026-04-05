@@ -1,6 +1,7 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { Data } from '../../../interfaces/window.interface';
-import portfolio from '../../../../data/data.json';
+import { FilesService } from '../../../services/api/files/files.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-photos',
@@ -8,42 +9,50 @@ import portfolio from '../../../../data/data.json';
   templateUrl: './photos.component.html',
   styleUrl: './photos.component.css',
 })
-export class PhotosComponent {
+export class PhotosComponent implements OnInit {
   @Input() data!: Data | undefined;
 
   folderPath = '';
-  images: { name: string; url: string }[] = [];
+  images: { id?: string; name: string; url: string }[] = [];
   currentIndex = 0;
 
-  ngOnInit() {
+  constructor(private filesService: FilesService) {}
+
+  async ngOnInit() {
     if (!this.data?.content) return;
 
-    const fullPath = this.data.content;
-
-    if (fullPath.startsWith('http')) {
-      this.images = [{ name: 'image', url: fullPath }];
+    const url = this.data.url ?? this.data.content;
+    if (url.startsWith('http')) {
+      this.images = [{ name: this.data.title || 'image', url }];
       return;
     }
 
-    const lastSlash = fullPath.lastIndexOf('/');
-    this.folderPath = fullPath.slice(0, lastSlash);
-    const targetName = fullPath.slice(lastSlash + 1);
-
-    const folderNode = this.getNodeByPath(this.folderPath);
-    if (!folderNode) {
-      console.error(`PhotosComponent: No folder at path “${this.folderPath}”`);
+    const folderId = this.data.folderId ?? null;
+    if (!folderId) {
+      // Fallback: treat provided content as a direct URL/path.
+      this.images = [{ name: this.data.title || 'image', url }];
       return;
     }
 
-    this.images = folderNode.children
-      .filter((child: any) => child.type === 'png')
-      .map((child: any) => ({ name: child.name, url: child.content }));
+    const children = await firstValueFrom(
+      this.filesService.listByParent(folderId),
+    );
+    this.images = children
+      .filter((c) => c.type === 'png')
+      .map((c) => ({ id: c._id, name: c.name, url: c.url ?? c.content ?? '' }))
+      .filter((c) => !!c.url);
 
-    this.currentIndex = this.images.findIndex((img) => img.name === targetName);
+    const selectedId = this.data.selectedId;
+    if (selectedId) {
+      const idx = this.images.findIndex((img) => img.id === selectedId);
+      this.currentIndex = idx >= 0 ? idx : 0;
+    } else {
+      this.currentIndex = 0;
+    }
   }
 
   get currentImage() {
-    return this.images[this.currentIndex];
+    return this.images[this.currentIndex] ?? { name: '', url: '' };
   }
 
   next() {
@@ -54,22 +63,5 @@ export class PhotosComponent {
   prev() {
     if (this.currentIndex > 0) this.currentIndex--;
     else this.currentIndex = this.images.length - 1;
-  }
-  getNodeByPath(path: string): any {
-    const parts = path.split('/').filter(Boolean);
-    let node: any = portfolio;
-
-    for (const part of parts) {
-      const next = node.children?.find(
-        (child: any) => child.name === part && child.type === 'directory'
-      );
-
-      if (!next) {
-        return null;
-      }
-      node = next;
-    }
-
-    return node;
   }
 }

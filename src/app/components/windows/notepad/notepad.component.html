@@ -1,12 +1,12 @@
 <div class="main" [class.main-textarea]="!preview">
-  @if(preview){
-  <div [innerHTML]="sanitizedHtml" class="preview"></div>
-  }@else {
-  <textarea
-    [(ngModel)]="contentValue"
-    (ngModelChange)="onContentChange()"
-    spellcheck="false"
-  ></textarea>
+  @if (preview) {
+    <div [innerHTML]="sanitizedHtml" class="preview"></div>
+  } @else {
+    <textarea
+      [(ngModel)]="contentValue"
+      (ngModelChange)="onContentChange()"
+      spellcheck="false"
+    ></textarea>
   }
 </div>
 <div class="footer">
@@ -21,5 +21,68 @@
     <span class="form-check-label" for="flexSwitchCheckDefault">Preview</span>
   </div>
 
-  <span> {{ contentValue.length }} Characters </span>
+  <div class="footer-right">
+    @if (canSave) {
+      <button type="button" class="btn btn-sm btn-secondary" (click)="save()">
+        Save
+      </button>
+      <button type="button" class="btn btn-sm btn-secondary" (click)="saveAs()">
+        Save As
+      </button>
+    }
+
+    <span> {{ contentValue.length }} Characters </span>
+  </div>
 </div>
+
+@if (showSaveDialog) {
+  <div class="notepad-dialog-backdrop" (click)="closeSaveDialog()">
+    <div class="notepad-dialog" (click)="$event.stopPropagation()">
+      <div class="notepad-dialog-header">
+        <h6 class="m-1">Save file</h6>
+      </div>
+
+      <div class="notepad-dialog-path">
+        <button
+          type="button"
+          class="btn btn-sm btn-secondary"
+          (click)="upSaveFolder()"
+        >
+          Up
+        </button>
+        <span>/{{ saveFolderNames.join("/") }}</span>
+      </div>
+
+      <div class="notepad-dialog-list">
+        @for (folder of saveFolders; track folder.id) {
+          <div class="notepad-folder" (dblclick)="enterSaveFolder(folder)">
+            <i class="bi bi-folder"></i>
+            <span>{{ folder.name }}</span>
+          </div>
+        }
+      </div>
+
+      <div class="notepad-dialog-field">
+        <label>File name</label>
+        <input [(ngModel)]="saveFileName" spellcheck="false" />
+      </div>
+
+      <div class="notepad-dialog-actions">
+        <button
+          type="button"
+          class="btn btn-sm btn-secondary"
+          (click)="closeSaveDialog()"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          class="btn btn-sm btn-secondary"
+          (click)="confirmSaveToFolder()"
+        >
+          Save
+        </button>
+      </div>
+    </div>
+  </div>
+}

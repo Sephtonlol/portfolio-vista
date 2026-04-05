@@ -12,4 +12,11 @@ export interface Data {
   title: string;
   content: string;
   type: 'directory' | 'text' | 'image' | 'media';
+
+  // Optional backend helpers
+  folderId?: string | null;
+  parentId?: string | null;
+  itemId?: string;
+  selectedId?: string;
+  url?: string;
 }

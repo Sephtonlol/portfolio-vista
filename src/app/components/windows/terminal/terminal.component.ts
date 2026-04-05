@@ -1,9 +1,13 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { FileNode } from '../../../interfaces/file.interface';
-import portfolio from '../../../../data/data.json';
 import { FormsModule } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
+
+import { Data } from '../../../interfaces/window.interface';
+import { FileNode } from '../../../interfaces/file.interface';
 import { WindowManagerService } from '../../../services/window-manager.service';
-import { Data } from '@angular/router';
+import { FilesService } from '../../../services/api/files/files.service';
+import { AuthenticationService } from '../../../services/api/authentication/authentication.service';
 
 @Component({
   selector: 'app-terminal',
@@ -16,9 +20,9 @@ export class TerminalComponent implements OnInit {
   @Input() id!: string | undefined;
   @Input() data!: Data | undefined;
 
-  fileSystem: FileNode = portfolio as FileNode;
+  currentPath: string[] = []; // folder names
+  private folderIdStack: (string | null)[] = [null];
 
-  currentPath: string[] = [];
   output: string[] = [];
   command: string = '';
 
@@ -27,30 +31,35 @@ export class TerminalComponent implements OnInit {
 
   mobile = false;
 
-  constructor(private windowManagerService: WindowManagerService) {}
+  constructor(
+    private windowManagerService: WindowManagerService,
+    private filesService: FilesService,
+    private authenticationService: AuthenticationService,
+  ) {}
 
   ngOnInit(): void {
-    if (this.data && this.data['content'])
-      this.currentPath = this.data['content'].split('/');
+    const initialPath = this.data?.content ? String(this.data.content) : '';
+
+    if (this.data?.folderId !== undefined) {
+      this.folderIdStack = [null];
+      if (this.data.folderId) this.folderIdStack.push(this.data.folderId);
+      this.currentPath = initialPath
+        ? initialPath.split('/').filter(Boolean)
+        : [];
+    } else if (initialPath) {
+      void this.cdToPath(
+        initialPath.startsWith('/') ? initialPath : '/' + initialPath,
+      );
+    }
+
     this.mobile = window.innerWidth < 922;
   }
 
-  get currentDir(): FileNode {
-    let dir = this.fileSystem;
-    for (const part of this.currentPath) {
-      const next = dir.children?.find(
-        (child) => child.name === part && child.type === 'directory'
-      );
-      if (next) {
-        dir = next;
-      } else {
-        throw new Error(`Path not found: ${this.currentPath.join('/')}`);
-      }
-    }
-    return dir;
+  private get currentFolderId(): string | null {
+    return this.folderIdStack[this.folderIdStack.length - 1] ?? null;
   }
 
-  handleCommand() {
+  async handleCommand() {
     const input = this.command.trim();
     if (!input) return;
 
@@ -60,213 +69,301 @@ export class TerminalComponent implements OnInit {
     this.output.push(
       `portfolio@user:~${
         this.currentPath.length ? '/' + this.currentPath.join('/') : ''
-      }$ ${input}`
+      }$ ${input}`,
     );
 
     const [cmd, ...args] = input.split(' ');
 
-    switch (cmd) {
-      case 'ls':
-        this.list();
-        break;
-      case 'cd':
-        this.changeDirectory(args[0]);
-        break;
-      case 'pwd':
-        this.output.push('/' + this.currentPath.join('/'));
-        break;
-      case 'echo':
-        this.output.push(args.join(' '));
-        break;
-      case 'open':
-        this.openFile(args[0]);
-        break;
-      case 'cat':
-        this.cat(args[0]);
-        break;
-      case 'help':
-      case '--help':
-        this.showHelp();
-        break;
-      case 'clear':
-        this.output = [];
-        break;
-      case 'exit':
-        this.windowManagerService.closeWindow(this.id || '');
-
-        break;
-      default:
-        this.output.push(
-          `Unknown command: ${cmd}. Type "help" for a list of commands.`
-        );
+    try {
+      switch (cmd) {
+        case 'ls':
+          await this.list();
+          break;
+        case 'cd':
+          await this.changeDirectory(args[0]);
+          break;
+        case 'pwd':
+          this.output.push('/' + this.currentPath.join('/'));
+          break;
+        case 'echo':
+          this.output.push(args.join(' '));
+          break;
+        case 'open':
+          await this.openFile(args[0]);
+          break;
+        case 'cat':
+          await this.cat(args[0]);
+          break;
+        case 'help':
+        case '--help':
+          this.showHelp();
+          break;
+        case 'clear':
+          this.output = [];
+          break;
+        case 'exit':
+          this.windowManagerService.closeWindow(this.id || '');
+          break;
+        default:
+          this.output.push(
+            `Unknown command: ${cmd}. Type "help" for a list of commands.`,
+          );
+      }
+    } catch (err) {
+      this.handleAuthError(err);
+      this.output.push('Command failed.');
     }
 
     this.command = '';
     this.scrollToBottom();
   }
 
-  list() {
-    const items =
-      this.currentDir.children?.map((child) =>
-        child.type === 'directory' ||
-        child.type === 'shortcut' ||
-        child.type === 'url'
-          ? child.name
-          : `${child.name}.${child.type}`
-      ) || [];
-    this.output.push(items.length ? items.join(' | ') : '(empty)');
+  private displayName(node: FileNode): string {
+    if (
+      node.type === 'directory' ||
+      node.type === 'shortcut' ||
+      node.type === 'url'
+    ) {
+      return node.name;
+    }
+
+    if (node.name.toLowerCase().endsWith(`.${node.type}`)) return node.name;
+    return `${node.name}.${node.type}`;
   }
 
-  changeDirectory(path: string) {
+  private matchFile(target: string, node: FileNode): boolean {
+    if (
+      node.type === 'directory' ||
+      node.type === 'shortcut' ||
+      node.type === 'url'
+    ) {
+      return node.name === target;
+    }
+
+    if (node.name === target) return true;
+    if (`${node.name}.${node.type}` === target) return true;
+
+    if (target.toLowerCase().endsWith(`.${node.type}`)) {
+      const base = target.slice(0, -(node.type.length + 1));
+      if (base === node.name) return true;
+    }
+
+    return false;
+  }
+
+  private async listChildren(parentId: string | null): Promise<FileNode[]> {
+    return await firstValueFrom(this.filesService.listByParent(parentId));
+  }
+
+  async list() {
+    try {
+      const children = await this.listChildren(this.currentFolderId);
+      const items = children.map((c) => this.displayName(c));
+      this.output.push(items.length ? items.join(' | ') : '(empty)');
+    } catch (err) {
+      this.handleAuthError(err);
+      this.output.push('ls: failed to load directory');
+    }
+  }
+
+  async changeDirectory(path: string) {
     if (!path) {
       this.output.push('cd: missing folder name');
       return;
     }
 
-    let tempPath: string[] = [];
-
-    if (
-      path.startsWith('./') ||
-      path.startsWith('../') ||
-      path.startsWith('.') ||
-      path.startsWith('/')
-    ) {
-      tempPath = [...this.currentPath];
-      if (path.startsWith('/')) {
-        path = path.slice(1);
-      }
-    } else {
-      tempPath = [];
+    if (path === '/') {
+      this.currentPath = [];
+      this.folderIdStack = [null];
+      return;
     }
 
-    const parts = path.split('/').filter(Boolean);
-    let dir: FileNode = this.fileSystem;
-
-    for (const segment of tempPath) {
-      const next = dir.children?.find(
-        (child) => child.name === segment && child.type === 'directory'
-      );
-      if (!next) {
-        this.output.push(`Broken path at: ${segment}`);
-        return;
-      }
-      dir = next;
+    if (path.startsWith('/')) {
+      await this.cdToPath(path);
+      return;
     }
 
+    const parts = path.split('/').filter((p) => p.length > 0);
     for (const part of parts) {
       if (part === '.') continue;
+
       if (part === '..') {
-        if (tempPath.length > 0) {
-          tempPath.pop();
-          dir = this.fileSystem;
-          for (const seg of tempPath) {
-            const next = dir.children?.find(
-              (child) =>
-                child.name === seg &&
-                (child.type === 'directory' || child.type === 'shortcut')
-            );
-            if (!next) {
-              this.output.push(`Broken path at: ${seg}`);
-              return;
-            }
-            dir = next;
-          }
-        } else {
+        if (this.currentPath.length === 0) {
           this.output.push('Already at root.');
           return;
         }
-      } else {
-        const found = dir.children?.find(
-          (child) =>
-            child.name === part &&
-            (child.type === 'directory' || child.type === 'shortcut')
-        );
-        if (!found) {
-          this.output.push(`No such directory: ${part}`);
+        this.currentPath.pop();
+        this.folderIdStack.pop();
+        continue;
+      }
+
+      const children = await this.listChildren(this.currentFolderId);
+      const found = children.find(
+        (c) =>
+          (c.type === 'directory' || c.type === 'shortcut') && c.name === part,
+      );
+
+      if (!found) {
+        this.output.push(`No such directory: ${part}`);
+        return;
+      }
+
+      if (found.type === 'shortcut') {
+        const target = found.shortcutTo ?? found.content;
+        if (target?.startsWith('/')) {
+          await this.cdToPath(target);
           return;
         }
-        if (found?.type === 'directory') {
-          tempPath.push(part);
-          dir = found;
-        } else {
-          tempPath = found.content?.split('/').filter(Boolean) || [];
-          dir = found;
+        if (target) {
+          this.currentPath = [];
+          this.folderIdStack = [null, target];
+          return;
         }
+        this.output.push('cd: shortcut has no target');
+        return;
       }
-    }
 
-    this.currentPath = tempPath;
+      if (!found._id) {
+        this.output.push(`cd: directory missing id: ${part}`);
+        return;
+      }
+
+      this.currentPath.push(found.name);
+      this.folderIdStack.push(found._id);
+    }
   }
 
-  openFile(fileName: string) {
+  private async cdToPath(absolutePath: string) {
+    const parts = absolutePath.split('/').filter(Boolean);
+    let currentId: string | null = null;
+
+    const nextNames: string[] = [];
+    const nextIds: (string | null)[] = [null];
+
+    for (const part of parts) {
+      const children = await this.listChildren(currentId);
+      const found = children.find(
+        (c) => c.type === 'directory' && c.name === part && !!c._id,
+      );
+
+      if (!found || !found._id) {
+        this.output.push(`cd: no such directory: ${part}`);
+        return;
+      }
+
+      currentId = found._id;
+      nextNames.push(found.name);
+      nextIds.push(currentId);
+    }
+
+    this.currentPath = nextNames;
+    this.folderIdStack = nextIds;
+  }
+
+  private async resolveFolderIdByNames(
+    folderNames: string[],
+  ): Promise<string | null> {
+    let currentId: string | null = null;
+    for (const name of folderNames) {
+      const children = await this.listChildren(currentId);
+      const found = children.find(
+        (c) => c.type === 'directory' && c.name === name && !!c._id,
+      );
+      if (!found || !found._id) return null;
+      currentId = found._id;
+    }
+    return currentId;
+  }
+
+  private async resolveFolderForPath(path: string): Promise<{
+    folderId: string | null;
+    folderNames: string[];
+    fileName: string;
+  } | null> {
+    const isAbs = path.startsWith('/');
+    const parts = path.split('/').filter(Boolean);
+    if (parts.length === 0) return null;
+
+    const fileName = parts[parts.length - 1];
+    const dirParts = parts.slice(0, -1);
+
+    let currentId: string | null = isAbs ? null : this.currentFolderId;
+    const folderNames: string[] = isAbs ? [] : [...this.currentPath];
+
+    for (const part of dirParts) {
+      if (part === '.') continue;
+      if (part === '..') {
+        if (folderNames.length === 0) return null;
+        folderNames.pop();
+        currentId = await this.resolveFolderIdByNames(folderNames);
+        continue;
+      }
+
+      const children = await this.listChildren(currentId);
+      const next = children.find(
+        (c) => c.type === 'directory' && c.name === part && !!c._id,
+      );
+
+      if (!next || !next._id) return null;
+      currentId = next._id;
+      folderNames.push(next.name);
+    }
+
+    return { folderId: currentId, folderNames, fileName };
+  }
+
+  async openFile(fileName: string) {
     if (!fileName) {
       this.output.push('open: missing file name');
       return;
     }
 
-    const parts = fileName.split('/').filter(Boolean);
-    let dir: FileNode;
-
-    if (
-      fileName.startsWith('./') ||
-      fileName.startsWith('../') ||
-      fileName.startsWith('.') ||
-      fileName.startsWith('/')
-    ) {
-      dir = this.currentDir;
-      if (fileName.startsWith('/')) {
-        fileName = fileName.slice(1);
-      }
-    } else {
-      dir = this.fileSystem;
-    }
-
-    const pathParts = fileName.split('/').filter(Boolean);
-
-    for (const part of pathParts.slice(0, -1)) {
-      if (part === '.') continue;
-      if (part === '..') {
-        if (this.currentPath.length > 0) {
-          this.currentPath.pop();
-          dir = this.currentDir;
-        } else {
-          this.output.push('open: already at root');
-          return;
-        }
-      } else {
-        const nextDir = dir.children?.find(
-          (child) => child.name === part && child.type === 'directory'
-        );
-        if (!nextDir) {
-          this.output.push(`open: no such file or directory: ${part}`);
-          return;
-        }
-        dir = nextDir;
-      }
-    }
-
-    const targetFileName = pathParts[pathParts.length - 1];
-    const file = dir.children?.find(
-      (child) =>
-        `${child.name}.${child.type}` === targetFileName ||
-        child.name === targetFileName
-    );
-
-    if (!file) {
-      this.output.push(`open: file "${targetFileName}" not found`);
+    const resolved = await this.resolveFolderForPath(fileName);
+    if (!resolved) {
+      this.output.push(`open: file "${fileName}" not found`);
       return;
     }
 
-    if (file.type === 'directory' || file.type === 'shortcut') {
+    const children = await this.listChildren(resolved.folderId);
+    const file = children.find((c) => this.matchFile(resolved.fileName, c));
+
+    if (!file) {
+      this.output.push(`open: file "${resolved.fileName}" not found`);
+      return;
+    }
+
+    if (file.type === 'directory') {
+      if (!file._id) {
+        this.output.push('open: directory missing id');
+        return;
+      }
+
       this.windowManagerService.addWindow({
         application: 'Explorer',
         icon: 'bi-folder',
         data: {
           title: file.name,
-          content: [...this.currentPath, file.name].join('/'),
+          content: '/' + [...resolved.folderNames, file.name].join('/'),
           type: 'directory',
+          folderId: file._id,
         },
       });
+      return;
+    }
+
+    if (file.type === 'shortcut') {
+      const target = file.shortcutTo ?? file.content;
+      if (target?.startsWith('/')) {
+        this.windowManagerService.addWindow({
+          application: 'Explorer',
+          icon: 'bi-folder',
+          data: {
+            title: file.name,
+            content: target,
+            type: 'directory',
+          },
+        });
+      }
       return;
     }
 
@@ -277,8 +374,11 @@ export class TerminalComponent implements OnInit {
           icon: 'bi-image',
           data: {
             title: file.name,
-            content: '/' + [...this.currentPath, file.name].join('/'),
+            content: file.url ?? file.content ?? '',
             type: 'image',
+            folderId: resolved.folderId,
+            selectedId: file._id,
+            url: file.url,
           },
         });
         break;
@@ -289,13 +389,16 @@ export class TerminalComponent implements OnInit {
           icon: 'bi-play-circle',
           data: {
             title: file.name,
-            content: '/' + [...this.currentPath, file.name].join('/'),
+            content: file.url ?? file.content ?? '',
             type: 'media',
+            folderId: resolved.folderId,
+            selectedId: file._id,
+            url: file.url,
           },
         });
         break;
       case 'url':
-        window.open(file.content, '_blank');
+        window.open(file.url ?? file.content ?? '', '_blank');
         break;
       default:
         this.windowManagerService.addWindow({
@@ -305,75 +408,39 @@ export class TerminalComponent implements OnInit {
             title: file.name,
             content: file.content || 'No content available.',
             type: 'text',
+            itemId: file._id,
+            parentId: file.parentId ?? resolved.folderId,
           },
         });
     }
   }
 
-  cat(fileName: string) {
+  async cat(fileName: string) {
     if (!fileName) {
       this.output.push('cat: missing file name');
       return;
     }
 
-    let dir: FileNode;
-
-    // Treat '/' as './'
-    if (
-      fileName.startsWith('./') ||
-      fileName.startsWith('../') ||
-      fileName.startsWith('.') ||
-      fileName.startsWith('/')
-    ) {
-      dir = this.currentDir;
-      if (fileName.startsWith('/')) {
-        fileName = fileName.slice(1);
-      }
-    } else {
-      dir = this.fileSystem;
+    const resolved = await this.resolveFolderForPath(fileName);
+    if (!resolved) {
+      this.output.push(`cat: file "${fileName}" not found`);
+      return;
     }
 
-    const pathParts = fileName.split('/').filter(Boolean);
-
-    for (const part of pathParts.slice(0, -1)) {
-      if (part === '.') continue;
-      if (part === '..') {
-        if (this.currentPath.length > 0) {
-          this.currentPath.pop();
-          dir = this.currentDir;
-        } else {
-          this.output.push('cat: already at root');
-          return;
-        }
-      } else {
-        const nextDir = dir.children?.find(
-          (child) => child.name === part && child.type === 'directory'
-        );
-        if (!nextDir) {
-          this.output.push(`cat: no such file or directory: ${part}`);
-          return;
-        }
-        dir = nextDir;
-      }
-    }
-
-    const targetFileName = pathParts[pathParts.length - 1];
-    const file = dir.children?.find(
-      (child) =>
-        `${child.name}.${child.type}` === targetFileName ||
-        child.name === targetFileName
-    );
+    const children = await this.listChildren(resolved.folderId);
+    const file = children.find((c) => this.matchFile(resolved.fileName, c));
 
     if (!file) {
-      this.output.push(`cat: file "${targetFileName}" not found`);
+      this.output.push(`cat: file "${resolved.fileName}" not found`);
       return;
     }
 
     if (file.type === 'md') {
       this.output.push(file.content || 'No content available.');
-    } else {
-      this.output.push(`cat: "${targetFileName}" is not a text file`);
+      return;
     }
+
+    this.output.push(`cat: "${resolved.fileName}" is not a text file`);
   }
 
   showHelp() {
@@ -412,5 +479,11 @@ export class TerminalComponent implements OnInit {
     setTimeout(() => {
       this.requestScrollToBottom.emit();
     }, 1);
+  }
+
+  private handleAuthError(err: unknown) {
+    if (err instanceof HttpErrorResponse && err.status === 401) {
+      this.authenticationService.logout();
+    }
   }
 }

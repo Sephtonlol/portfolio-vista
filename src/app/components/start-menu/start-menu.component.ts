@@ -13,11 +13,12 @@ import {
 import applications from '../../../data/applications.json';
 import { Window } from '../../interfaces/window.interface';
 import { WindowManagerService } from '../../services/window-manager.service';
-import portfolio from '../../../data/data.json';
 import { FileNode } from '../../interfaces/file.interface';
 import { ShutDownService } from '../../services/shut-down.service';
 import { FormsModule } from '@angular/forms';
 import { AuthenticationService } from '../../services/api/authentication/authentication.service';
+import { FilesService } from '../../services/api/files/files.service';
+import { firstValueFrom } from 'rxjs';
 
 type SearchResult =
   | { kind: 'app'; application: Window }
@@ -32,7 +33,12 @@ type SearchResult =
 export class StartMenuComponent implements OnInit, OnDestroy, AfterViewInit {
   @Input() searchQuery: string = '';
   applications: Window[] = applications as Window[];
-  fileTree: FileNode = portfolio as FileNode;
+  fileTree: FileNode = {
+    name: '',
+    type: 'directory',
+    children: [],
+    path: '',
+  };
 
   filteredApplications: Window[] = [];
   filteredFiles: FileNode[] = [];
@@ -50,6 +56,7 @@ export class StartMenuComponent implements OnInit, OnDestroy, AfterViewInit {
     private elRef: ElementRef,
     private renderer: Renderer2,
     private authenticationService: AuthenticationService,
+    private filesService: FilesService,
   ) {}
 
   ngOnInit(): void {
@@ -58,8 +65,7 @@ export class StartMenuComponent implements OnInit, OnDestroy, AfterViewInit {
         app.application !== 'Media player' && app.application !== 'Photos',
     );
 
-    this.fileTree = this.removeShortcuts(this.fileTree)!;
-    this.addPaths(this.fileTree, '');
+    void this.loadFileTree();
 
     this.globalClickUnlistener = this.renderer.listen(
       'document',
@@ -74,6 +80,51 @@ export class StartMenuComponent implements OnInit, OnDestroy, AfterViewInit {
         }
       },
     );
+  }
+
+  private async loadFileTree() {
+    try {
+      const roots = await this.fetchDirectoryChildren(null, '');
+      this.fileTree = {
+        name: '',
+        type: 'directory',
+        children: roots,
+        path: '',
+      };
+      this.fileTree = this.removeShortcuts(this.fileTree)!;
+      this.addPaths(this.fileTree, '');
+    } catch {
+      this.fileTree = {
+        name: '',
+        type: 'directory',
+        children: [],
+        path: '',
+      };
+    }
+  }
+
+  private async fetchDirectoryChildren(
+    parentId: string | null,
+    currentPath: string,
+  ): Promise<FileNode[]> {
+    const items = await firstValueFrom(
+      this.filesService.listByParent(parentId),
+    );
+
+    const nodes: FileNode[] = [];
+    for (const item of items) {
+      const path = currentPath
+        ? `${currentPath}/${item.name}`
+        : `/${item.name}`;
+      if (item.type === 'directory' && item._id) {
+        const children = await this.fetchDirectoryChildren(item._id, path);
+        nodes.push({ ...item, children, path });
+      } else {
+        nodes.push({ ...item, children: [], path });
+      }
+    }
+
+    return nodes;
   }
 
   ngAfterViewInit(): void {
@@ -315,8 +366,11 @@ export class StartMenuComponent implements OnInit, OnDestroy, AfterViewInit {
           icon: 'bi-image',
           data: {
             title: item.name,
-            content: item.path || '',
+            content: item.url ?? item.content ?? '',
             type: 'image',
+            folderId: item.parentId ?? null,
+            selectedId: item._id,
+            url: item.url,
           },
         });
         break;
@@ -327,10 +381,16 @@ export class StartMenuComponent implements OnInit, OnDestroy, AfterViewInit {
           icon: 'bi-play-circle',
           data: {
             title: item.name,
-            content: item.path || '',
+            content: item.url ?? item.content ?? '',
             type: 'media',
+            folderId: item.parentId ?? null,
+            selectedId: item._id,
+            url: item.url,
           },
         });
+        break;
+      case 'url':
+        window.open(item.url ?? item.content ?? '', '_blank');
         break;
       default:
         this.windowManagerService.addWindow({
@@ -340,6 +400,8 @@ export class StartMenuComponent implements OnInit, OnDestroy, AfterViewInit {
             title: item.name,
             content: item.content || '',
             type: 'text',
+            itemId: item._id,
+            parentId: item.parentId ?? null,
           },
         });
     }
