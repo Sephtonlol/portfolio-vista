@@ -19,6 +19,7 @@ import { Subscription } from 'rxjs';
 import { WindowManagerService } from '../../services/window-manager.service';
 import { Window } from '../../interfaces/window.interface';
 import { BrowserComponent } from '../windows/browser/browser.component';
+import { ContextMenuService } from '../../services/context-menu.service';
 
 @Component({
   selector: 'app-window',
@@ -72,7 +73,38 @@ export class WindowComponent implements AfterViewInit, OnInit {
     private el: ElementRef,
     private windowManagerService: WindowManagerService,
     private cdr: ChangeDetectorRef,
+    private contextMenu: ContextMenuService,
   ) {}
+
+  onHeaderContextMenu(event: MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    // Right-clicking a header should also focus that window.
+    // Don't use "unminimize" here; the focus subscription uses that signal
+    // to restore/apply the last position, which would break snapped state.
+    this.windowManagerService.focusWindow(this.id || '', false);
+
+    const minimized = !!this.windowData.minimized;
+
+    this.contextMenu.openAt(event.clientX + 2, event.clientY + 2, [
+      {
+        label: 'Close',
+        action: () => this.closeWindow(),
+      },
+      {
+        label: 'Minimize',
+        action: () => this.minimizeWindow(),
+        disabled: minimized,
+      },
+      {
+        label: this.isMaximized ? 'Restore' : 'Maximize',
+        action: () =>
+          this.isMaximized ? this.unmaximizeWindow() : this.maximizeWindow(),
+        disabled: minimized,
+      },
+    ]);
+  }
   ngOnInit(): void {
     if (window.innerWidth < 992) {
       this.lastPosition = { x: 0, y: 0 };

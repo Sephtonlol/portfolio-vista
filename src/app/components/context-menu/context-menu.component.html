@@ -4,6 +4,7 @@
     class="pv-contextmenu"
     [style.left.px]="x"
     [style.top.px]="y"
+    (mousedown)="onMenuMouseDown($event)"
     (click)="onMenuClick($event)"
   >
     @for (item of contextMenu.state().items; track item.label) {

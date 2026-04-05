@@ -1,6 +1,6 @@
 .pv-contextmenu {
   position: fixed;
-  z-index: 100000;
+  z-index: 2147483647;
   background-color: var(--primary-color);
   border: 2px solid var(--secondary-color);
   border-radius: 8px;

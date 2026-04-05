@@ -101,6 +101,11 @@ export class AppComponent implements OnInit, OnDestroy {
     });
   }
 
+  @HostListener('document:contextmenu', ['$event'])
+  onDisableBrowserContextMenu(event: MouseEvent) {
+    event.preventDefault();
+  }
+
   ngOnInit(): void {
     this.startBootAnimation(false);
 

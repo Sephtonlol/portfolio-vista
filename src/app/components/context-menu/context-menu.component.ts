@@ -34,8 +34,16 @@ export class ContextMenuComponent {
     });
   }
 
-  @HostListener('document:click')
-  onDocumentClick() {
+  @HostListener('document:mousedown', ['$event'])
+  onDocumentMouseDown(event: MouseEvent) {
+    // Only close on left click. Right-click often fires extra events on some
+    // devices (trackpads), which would otherwise instantly close the menu.
+    if (event.button !== 0) return;
+
+    const menu = this.menuEl?.nativeElement;
+    const target = event.target;
+    if (menu && target instanceof Node && menu.contains(target)) return;
+
     this.contextMenu.close();
   }
 
@@ -45,6 +53,10 @@ export class ContextMenuComponent {
   }
 
   onMenuClick(event: MouseEvent) {
+    event.stopPropagation();
+  }
+
+  onMenuMouseDown(event: MouseEvent) {
     event.stopPropagation();
   }
 

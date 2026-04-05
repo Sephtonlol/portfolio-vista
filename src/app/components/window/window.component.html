@@ -8,6 +8,7 @@
 >
   <div
     class="window-header"
+    (contextmenu)="onHeaderContextMenu($event)"
     (dblclick)="isMaximized ? unmaximizeWindow() : maximizeWindow()"
   >
     <div class="window-titlebar">
