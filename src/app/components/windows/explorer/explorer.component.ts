@@ -158,6 +158,14 @@ export class ExplorerComponent implements OnInit, OnDestroy {
         disabled: !hasId,
       },
       {
+        label: 'Create shortcut',
+        action: () => void this.createShortcut(file),
+        disabled:
+          !hasId ||
+          this.inlineCreateKind !== null ||
+          (hasId && this.renamingId === file._id),
+      },
+      {
         label: 'Edit name',
         action: () => this.startRename(file),
         disabled: !hasId,
@@ -168,6 +176,48 @@ export class ExplorerComponent implements OnInit, OnDestroy {
         disabled: !hasId,
       },
     ]);
+  }
+
+  private async createShortcut(file: FileNode): Promise<void> {
+    if (!file._id) return;
+
+    this.contextMenu.close();
+    this.cancelRename();
+    this.cancelInlineCreate();
+
+    try {
+      const existing = await this.filesStore.list(this.currentFolderId);
+      const usedDisplayNames = new Set(
+        existing.map((c) => this.displayName(c)),
+      );
+
+      const base = `${this.displayName(file)} - Shortcut`;
+      const name = this.nextShortcutName(base, usedDisplayNames);
+
+      await this.filesStore.create({
+        name,
+        type: 'shortcut',
+        parentId: this.currentFolderId,
+        shortcutTo: file._id,
+      });
+    } catch (err) {
+      this.handleAuthError(err);
+    }
+  }
+
+  private nextShortcutName(
+    base: string,
+    usedDisplayNames: Set<string>,
+  ): string {
+    // Shortcut display name equals its stored name.
+    if (!usedDisplayNames.has(base)) return base;
+
+    for (let i = 2; i < 10_000; i++) {
+      const candidate = `${base} (${i})`;
+      if (!usedDisplayNames.has(candidate)) return candidate;
+    }
+
+    return `${base} (${Date.now()})`;
   }
 
   cutItem(file: FileNode) {
@@ -600,6 +650,39 @@ export class ExplorerComponent implements OnInit, OnDestroy {
         return;
       }
 
+      // Prefer resolving the shortcut to an existing item by id.
+      // This allows shortcuts to open files (not just folders) when the id is known.
+      const resolved = this.filesStore.getById(shortcutTarget);
+      if (resolved && resolved._id && resolved._id !== file._id) {
+        if (resolved.type === 'directory') {
+          this.currentFolderId = resolved._id;
+
+          const cached = this.resolveCachedDirectoryPath(resolved._id);
+          if (cached) {
+            this.currentPath = cached.pathNames;
+            this.folderIdStack = cached.idStack;
+            const newPath = '/' + this.currentPath.join('/');
+            this.pathInput = newPath;
+            this.searchTerm = '';
+            this.updatePathHistory(newPath);
+          } else {
+            // Best-effort: at least show the directory name when we can't
+            // reconstruct the full path from cache.
+            this.currentPath = [resolved.name];
+            this.folderIdStack = [null, resolved._id];
+            this.pathInput = '/' + this.currentPath.join('/');
+            this.searchTerm = '';
+          }
+
+          void this.loadChildren();
+          return;
+        }
+
+        // Open the target file directly.
+        this.openItem(resolved);
+        return;
+      }
+
       // If the backend stores shortcutTo as an id, we can navigate to that folder id,
       // but we cannot reconstruct the full path without extra endpoints.
       this.currentFolderId = shortcutTarget;
@@ -619,7 +702,7 @@ export class ExplorerComponent implements OnInit, OnDestroy {
             title: file.name,
             content: file.url ?? file.content ?? '',
             type: 'image',
-            folderId: this.currentFolderId,
+            folderId: file.parentId ?? this.currentFolderId,
             selectedId: file._id,
             url: file.url,
           },
@@ -634,7 +717,7 @@ export class ExplorerComponent implements OnInit, OnDestroy {
             title: file.name,
             content: file.url ?? file.content ?? '',
             type: 'media',
-            folderId: this.currentFolderId,
+            folderId: file.parentId ?? this.currentFolderId,
             selectedId: file._id,
             url: file.url,
           },
@@ -701,6 +784,39 @@ export class ExplorerComponent implements OnInit, OnDestroy {
       });
 
     await this.filesStore.refresh(this.currentFolderId);
+  }
+
+  private resolveCachedDirectoryPath(folderId: string): {
+    pathNames: string[];
+    idStack: (string | null)[];
+  } | null {
+    // Build the path by walking parentId links using the local cache.
+    // If the cache is incomplete, return null and let the caller fall back.
+    const pathNodes: FileNode[] = [];
+    const visited = new Set<string>();
+
+    let current: FileNode | null = this.filesStore.getById(folderId);
+    while (current && current._id) {
+      if (visited.has(current._id)) return null;
+      visited.add(current._id);
+
+      if (current.type !== 'directory') return null;
+      pathNodes.push(current);
+
+      const parentId = current.parentId ?? null;
+      if (!parentId) break;
+
+      current = this.filesStore.getById(parentId);
+      if (!current) return null;
+    }
+
+    if (pathNodes.length === 0) return null;
+
+    pathNodes.reverse();
+    return {
+      pathNames: pathNodes.map((n) => n.name),
+      idStack: [null, ...pathNodes.map((n) => n._id!).filter(Boolean)],
+    };
   }
 
   private async resolveFolderByPathParts(parts: string[]): Promise<{

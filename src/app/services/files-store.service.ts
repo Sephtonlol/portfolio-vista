@@ -70,6 +70,10 @@ export class FilesStoreService {
     return this.children$(parentId).value;
   }
 
+  getById(id: string): FileNode | null {
+    return this.getEffectiveById(id);
+  }
+
   async list(parentId: ParentId): Promise<FileNode[]> {
     await this.refresh(parentId);
     return this.snapshot(parentId);
