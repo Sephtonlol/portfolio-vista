@@ -1,7 +1,6 @@
 import { Component, Input, ViewChild, ElementRef, OnInit } from '@angular/core';
 import { Data } from '../../../interfaces/window.interface';
-import { FilesService } from '../../../services/api/files/files.service';
-import { firstValueFrom } from 'rxjs';
+import { FilesStoreService } from '../../../services/files-store.service';
 
 @Component({
   selector: 'app-player',
@@ -18,7 +17,7 @@ export class PlayerComponent {
   currentIndex = 0;
   isPlaying = false;
 
-  constructor(private filesService: FilesService) {}
+  constructor(private filesStore: FilesStoreService) {}
 
   async ngOnInit() {
     if (!this.data?.content) return;
@@ -35,9 +34,7 @@ export class PlayerComponent {
       return;
     }
 
-    const children = await firstValueFrom(
-      this.filesService.listByParent(folderId),
-    );
+    const children = await this.filesStore.list(folderId);
     this.videos = children
       .filter(
         (c): c is typeof c & { type: 'mp4' | 'mp3' } =>

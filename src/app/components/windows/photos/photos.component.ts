@@ -1,7 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { Data } from '../../../interfaces/window.interface';
-import { FilesService } from '../../../services/api/files/files.service';
-import { firstValueFrom } from 'rxjs';
+import { FilesStoreService } from '../../../services/files-store.service';
 
 @Component({
   selector: 'app-photos',
@@ -16,7 +15,7 @@ export class PhotosComponent implements OnInit {
   images: { id?: string; name: string; url: string }[] = [];
   currentIndex = 0;
 
-  constructor(private filesService: FilesService) {}
+  constructor(private filesStore: FilesStoreService) {}
 
   async ngOnInit() {
     if (!this.data?.content) return;
@@ -34,9 +33,7 @@ export class PhotosComponent implements OnInit {
       return;
     }
 
-    const children = await firstValueFrom(
-      this.filesService.listByParent(folderId),
-    );
+    const children = await this.filesStore.list(folderId);
     this.images = children
       .filter((c) => c.type === 'png')
       .map((c) => ({ id: c._id, name: c.name, url: c.url ?? c.content ?? '' }))

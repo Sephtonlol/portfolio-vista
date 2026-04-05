@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, effect } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { BehaviorSubject, firstValueFrom } from 'rxjs';
 import { FileNode, FileNodeType } from '../interfaces/file.interface';
 import { FilesService } from './api/files/files.service';
@@ -45,13 +46,92 @@ export class FilesStoreService {
     BehaviorSubject<FileNode[]>
   >();
 
+  private wasAdmin = false;
+
   constructor(
     private filesApi: FilesService,
     private authenticationService: AuthenticationService,
-  ) {}
+  ) {
+    this.wasAdmin = this.authenticationService.admin();
+
+    effect(() => {
+      const isAdmin = this.authenticationService.admin();
+      if (isAdmin && !this.wasAdmin) {
+        // When promoting to admin, discard any offline/session overlays so the
+        // UI reflects the canonical server state.
+        this.resetLocalSessionState();
+        this.refreshAllWatched();
+      }
+      this.wasAdmin = isAdmin;
+    });
+  }
 
   private canWriteServer(): boolean {
     return this.authenticationService.admin();
+  }
+
+  private shouldFallbackToLocal(err: unknown): boolean {
+    if (err instanceof HttpErrorResponse) {
+      // No network, unauthorized, forbidden, or server errors.
+      return (
+        err.status === 0 ||
+        err.status === 401 ||
+        err.status === 403 ||
+        err.status >= 500
+      );
+    }
+
+    // Non-HTTP errors (e.g. runtime issues) should not hard-fail the app.
+    return true;
+  }
+
+  private maybeLogoutOnAuthError(err: unknown) {
+    if (err instanceof HttpErrorResponse && err.status === 401) {
+      this.authenticationService.logout();
+    }
+  }
+
+  private resetLocalSessionState(): void {
+    this.localById.clear();
+    this.localPatchesById.clear();
+    this.localDeletedIds.clear();
+    this.emitAllWatched();
+  }
+
+  private refreshAllWatched(): void {
+    for (const key of this.subjectsByParent.keys()) {
+      void this.refresh(fromParentKey(key));
+    }
+  }
+
+  private createLocal(input: {
+    name: string;
+    type: FileNodeType;
+    parentId: ParentId;
+    content?: string;
+    url?: string;
+    shortcutTo?: string;
+  }): FileNode {
+    const uuid =
+      typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    const id = `local:${uuid}`;
+    const item: FileNode = {
+      _id: id,
+      name: input.name,
+      type: input.type,
+      parentId: input.parentId,
+      content: input.content,
+      url: input.url,
+      shortcutTo: input.shortcutTo,
+      createdAt: nowIso(),
+      updatedAt: nowIso(),
+    };
+
+    this.localById.set(id, item);
+    this.emitAllWatched();
+    return item;
   }
 
   children$(parentId: ParentId): BehaviorSubject<FileNode[]> {
@@ -108,32 +188,19 @@ export class FilesStoreService {
     shortcutTo?: string;
   }): Promise<FileNode> {
     if (this.canWriteServer()) {
-      const created = await firstValueFrom(this.filesApi.create(input));
-      if (created._id) this.knownServerById.set(created._id, created);
-      await this.refresh(created.parentId ?? input.parentId);
-      return created;
+      try {
+        const created = await firstValueFrom(this.filesApi.create(input));
+        if (created._id) this.knownServerById.set(created._id, created);
+        await this.refresh(created.parentId ?? input.parentId);
+        return created;
+      } catch (err) {
+        this.maybeLogoutOnAuthError(err);
+        if (!this.shouldFallbackToLocal(err)) throw err;
+        return this.createLocal(input);
+      }
     }
 
-    const uuid =
-      typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-        ? crypto.randomUUID()
-        : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-    const id = `local:${uuid}`;
-    const item: FileNode = {
-      _id: id,
-      name: input.name,
-      type: input.type,
-      parentId: input.parentId,
-      content: input.content,
-      url: input.url,
-      shortcutTo: input.shortcutTo,
-      createdAt: nowIso(),
-      updatedAt: nowIso(),
-    };
-
-    this.localById.set(id, item);
-    this.emitAllWatched();
-    return item;
+    return this.createLocal(input);
   }
 
   async update(
@@ -157,12 +224,21 @@ export class FilesStoreService {
     }
 
     if (this.canWriteServer()) {
-      const updated = await firstValueFrom(
-        this.filesApi.update(id, cleanedPatch),
-      );
-      if (updated._id) this.knownServerById.set(updated._id, updated);
-      await this.refresh(updated.parentId ?? null);
-      return updated;
+      try {
+        const updated = await firstValueFrom(
+          this.filesApi.update(id, cleanedPatch),
+        );
+        if (updated._id) this.knownServerById.set(updated._id, updated);
+        await this.refresh(updated.parentId ?? null);
+        return updated;
+      } catch (err) {
+        this.maybeLogoutOnAuthError(err);
+        if (!this.shouldFallbackToLocal(err)) throw err;
+        const existing = this.localPatchesById.get(id) ?? {};
+        this.localPatchesById.set(id, { ...existing, ...cleanedPatch });
+        this.emitAllWatched();
+        return this.getEffectiveById(id);
+      }
     }
 
     // Offline: store patch overlay.
@@ -187,11 +263,20 @@ export class FilesStoreService {
     const beforeParentId = this.getEffectiveParentId(id);
 
     if (this.canWriteServer()) {
-      const moved = await firstValueFrom(this.filesApi.move(id, newParentId));
-      if (moved._id) this.knownServerById.set(moved._id, moved);
-      await this.refresh(beforeParentId);
-      await this.refresh(newParentId);
-      return;
+      try {
+        const moved = await firstValueFrom(this.filesApi.move(id, newParentId));
+        if (moved._id) this.knownServerById.set(moved._id, moved);
+        await this.refresh(beforeParentId);
+        await this.refresh(newParentId);
+        return;
+      } catch (err) {
+        this.maybeLogoutOnAuthError(err);
+        if (!this.shouldFallbackToLocal(err)) throw err;
+        const existing = this.localPatchesById.get(id) ?? {};
+        this.localPatchesById.set(id, { ...existing, parentId: newParentId });
+        this.emitAllWatched();
+        return;
+      }
     }
 
     const existing = this.localPatchesById.get(id) ?? {};
@@ -209,11 +294,19 @@ export class FilesStoreService {
     const beforeParentId = this.getEffectiveParentId(id);
 
     if (this.canWriteServer()) {
-      await firstValueFrom(this.filesApi.delete(id));
-      // Keep it hidden immediately even before a refresh.
-      this.localDeletedIds.add(id);
-      await this.refresh(beforeParentId);
-      return;
+      try {
+        await firstValueFrom(this.filesApi.delete(id));
+        // Keep it hidden immediately even before a refresh.
+        this.localDeletedIds.add(id);
+        await this.refresh(beforeParentId);
+        return;
+      } catch (err) {
+        this.maybeLogoutOnAuthError(err);
+        if (!this.shouldFallbackToLocal(err)) throw err;
+        this.localDeletedIds.add(id);
+        this.emitAllWatched();
+        return;
+      }
     }
 
     this.localDeletedIds.add(id);
