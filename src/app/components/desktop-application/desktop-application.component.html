@@ -5,9 +5,9 @@
     (dblclick)="openApplication()"
     (contextmenu)="contextMenu($event)"
   >
-    @if (thumbnailKind() === 'image') {
+    @if (thumbnailKind() === "image") {
       <img class="thumb" [src]="thumbnailUrl()" alt="" />
-    } @else if (thumbnailKind() === 'video') {
+    } @else if (thumbnailKind() === "video") {
       <video
         class="thumb"
         [src]="thumbnailUrl()"
@@ -19,7 +19,7 @@
       <i [class]="'bi ' + iconClass()"></i>
     }
 
-    @if (application.type === 'shortcut') {
+    @if (application.type === "shortcut") {
       <i class="bi bi-arrow-up-right-square-fill shortcut"></i>
     }
 

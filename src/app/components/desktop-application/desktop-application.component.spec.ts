@@ -17,8 +17,7 @@ describe('DesktopApplicationComponent', () => {
     await TestBed.configureTestingModule({
       imports: [DesktopApplicationComponent],
       providers: [{ provide: FilesStoreService, useValue: filesStoreStub }],
-    })
-    .compileComponents();
+    }).compileComponents();
 
     fixture = TestBed.createComponent(DesktopApplicationComponent);
     component = fixture.componentInstance;

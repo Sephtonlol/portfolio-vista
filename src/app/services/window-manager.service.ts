@@ -1,6 +1,14 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
+import { distinctUntilChanged, map } from 'rxjs/operators';
 import { Window } from '../interfaces/window.interface';
+
+export type FocusedApplicationType =
+  | 'system'
+  | 'utility'
+  | 'web'
+  | 'media'
+  | 'other';
 
 @Injectable({
   providedIn: 'root',
@@ -9,8 +17,45 @@ export class WindowManagerService {
   private windowsSource = new BehaviorSubject<Window[]>([]);
   windows$ = this.windowsSource.asObservable();
 
+  focusedWindow$ = this.windows$.pipe(
+    map((windows) => windows.find((w) => w.focused) ?? null),
+    distinctUntilChanged((a, b) => a?.id === b?.id),
+  );
+
+  focusedApplication$ = this.focusedWindow$.pipe(
+    map((win) => win?.application ?? null),
+    distinctUntilChanged(),
+  );
+
+  focusedApplicationType$ = this.focusedWindow$.pipe(
+    map((win) => (win ? this.getApplicationType(win) : null)),
+    distinctUntilChanged(),
+  );
+
   private findWindow(windowId: string): Window | undefined {
     return this.windowsSource.value.find((win) => win.id === windowId);
+  }
+
+  private getApplicationType(win: Window): FocusedApplicationType {
+    switch (win.application) {
+      case 'Explorer':
+      case 'Settings':
+        return 'system';
+      case 'Terminal':
+      case 'Notepad':
+      case 'Calculator':
+        return 'utility';
+      case 'Browser':
+        return 'web';
+      case 'Photos':
+      case 'Media player':
+        return 'media';
+      default:
+        // Best-effort fallback: infer from window content type when available.
+        if (win.data?.type === 'image' || win.data?.type === 'media')
+          return 'media';
+        return 'other';
+    }
   }
 
   private focusSource = new BehaviorSubject<{

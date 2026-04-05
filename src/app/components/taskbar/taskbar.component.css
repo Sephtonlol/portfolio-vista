@@ -53,9 +53,15 @@ i {
   position: absolute;
   width: 10px;
   height: 10px;
-  background-color: var(--accent-color);
+  background-color: var(--tertiary-color);
   z-index: -1;
   border-radius: 6px;
+}
+.taskbar-app-focused {
+  background-color: var(--hover-color);
+}
+.taskbar-app-focused::after {
+  background-color: var(--accent-color);
 }
 .application-outer {
   position: relative;

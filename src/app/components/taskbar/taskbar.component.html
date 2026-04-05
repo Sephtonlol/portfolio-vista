@@ -25,6 +25,7 @@
           [class.opened-application]="
             isAnyInstanceOpen(getWindowsByApp(appName))
           "
+          [class.taskbar-app-focused]="isAppFocused(appName)"
           (click)="
             $event.stopPropagation();
             getWindowsByApp(appName).length === 0

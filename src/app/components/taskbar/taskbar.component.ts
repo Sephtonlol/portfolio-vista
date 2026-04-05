@@ -6,7 +6,10 @@ import {
   ViewChild,
 } from '@angular/core';
 import { StartMenuComponent } from '../start-menu/start-menu.component';
-import { WindowManagerService } from '../../services/window-manager.service';
+import {
+  FocusedApplicationType,
+  WindowManagerService,
+} from '../../services/window-manager.service';
 import { Window } from '../../interfaces/window.interface';
 import applications from '../../../data/applications.json';
 import { FormsModule } from '@angular/forms';
@@ -43,6 +46,9 @@ export class TaskbarComponent implements OnInit {
 
   searchQuery: string = '';
 
+  focusedApplication: string | null = null;
+  focusedApplicationType: FocusedApplicationType | null = null;
+
   @ViewChild('searchInput') searchInputRef!: ElementRef<HTMLInputElement>;
 
   constructor(
@@ -62,6 +68,15 @@ export class TaskbarComponent implements OnInit {
       this.windows = windows;
       this.groupedApps = this.groupWindowsByApplication(windows);
     });
+
+    this.windowManagerService.focusedApplication$.subscribe((app) => {
+      this.focusedApplication = app;
+    });
+
+    this.windowManagerService.focusedApplicationType$.subscribe((type) => {
+      this.focusedApplicationType = type;
+    });
+
     this.updateDateTime();
     setInterval(() => this.updateDateTime(), 1000);
   }
@@ -211,6 +226,10 @@ export class TaskbarComponent implements OnInit {
   getIcon(appName: string): string {
     const app = this.applications.find((a) => a.application === appName);
     return app?.icon || 'bi-question-circle';
+  }
+
+  isAppFocused(appName: string): boolean {
+    return this.focusedApplication === appName;
   }
 
   onSearchChange(value: string) {
