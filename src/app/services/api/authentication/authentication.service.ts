@@ -24,8 +24,13 @@ export class AuthenticationService {
   guest = signal(false);
 
   constructor(private http: HttpClient) {
-    const guest = sessionStorage.getItem(this.guestKey) === '1';
-    this.guest.set(guest);
+    // Always show the lock/login screen after a full page reload.
+    // (Do not persist auth state across refresh.)
+    localStorage.removeItem(this.tokenKey);
+    sessionStorage.removeItem(this.guestKey);
+
+    this.guest.set(false);
+    this.admin.set(false);
     this.updateSignedIn();
   }
 

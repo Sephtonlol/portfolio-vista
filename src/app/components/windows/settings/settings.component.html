@@ -37,7 +37,7 @@
 <div class="setting-groups-outer">
   <h4>Display</h4>
   <div class="setting-group has-border">
-    <h4>Color mode</h4>
+    <h4>Appearance</h4>
     <select
       id="modeSelect"
       class="form-select"
@@ -50,7 +50,7 @@
   </div>
 
   <div class="setting-group has-border">
-    <h4>Accent</h4>
+    <h4>Accent color</h4>
     <select
       id="accentSelect"
       class="form-select"
@@ -75,6 +75,20 @@
         id="animationsSwitch"
         [checked]="settings.animations"
         (change)="toggleAnimations()"
+      />
+    </div>
+  </div>
+
+  <div class="setting-group has-border">
+    <h4>Boot animation</h4>
+    <div class="form-check form-switch">
+      <input
+        class="form-check-input"
+        type="checkbox"
+        role="switch"
+        id="bootAnimationSwitch"
+        [checked]="settings.bootAnimation"
+        (change)="toggleBootAnimation()"
       />
     </div>
   </div>

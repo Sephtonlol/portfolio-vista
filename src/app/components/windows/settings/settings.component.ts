@@ -51,6 +51,10 @@ export class SettingsComponent implements OnInit {
     this.settingsService.toggleAnimations();
   }
 
+  toggleBootAnimation() {
+    this.settingsService.toggleBootAnimation();
+  }
+
   resetSettings() {
     this.settingsService.resetSettings();
   }

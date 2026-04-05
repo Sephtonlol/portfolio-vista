@@ -23,6 +23,14 @@
   }
 }
 
+@if (bootScreenVisible) {
+  <app-boot-screen
+    [exiting]="bootScreenExiting"
+    [totalDurationMs]="bootScreenTotalDurationMs"
+    [errorMode]="bootScreenErrorMode"
+  />
+}
+
 @if (logoutFlash) {
   <div class="logout-flash"></div>
 }

@@ -29,6 +29,7 @@ export class SettingsService {
     colorMode: 'dark',
     accent: 'default',
     animations: true,
+    bootAnimation: true,
     backgroundImage: null,
     backgroundFit: 'cover',
   };
@@ -44,6 +45,10 @@ export class SettingsService {
     this.applyColorMode(initial.colorMode);
     this.applyAccent(initial.accent);
     this.applyAnimations(initial.animations);
+  }
+
+  get settings(): AppSettings {
+    return this.settingsSubject.value;
   }
 
   private loadInitialSettings(): AppSettings {
@@ -78,6 +83,10 @@ export class SettingsService {
 
       if (typeof saved.animations === 'boolean') {
         normalized.animations = saved.animations;
+      }
+
+      if (typeof (saved as any).bootAnimation === 'boolean') {
+        normalized.bootAnimation = (saved as any).bootAnimation;
       }
 
       if ('backgroundImage' in saved) {
@@ -163,6 +172,13 @@ export class SettingsService {
     this.settingsSubject.next(updated);
     this.saveSettings(updated);
     this.applyAnimations(updated.animations);
+  }
+
+  toggleBootAnimation() {
+    const current = this.settingsSubject.value;
+    const updated = { ...current, bootAnimation: !current.bootAnimation };
+    this.settingsSubject.next(updated);
+    this.saveSettings(updated);
   }
 
   private applyAnimations(animations: boolean) {

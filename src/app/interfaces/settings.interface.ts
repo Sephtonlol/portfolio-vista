@@ -6,6 +6,7 @@ export interface AppSettings {
   colorMode: ColorMode;
   accent: AccentTheme;
   animations: boolean;
+  bootAnimation: boolean;
   backgroundImage: string | ArrayBuffer | null;
   backgroundFit: 'cover' | 'contain' | 'stretch' | 'repeat';
 }
