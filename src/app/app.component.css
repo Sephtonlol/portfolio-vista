@@ -15,6 +15,20 @@
   pointer-events: all;
 }
 
+.sleep-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  background-color: black;
+  opacity: 0;
+  transition: opacity 650ms linear;
+  pointer-events: all;
+}
+
+.sleep-overlay.active {
+  opacity: 1;
+}
+
 app-lock-screen {
   position: fixed;
   inset: 0;
@@ -60,10 +74,6 @@ app-taskbar {
   height: 100dvh;
   position: relative;
   cursor: pointer;
-}
-.sleep {
-  background-color: black;
-  cursor: none;
 }
 .shut-down-inner {
   position: absolute;

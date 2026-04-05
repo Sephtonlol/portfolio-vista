@@ -1,6 +1,7 @@
 import {
   Component,
   ElementRef,
+  Input,
   HostListener,
   OnDestroy,
   OnInit,
@@ -28,6 +29,8 @@ export class LockScreenComponent implements OnInit, OnDestroy {
   private clockIntervalId?: number;
 
   private clickActivationArmed = false;
+
+  @Input() suspended = false;
 
   ngOnInit(): void {
     this.isSignInActive = false;
@@ -98,6 +101,7 @@ export class LockScreenComponent implements OnInit, OnDestroy {
   }
 
   private activateSignIn() {
+    if (this.suspended) return;
     if (this.isSignInActive) return;
     this.isSignInActive = true;
 
@@ -108,6 +112,7 @@ export class LockScreenComponent implements OnInit, OnDestroy {
 
   @HostListener('document:keydown', ['$event'])
   onDocumentKeydown(event: KeyboardEvent) {
+    if (this.suspended) return;
     if (!this.isSignInActive && !this.isIgnorableKey(event)) {
       this.activateSignIn();
     }
@@ -115,6 +120,7 @@ export class LockScreenComponent implements OnInit, OnDestroy {
 
   @HostListener('document:click')
   onDocumentClick() {
+    if (this.suspended) return;
     if (!this.clickActivationArmed) return;
     if (!this.isSignInActive) {
       this.activateSignIn();

@@ -56,7 +56,9 @@
   font-size: clamp(56px, 10vw, 96px);
   line-height: 1;
 }
-
+p {
+  user-select: none;
+}
 .clock .date {
   font-size: clamp(14px, 2vw, 18px);
 }

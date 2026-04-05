@@ -23,6 +23,11 @@ export class BootScreenComponent implements OnInit, OnDestroy {
 
   @Input() totalDurationMs = 2000;
 
+  // Black screen before any text/spinner is shown.
+  @Input() preDelayMs = 0;
+
+  @Input() mode: 'boot' | 'resume' = 'boot';
+
   // Keep the final messages visible before reaching 100%.
   @Input() tailHoldMs = 2500;
 
@@ -32,6 +37,8 @@ export class BootScreenComponent implements OnInit, OnDestroy {
   spinnerChar = '-';
   progressBarText = '[----------------------------]   0%';
   statusText = 'Starting system...';
+
+  contentVisible = false;
 
   private readonly spinnerFrames = ['-', '\\', '|', '/'];
   private readonly maxLines = 22;
@@ -49,16 +56,32 @@ export class BootScreenComponent implements OnInit, OnDestroy {
 
   private spinnerIntervalId?: number;
   private scheduledTimeoutIds: number[] = [];
+  private preDelayTimeoutId?: number;
 
   ngOnInit(): void {
-    this.statusText = this.errorMode
-      ? 'Recovering from startup errors...'
-      : 'Starting system...';
+    this.statusText =
+      this.mode === 'resume'
+        ? 'Resuming from sleep...'
+        : this.errorMode
+          ? 'Recovering from startup errors...'
+          : 'Starting system...';
 
     this.systemInfo = this.readSystemInfo();
 
-    this.startSpinner();
-    this.runBootSequence();
+    const pre = Math.max(0, Math.min(10000, this.preDelayMs));
+    this.contentVisible = false;
+
+    const begin = () => {
+      this.contentVisible = true;
+      this.startSpinner();
+      this.runBootSequence(pre);
+    };
+
+    if (pre > 0) {
+      this.preDelayTimeoutId = window.setTimeout(() => begin(), pre);
+    } else {
+      begin();
+    }
   }
 
   private readSystemInfo(): {
@@ -102,6 +125,9 @@ export class BootScreenComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.preDelayTimeoutId != null) {
+      window.clearTimeout(this.preDelayTimeoutId);
+    }
     if (this.spinnerIntervalId != null) {
       window.clearInterval(this.spinnerIntervalId);
     }
@@ -119,7 +145,7 @@ export class BootScreenComponent implements OnInit, OnDestroy {
     }, 90);
   }
 
-  private runBootSequence(): void {
+  private runBootSequence(preDelayMs: number): void {
     const steps = this.buildBootSteps();
 
     this.currentProgressPct = 0;
@@ -127,7 +153,10 @@ export class BootScreenComponent implements OnInit, OnDestroy {
 
     const total = Math.max(700, this.totalDurationMs);
     const tail = Math.max(0, Math.min(5000, this.tailHoldMs));
-    const effectiveTotal = Math.max(700, total - tail);
+    const effectiveTotal = Math.max(
+      700,
+      total - tail - Math.max(0, preDelayMs),
+    );
     const sumBase = steps.reduce((acc, s) => acc + s.baseDelayMs, 0);
     const scale = sumBase > 0 ? effectiveTotal / sumBase : 1;
 
@@ -140,15 +169,26 @@ export class BootScreenComponent implements OnInit, OnDestroy {
         if (this.currentProgressPct < 99) {
           this.setProgress(99);
         }
-        this.statusText = 'Finalizing boot sequence...';
+        this.statusText =
+          this.mode === 'resume'
+            ? 'Restoring session state...'
+            : 'Finalizing boot sequence...';
 
-        this.pushLine('Starting GNOME Display Manager...');
-        this.pushLine('[ OK ] Started GNOME Display Manager');
-        this.pushLine('Portfolio Vista login:');
+        if (this.mode === 'resume') {
+          this.pushLine('[ OK ] Restored device state');
+          this.pushLine('Applying power management policies...');
+          this.pushLine('[ OK ] Resume complete (code=0x5L33PY)');
+          this.pushLine('Returning to lock screen...');
+        } else {
+          this.pushLine('Starting GNOME Display Manager...');
+          this.pushLine('[ OK ] Started GNOME Display Manager');
+          this.pushLine('Portfolio Vista login:');
+        }
 
         const timeoutId = window.setTimeout(() => {
           this.setProgress(100);
-          this.statusText = 'Launching desktop...';
+          this.statusText =
+            this.mode === 'resume' ? 'Ready.' : 'Launching desktop...';
         }, tail);
         this.scheduledTimeoutIds.push(timeoutId);
         return;
@@ -259,6 +299,33 @@ export class BootScreenComponent implements OnInit, OnDestroy {
   }
 
   private buildBootSteps(): BootStep[] {
+    if (this.mode === 'resume') {
+      return [
+        {
+          text: 'PM: resume from S3 (sleep) initiated',
+          baseDelayMs: 160,
+          minDelayMs: 120,
+          statusText: 'Resuming from sleep...',
+        },
+        {
+          text: 'Restoring PCI devices...',
+          baseDelayMs: 240,
+          minDelayMs: 160,
+        },
+        { text: '[ OK ] Reinitialized input devices', baseDelayMs: 180 },
+        {
+          text: 'Reconnecting network interfaces...',
+          baseDelayMs: 360,
+          minDelayMs: 220,
+        },
+        {
+          text: '[ WARN ] Wake reason: mysterious keyboard gremlin (code=0xBEEF)',
+          baseDelayMs: 220,
+        },
+        { text: '[ OK ] Reached target User Login', baseDelayMs: 190 },
+      ];
+    }
+
     const steps: BootStep[] = [
       {
         text: 'Loading Linux kernel...',

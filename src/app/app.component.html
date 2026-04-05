@@ -1,32 +1,31 @@
-@if (shutDown && shutDownMessage !== "Sleep") {
-  <div class="shut-down" (click)="disableShutDown()">
-    <div class="shut-down-inner">
-      <div class="spinner-border" role="status"></div>
-      <h4>{{ shutDownMessage }}</h4>
-    </div>
-  </div>
-} @else {
-  @if (authenticationService.signedIn()) {
-    <app-desktop
-      [class.show-content]="shutDownMessage !== 'Sleep'"
-      (click)="sleepPointerDelay ? disableShutDown() : ''"
-    />
+@if (authenticationService.signedIn()) {
+  <app-desktop [class.show-content]="!sleepOverlayVisible" />
+  <app-taskbar [class.show-content]="!sleepOverlayVisible" />
+}
 
-    <app-taskbar
-      [class.show-content]="shutDownMessage !== 'Sleep'"
-      (click)="sleepPointerDelay ? disableShutDown() : ''"
-    />
-  }
+@if (!lockScreenHidden && !bootScreenVisible) {
+  <app-lock-screen
+    [class.lock-screen-exiting]="lockScreenExiting"
+    [suspended]="bootScreenVisible"
+  />
+}
 
-  @if (!lockScreenHidden) {
-    <app-lock-screen [class.lock-screen-exiting]="lockScreenExiting" />
-  }
+@if (sleepOverlayVisible) {
+  <div
+    class="sleep-overlay"
+    [class.active]="sleepOverlayActive"
+    (click)="wakeFromSleep()"
+    aria-label="Sleeping"
+  ></div>
 }
 
 @if (bootScreenVisible) {
   <app-boot-screen
     [exiting]="bootScreenExiting"
+    [mode]="bootScreenMode"
     [totalDurationMs]="bootScreenTotalDurationMs"
+    [preDelayMs]="bootScreenPreDelayMs"
+    [tailHoldMs]="bootScreenTailHoldMs"
     [errorMode]="bootScreenErrorMode"
   />
 }
