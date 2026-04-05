@@ -9,6 +9,10 @@ export class WindowManagerService {
   private windowsSource = new BehaviorSubject<Window[]>([]);
   windows$ = this.windowsSource.asObservable();
 
+  private findWindow(windowId: string): Window | undefined {
+    return this.windowsSource.value.find((win) => win.id === windowId);
+  }
+
   private focusSource = new BehaviorSubject<{
     id: string;
     unminimize: boolean | null;
@@ -46,12 +50,12 @@ export class WindowManagerService {
   }
 
   isOpened(windowId: string): boolean {
-    const window = this.windowsSource.value.find((win) => win.id === windowId);
+    const window = this.findWindow(windowId);
     return window ? !!window.opened : false;
   }
 
   isMinimized(windowId: string): boolean {
-    const window = this.windowsSource.value.find((win) => win.id === windowId);
+    const window = this.findWindow(windowId);
     return window ? !!window.minimized : false;
   }
 

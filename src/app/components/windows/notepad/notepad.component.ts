@@ -20,7 +20,7 @@ import css from 'highlight.js/lib/languages/css';
 import html from 'highlight.js/lib/languages/xml';
 import { FilesStoreService } from '../../../services/files-store.service';
 import { AuthenticationService } from '../../../services/api/authentication/authentication.service';
-import { HttpErrorResponse } from '@angular/common/http';
+import { logoutOn401 } from '../../../utils/file-utils';
 
 @Component({
   selector: 'app-notepad',
@@ -228,8 +228,6 @@ export class NotepadComponent implements OnChanges, OnInit {
   }
 
   private handleAuthError(err: unknown) {
-    if (err instanceof HttpErrorResponse && err.status === 401) {
-      this.authenticationService.logout();
-    }
+    logoutOn401(this.authenticationService, err);
   }
 }

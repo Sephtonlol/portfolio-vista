@@ -1,7 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { environment } from '../../../../enviroments/enviroment';
+import { ApiBaseService } from '../api-base.service';
 
 interface LoginResponse {
   message?: string;
@@ -14,8 +14,7 @@ type LoginApiResponse = LoginResponse;
 @Injectable({
   providedIn: 'root',
 })
-export class AuthenticationService {
-  private baseUrl = environment.backEndApiUrl;
+export class AuthenticationService extends ApiBaseService {
   private readonly tokenKey = 'pv_token';
   private readonly guestKey = 'pv_guest';
 
@@ -23,7 +22,8 @@ export class AuthenticationService {
   admin = signal(false);
   guest = signal(false);
 
-  constructor(private http: HttpClient) {
+  constructor(http: HttpClient) {
+    super(http);
     // Always show the lock/login screen after a full page reload.
     // (Do not persist auth state across refresh.)
     localStorage.removeItem(this.tokenKey);

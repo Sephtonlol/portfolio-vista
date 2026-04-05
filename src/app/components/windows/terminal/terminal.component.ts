@@ -8,13 +8,19 @@ import {
   ViewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { HttpErrorResponse } from '@angular/common/http';
 
 import { Data } from '../../../interfaces/window.interface';
 import { FileNode } from '../../../interfaces/file.interface';
 import { WindowManagerService } from '../../../services/window-manager.service';
 import { AuthenticationService } from '../../../services/api/authentication/authentication.service';
 import { FilesStoreService } from '../../../services/files-store.service';
+import {
+  fileDisplayName,
+  logoutOn401,
+  mimeToFileNodeType,
+  readFileAsDataUrl,
+  stripExtension,
+} from '../../../utils/file-utils';
 
 @Component({
   selector: 'app-terminal',
@@ -147,16 +153,7 @@ export class TerminalComponent implements OnInit {
   }
 
   private displayName(node: FileNode): string {
-    if (
-      node.type === 'directory' ||
-      node.type === 'shortcut' ||
-      node.type === 'url'
-    ) {
-      return node.name;
-    }
-
-    if (node.name.toLowerCase().endsWith(`.${node.type}`)) return node.name;
-    return `${node.name}.${node.type}`;
+    return fileDisplayName(node);
   }
 
   private splitArgs(input: string): string[] {
@@ -228,21 +225,6 @@ export class TerminalComponent implements OnInit {
       return raw.slice(0, -suffix.length);
     }
     return raw;
-  }
-
-  private stripExtension(filename: string): string {
-    const lastDot = filename.lastIndexOf('.');
-    if (lastDot <= 0) return filename;
-    return filename.slice(0, lastDot);
-  }
-
-  private readFileAsDataUrl(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onerror = () => reject(new Error('Failed to read file'));
-      reader.onload = () => resolve(String(reader.result ?? ''));
-      reader.readAsDataURL(file);
-    });
   }
 
   private async listChildren(parentId: string | null): Promise<FileNode[]> {
@@ -722,28 +704,21 @@ export class TerminalComponent implements OnInit {
 
     input!.value = '';
 
-    const mime = file.type || '';
-    const type = mime.startsWith('image/')
-      ? 'png'
-      : mime.startsWith('video/')
-        ? 'mp4'
-        : mime.startsWith('audio/')
-          ? 'mp3'
-          : null;
+    const type = mimeToFileNodeType(file.type || '');
 
     if (!type) {
       this.output.push('upload: unsupported file type');
       return;
     }
 
-    const name = this.stripExtension(file.name).trim();
+    const name = stripExtension(file.name).trim();
     if (!name) {
       this.output.push('upload: invalid file name');
       return;
     }
 
     try {
-      const dataUrl = await this.readFileAsDataUrl(file);
+      const dataUrl = await readFileAsDataUrl(file);
       await this.filesStore.create({
         name,
         type,
@@ -803,8 +778,6 @@ export class TerminalComponent implements OnInit {
   }
 
   private handleAuthError(err: unknown) {
-    if (err instanceof HttpErrorResponse && err.status === 401) {
-      this.authenticationService.logout();
-    }
+    logoutOn401(this.authenticationService, err);
   }
 }

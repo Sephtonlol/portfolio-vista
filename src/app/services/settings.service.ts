@@ -115,34 +115,30 @@ export class SettingsService {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
   }
 
-  updateImage(image: string | ArrayBuffer | null) {
-    const current = this.settingsSubject.value;
-    const updated = { ...current, backgroundImage: image };
+  private commit(
+    patch: Partial<AppSettings>,
+    after?: (s: AppSettings) => void,
+  ) {
+    const updated = { ...this.settingsSubject.value, ...patch };
     this.settingsSubject.next(updated);
     this.saveSettings(updated);
+    after?.(updated);
+  }
+
+  updateImage(image: string | ArrayBuffer | null) {
+    this.commit({ backgroundImage: image });
   }
 
   setBackgroundFit(fit: AppSettings['backgroundFit']) {
-    const current = this.settingsSubject.value;
-    const updated = { ...current, backgroundFit: fit };
-    this.settingsSubject.next(updated);
-    this.saveSettings(updated);
+    this.commit({ backgroundFit: fit });
   }
 
   setColorMode(mode: ColorMode) {
-    const current = this.settingsSubject.value;
-    const updated = { ...current, colorMode: mode };
-    this.settingsSubject.next(updated);
-    this.saveSettings(updated);
-    this.applyColorMode(mode);
+    this.commit({ colorMode: mode }, (s) => this.applyColorMode(s.colorMode));
   }
 
   setAccent(accent: AccentTheme) {
-    const current = this.settingsSubject.value;
-    const updated = { ...current, accent };
-    this.settingsSubject.next(updated);
-    this.saveSettings(updated);
-    this.applyAccent(accent);
+    this.commit({ accent }, (s) => this.applyAccent(s.accent));
   }
 
   // Backward-compatible legacy API (maps old single "theme" to mode/accent).
@@ -167,18 +163,13 @@ export class SettingsService {
   }
 
   toggleAnimations() {
-    const current = this.settingsSubject.value;
-    const updated = { ...current, animations: !current.animations };
-    this.settingsSubject.next(updated);
-    this.saveSettings(updated);
-    this.applyAnimations(updated.animations);
+    this.commit({ animations: !this.settingsSubject.value.animations }, (s) =>
+      this.applyAnimations(s.animations),
+    );
   }
 
   toggleBootAnimation() {
-    const current = this.settingsSubject.value;
-    const updated = { ...current, bootAnimation: !current.bootAnimation };
-    this.settingsSubject.next(updated);
-    this.saveSettings(updated);
+    this.commit({ bootAnimation: !this.settingsSubject.value.bootAnimation });
   }
 
   private applyAnimations(animations: boolean) {

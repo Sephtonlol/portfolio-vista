@@ -16,6 +16,16 @@ export type ExplorerClipboardEntry = {
 export class ExplorerClipboardService {
   private entry: ExplorerClipboardEntry | null = null;
 
+  private set(mode: ExplorerClipboardMode, item: FileNode): void {
+    if (!item._id) return;
+    this.entry = {
+      mode,
+      itemId: item._id,
+      sourceParentId: item.parentId ?? null,
+      snapshot: { ...item },
+    };
+  }
+
   get(): ExplorerClipboardEntry | null {
     return this.entry;
   }
@@ -25,22 +35,10 @@ export class ExplorerClipboardService {
   }
 
   cut(item: FileNode): void {
-    if (!item._id) return;
-    this.entry = {
-      mode: 'cut',
-      itemId: item._id,
-      sourceParentId: item.parentId ?? null,
-      snapshot: { ...item },
-    };
+    this.set('cut', item);
   }
 
   copy(item: FileNode): void {
-    if (!item._id) return;
-    this.entry = {
-      mode: 'copy',
-      itemId: item._id,
-      sourceParentId: item.parentId ?? null,
-      snapshot: { ...item },
-    };
+    this.set('copy', item);
   }
 }

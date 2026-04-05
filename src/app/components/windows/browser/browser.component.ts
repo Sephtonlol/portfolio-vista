@@ -10,6 +10,7 @@ import {
 import { WindowManagerService } from '../../../services/window-manager.service';
 import { FilesStoreService } from '../../../services/files-store.service';
 import { ContextMenuService } from '../../../services/context-menu.service';
+import { readBlobAsDataUrl } from '../../../utils/file-utils';
 
 type ImagePreviewStage = 'start' | 'end';
 
@@ -392,12 +393,7 @@ export class BrowserComponent {
       const res = await fetch(url, { mode: 'cors' });
       if (!res.ok) return null;
       const blob = await res.blob();
-      return await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onerror = () => reject(new Error('Failed to read image blob'));
-        reader.onload = () => resolve(String(reader.result ?? ''));
-        reader.readAsDataURL(blob);
-      });
+      return await readBlobAsDataUrl(blob);
     } catch {
       // CORS failures will land here.
       return null;

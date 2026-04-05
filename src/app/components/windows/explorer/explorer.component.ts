@@ -13,13 +13,19 @@ import { WindowManagerService } from '../../../services/window-manager.service';
 import { Data } from '../../../interfaces/window.interface';
 import { FilesStoreService } from '../../../services/files-store.service';
 import { AuthenticationService } from '../../../services/api/authentication/authentication.service';
-import { HttpErrorResponse } from '@angular/common/http';
 import { Subscription } from 'rxjs';
 import { ContextMenuService } from '../../../services/context-menu.service';
 import {
   ExplorerClipboardEntry,
   ExplorerClipboardService,
 } from '../../../services/explorer-clipboard.service';
+import {
+  fileDisplayName,
+  logoutOn401,
+  mimeToFileNodeType,
+  readFileAsDataUrl,
+  stripExtension,
+} from '../../../utils/file-utils';
 
 @Component({
   selector: 'app-explorer',
@@ -346,22 +352,15 @@ export class ExplorerComponent implements OnInit, OnDestroy {
     // Reset so selecting the same file twice still triggers change.
     input!.value = '';
 
-    const mime = file.type || '';
-    const type: FileNodeType | null = mime.startsWith('image/')
-      ? 'png'
-      : mime.startsWith('video/')
-        ? 'mp4'
-        : mime.startsWith('audio/')
-          ? 'mp3'
-          : null;
+    const type: FileNodeType | null = mimeToFileNodeType(file.type || '');
 
     if (!type) return;
 
-    const name = this.stripExtension(file.name).trim();
+    const name = stripExtension(file.name).trim();
     if (!name) return;
 
     try {
-      const dataUrl = await this.readFileAsDataUrl(file);
+      const dataUrl = await readFileAsDataUrl(file);
 
       await this.filesStore.create({
         name,
@@ -372,21 +371,6 @@ export class ExplorerComponent implements OnInit, OnDestroy {
     } catch (err) {
       this.handleAuthError(err);
     }
-  }
-
-  private stripExtension(filename: string): string {
-    const lastDot = filename.lastIndexOf('.');
-    if (lastDot <= 0) return filename;
-    return filename.slice(0, lastDot);
-  }
-
-  private readFileAsDataUrl(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onerror = () => reject(new Error('Failed to read file'));
-      reader.onload = () => resolve(String(reader.result ?? ''));
-      reader.readAsDataURL(file);
-    });
   }
 
   startInlineCreate(kind: 'directory' | 'md') {
@@ -597,16 +581,7 @@ export class ExplorerComponent implements OnInit, OnDestroy {
   }
 
   displayName(file: FileNode): string {
-    if (
-      file.type === 'directory' ||
-      file.type === 'shortcut' ||
-      file.type === 'url'
-    ) {
-      return file.name;
-    }
-
-    if (file.name.toLowerCase().endsWith(`.${file.type}`)) return file.name;
-    return `${file.name}.${file.type}`;
+    return fileDisplayName(file);
   }
 
   onOpenItem(file: FileNode) {
@@ -845,8 +820,6 @@ export class ExplorerComponent implements OnInit, OnDestroy {
   }
 
   private handleAuthError(err: unknown) {
-    if (err instanceof HttpErrorResponse && err.status === 401) {
-      this.authenticationService.logout();
-    }
+    logoutOn401(this.authenticationService, err);
   }
 }

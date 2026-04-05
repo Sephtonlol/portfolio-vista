@@ -1,15 +1,15 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { environment } from '../../../../enviroments/enviroment';
 import { FileNode, FileNodeType } from '../../../interfaces/file.interface';
+import { ApiBaseService } from '../api-base.service';
 
 @Injectable({
   providedIn: 'root',
 })
-export class FilesService {
-  private readonly baseUrl = environment.backEndApiUrl;
-
-  constructor(private http: HttpClient) {}
+export class FilesService extends ApiBaseService {
+  constructor(http: HttpClient) {
+    super(http);
+  }
 
   // GET /items?parentId=<id|null>
   listByParent(parentId: string | null) {
