@@ -145,6 +145,11 @@ export class AppComponent implements OnInit, OnDestroy {
       this.bootTimeoutId = undefined;
     }
 
+    if (this.bootExitTimeoutId != null) {
+      window.clearTimeout(this.bootExitTimeoutId);
+      this.bootExitTimeoutId = undefined;
+    }
+
     this.bootScreenMode = 'boot';
     this.bootScreenPreDelayMs = 1000;
     this.bootScreenTailHoldMs = 1500;
@@ -163,15 +168,23 @@ export class AppComponent implements OnInit, OnDestroy {
 
     this.bootScreenVisible = true;
     this.bootScreenExiting = false;
+
+    // Visibility is now controlled by the boot screen itself via `(finished)`.
+    // Keep a long safety timeout to prevent getting stuck if something goes wrong.
     this.bootTimeoutId = window.setTimeout(() => {
-      this.bootScreenVisible = false;
-    }, this.bootScreenTotalDurationMs + 250);
+      this.onBootScreenFinished();
+    }, this.bootScreenTotalDurationMs + 15000);
   }
 
   private startResumeAnimation(): void {
     if (this.bootTimeoutId != null) {
       window.clearTimeout(this.bootTimeoutId);
       this.bootTimeoutId = undefined;
+    }
+
+    if (this.bootExitTimeoutId != null) {
+      window.clearTimeout(this.bootExitTimeoutId);
+      this.bootExitTimeoutId = undefined;
     }
 
     this.bootScreenMode = 'resume';
@@ -182,9 +195,35 @@ export class AppComponent implements OnInit, OnDestroy {
 
     this.bootScreenVisible = true;
     this.bootScreenExiting = false;
+
+    // Visibility is now controlled by the boot screen itself via `(finished)`.
+    // Keep a long safety timeout to prevent getting stuck if something goes wrong.
     this.bootTimeoutId = window.setTimeout(() => {
+      this.onBootScreenFinished();
+    }, this.bootScreenTotalDurationMs + 15000);
+  }
+
+  onBootScreenFinished(): void {
+    if (!this.bootScreenVisible) {
+      return;
+    }
+
+    if (this.bootTimeoutId != null) {
+      window.clearTimeout(this.bootTimeoutId);
+      this.bootTimeoutId = undefined;
+    }
+
+    if (this.bootExitTimeoutId != null) {
+      window.clearTimeout(this.bootExitTimeoutId);
+      this.bootExitTimeoutId = undefined;
+    }
+
+    // Small delay to avoid a jarring cut.
+    this.bootScreenExiting = true;
+    this.bootExitTimeoutId = window.setTimeout(() => {
       this.bootScreenVisible = false;
-    }, this.bootScreenTotalDurationMs + 250);
+      this.bootScreenExiting = false;
+    }, 200);
   }
 
   private enterSleep(): void {

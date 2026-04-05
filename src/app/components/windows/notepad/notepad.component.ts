@@ -136,7 +136,10 @@ export class NotepadComponent
       if (!textarea) return;
       textarea.focus();
       try {
-        textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+        textarea.setSelectionRange(
+          textarea.value.length,
+          textarea.value.length,
+        );
       } catch {
         // ignore
       }

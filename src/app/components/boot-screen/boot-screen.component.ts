@@ -1,4 +1,11 @@
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+} from '@angular/core';
 
 type BootLine = {
   id: number;
@@ -20,6 +27,8 @@ type BootStep = {
 })
 export class BootScreenComponent implements OnInit, OnDestroy {
   @Input() exiting = false;
+
+  @Output() finished = new EventEmitter<void>();
 
   @Input() totalDurationMs = 2000;
 
@@ -57,6 +66,7 @@ export class BootScreenComponent implements OnInit, OnDestroy {
   private spinnerIntervalId?: number;
   private scheduledTimeoutIds: number[] = [];
   private preDelayTimeoutId?: number;
+  private hasFinished = false;
 
   ngOnInit(): void {
     this.statusText =
@@ -148,15 +158,23 @@ export class BootScreenComponent implements OnInit, OnDestroy {
   private runBootSequence(preDelayMs: number): void {
     const steps = this.buildBootSteps();
 
+    const errorLinesShown: string[] = [];
+
     this.currentProgressPct = 0;
     this.progressBarText = this.renderProgressBar(this.currentProgressPct);
 
+    // `totalDurationMs` is intended to represent the *entire* boot screen lifetime
+    // (including the initial black pre-delay). Since the sequence starts *after*
+    // `preDelayMs` has elapsed, we compute the available time for the sequence
+    // by subtracting `preDelayMs` once (not twice).
     const total = Math.max(700, this.totalDurationMs);
-    const tail = Math.max(0, Math.min(5000, this.tailHoldMs));
-    const effectiveTotal = Math.max(
-      700,
-      total - tail - Math.max(0, preDelayMs),
-    );
+    const pre = Math.max(0, preDelayMs);
+    const sequenceTotal = Math.max(700, total - pre);
+
+    // Keep the ending on screen for a bit (but don't force it to be multiple seconds).
+    const tail = Math.max(300, Math.min(8000, this.tailHoldMs));
+
+    const effectiveTotal = Math.max(700, sequenceTotal - tail);
     const sumBase = steps.reduce((acc, s) => acc + s.baseDelayMs, 0);
     const scale = sumBase > 0 ? effectiveTotal / sumBase : 1;
 
@@ -185,11 +203,22 @@ export class BootScreenComponent implements OnInit, OnDestroy {
           this.pushLine('Portfolio Vista login:');
         }
 
+        const extraTail = this.extraTailHoldForErrors(errorLinesShown);
+
         const timeoutId = window.setTimeout(() => {
           this.setProgress(100);
           this.statusText =
             this.mode === 'resume' ? 'Ready.' : 'Launching desktop...';
-        }, tail);
+
+          if (!this.hasFinished) {
+            this.hasFinished = true;
+            if (this.spinnerIntervalId != null) {
+              window.clearInterval(this.spinnerIntervalId);
+              this.spinnerIntervalId = undefined;
+            }
+            this.finished.emit();
+          }
+        }, tail + extraTail);
         this.scheduledTimeoutIds.push(timeoutId);
         return;
       }
@@ -200,13 +229,16 @@ export class BootScreenComponent implements OnInit, OnDestroy {
       }
 
       this.pushLine(step.text);
+      if (this.isErrorLine(step.text)) {
+        errorLinesShown.push(step.text);
+      }
       this.setProgress(this.progressPlan[index] ?? 100);
 
       const base = Math.max(
         step.minDelayMs ?? 70,
         Math.round(step.baseDelayMs * scale),
       );
-      const jitter = this.jitterMs(base);
+      const jitter = this.jitterMs(base + this.extraDelayForLine(step.text));
       const timeoutId = window.setTimeout(() => runNext(), jitter);
       this.scheduledTimeoutIds.push(timeoutId);
       index += 1;
@@ -298,9 +330,178 @@ export class BootScreenComponent implements OnInit, OnDestroy {
     return Math.max(30, baseDelayMs + delta);
   }
 
+  private getLineSeverity(text: string): 'ok' | 'warn' | 'fail' {
+    const t = text ?? '';
+
+    // Treat dependency failures as failures (reads like a hard error).
+    if (/(\[\s*FAILED\s*\])|\bFAILED\b|\bERROR\b|\[\s*DEPEND\s*\]/i.test(t)) {
+      return 'fail';
+    }
+
+    if (/(\[\s*(?:WARN|WARNING)\s*\])|\bWARNING\b|\bWARN\b/i.test(t)) {
+      return 'warn';
+    }
+
+    return 'ok';
+  }
+
+  isErrorLine(text: string): boolean {
+    // Any boot “problem” should pop in red.
+    // Includes bracketed levels and common kernel wording.
+    return this.getLineSeverity(text) !== 'ok';
+  }
+
+  private extraDelayForLine(text: string): number {
+    // Make errors feel like they “hang” on screen.
+    const severity = this.getLineSeverity(text);
+    if (severity === 'fail') return 1200;
+    if (severity === 'warn') return 600;
+    return 0;
+  }
+
+  private extraTailHoldForErrors(errorTexts: string[]): number {
+    let extra = 0;
+
+    for (const t of errorTexts) {
+      const sev = this.getLineSeverity(t);
+      extra += sev === 'fail' ? 1600 : 800;
+    }
+
+    // Prevent absurdly long boots if randomness goes wild.
+    return Math.max(0, Math.min(12000, extra));
+  }
+
+  private sample<T>(items: readonly T[]): T {
+    return items[this.randomInt(0, Math.max(0, items.length - 1))]!;
+  }
+
+  private insertNoise(
+    steps: BootStep[],
+    opts: {
+      // Number of injected lines.
+      count: number;
+      // Chance a noise line is a hard failure (vs warning).
+      failureChance: number;
+      // Ensure at least one hard failure.
+      forceFailure?: boolean;
+    },
+  ): BootStep[] {
+    if (steps.length === 0 || opts.count <= 0) return steps;
+
+    const warningPool: BootStep[] = [
+      {
+        text: '[ WARN ] CPU fan speed exceeded vibes threshold (code=0xV1B3S)',
+        baseDelayMs: 160,
+      },
+      {
+        text: 'kernel: WARNING: /dev/coffee0: beans not found; using instant (code=0x1N5T4NT)',
+        baseDelayMs: 190,
+      },
+      {
+        text: '[ WARN ] Time drift detected: NTP argues with the sun (code=0x5UND14L)',
+        baseDelayMs: 180,
+      },
+      {
+        text: '[ WARN ] Bluetooth: discovered 12 devices named "Toaster" (code=0xBREAD)',
+        baseDelayMs: 180,
+      },
+      {
+        text: 'systemd[1]: WARNING: unit "motivation.service" is masked (code=0xN0P3)',
+        baseDelayMs: 210,
+      },
+      {
+        text: '[ WARN ] GPU driver requested a hug; denied (code=0xS4D)',
+        baseDelayMs: 170,
+      },
+      {
+        text: '[ WARN ] Low disk space in /var/log/complaints (code=0xWH1N3)',
+        baseDelayMs: 170,
+      },
+      {
+        text: 'kernel: WARNING: entropy pool is feeling shy today (code=0x5HYY)',
+        baseDelayMs: 190,
+      },
+      {
+        text: '[ WARN ] DNS temporarily replaced with "ask a friend" (code=0xBUDDY)',
+        baseDelayMs: 190,
+      },
+      {
+        text: '[ WARN ] Detected rogue semicolon; attempting negotiation (code=0x3B1C0L0N)',
+        baseDelayMs: 190,
+      },
+    ];
+
+    const failurePool: BootStep[] = [
+      {
+        text: '[FAILED] Failed to mount /mnt/usb-stick (code=E_B0RK_0007)',
+        baseDelayMs: 420,
+        minDelayMs: 220,
+        statusText: 'Handling startup errors...',
+      },
+      {
+        text: 'systemd[1]: Job dev-sdb1.device/start timed out. (code=E_TIM3_0UT)',
+        baseDelayMs: 780,
+        minDelayMs: 280,
+      },
+      {
+        text: '[DEPEND] Dependency failed for Bluetooth service',
+        baseDelayMs: 280,
+      },
+      {
+        text: '[FAILED] NetworkManager: could not negotiate with the router (it said "no") (code=E_N0P3)',
+        baseDelayMs: 520,
+        minDelayMs: 240,
+      },
+      {
+        text: '[FAILED] Kernel panic averted: rebooted the panic (code=E_P4N1C_N0W)',
+        baseDelayMs: 460,
+        minDelayMs: 220,
+      },
+      {
+        text: '[FAILED] Printer daemon started printing feelings (code=E_M00D)',
+        baseDelayMs: 360,
+        minDelayMs: 200,
+      },
+      {
+        text: '[FAILED] /dev/null is full (please delete something) (code=E_NU11)',
+        baseDelayMs: 340,
+        minDelayMs: 190,
+      },
+      {
+        text: '[FAILED] Service "make-it-work.service" exited with status 42 (code=E_L1F3)',
+        baseDelayMs: 400,
+        minDelayMs: 210,
+      },
+    ];
+
+    const result = [...steps];
+
+    // Avoid injecting at index 0 (looks odd before kernel load line).
+    const minIndex = Math.min(2, Math.max(1, result.length));
+    const maxIndex = Math.max(minIndex, result.length - 1);
+
+    let injectedFailures = 0;
+    const total = Math.min(opts.count, 10);
+
+    for (let i = 0; i < total; i += 1) {
+      const shouldFail =
+        Math.random() < opts.failureChance ||
+        (opts.forceFailure && i === total - 1 && injectedFailures === 0);
+
+      const step = shouldFail
+        ? (injectedFailures++, this.sample(failurePool))
+        : this.sample(warningPool);
+
+      const at = this.randomInt(minIndex, maxIndex);
+      result.splice(at, 0, step);
+    }
+
+    return result;
+  }
+
   private buildBootSteps(): BootStep[] {
     if (this.mode === 'resume') {
-      return [
+      const steps: BootStep[] = [
         {
           text: 'PM: resume from S3 (sleep) initiated',
           baseDelayMs: 160,
@@ -324,9 +525,20 @@ export class BootScreenComponent implements OnInit, OnDestroy {
         },
         { text: '[ OK ] Reached target User Login', baseDelayMs: 190 },
       ];
+
+      // Increase frequency/variety of errors a bit, even in normal resume.
+      const count = this.errorMode
+        ? this.randomInt(3, 6)
+        : this.randomInt(1, 3);
+      const failureChance = this.errorMode ? 0.55 : 0.2;
+      return this.insertNoise(steps, {
+        count,
+        failureChance,
+        forceFailure: this.errorMode,
+      });
     }
 
-    const steps: BootStep[] = [
+    let steps: BootStep[] = [
       {
         text: 'Loading Linux kernel...',
         baseDelayMs: 120,
@@ -390,31 +602,24 @@ export class BootScreenComponent implements OnInit, OnDestroy {
       { text: '[ OK ] Reached target Graphical Interface', baseDelayMs: 230 },
     ];
 
-    if (!this.errorMode) {
-      return steps;
+    // Inject a higher chance of funny warnings/errors.
+    // - In normal mode: usually 1-2 warnings, occasional failure.
+    // - In errorMode: always several lines, with at least one hard failure.
+    if (this.errorMode) {
+      steps = this.insertNoise(steps, {
+        count: this.randomInt(4, 8),
+        failureChance: 0.6,
+        forceFailure: true,
+      });
+    } else {
+      const shouldAdd = Math.random() < 0.75;
+      steps = shouldAdd
+        ? this.insertNoise(steps, {
+            count: this.randomInt(1, 3),
+            failureChance: 0.15,
+          })
+        : steps;
     }
-
-    const errorInsertAt = 10;
-    steps.splice(
-      errorInsertAt,
-      0,
-      {
-        text: '[FAILED] Failed to mount /mnt/usb-stick (code=E_B0RK_0007)',
-        baseDelayMs: 420,
-        minDelayMs: 220,
-        statusText: 'Handling startup errors...',
-      },
-      {
-        text: 'systemd[1]: Job dev-sdb1.device/start timed out. (code=E_TIM3_0UT)',
-        baseDelayMs: 780,
-        minDelayMs: 280,
-      },
-      {
-        text: '[DEPEND] Dependency failed for Bluetooth service',
-        baseDelayMs: 280,
-      },
-      { text: 'Recovering journal... done', baseDelayMs: 520, minDelayMs: 240 },
-    );
 
     return steps;
   }

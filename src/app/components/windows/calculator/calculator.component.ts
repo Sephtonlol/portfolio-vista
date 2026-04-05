@@ -179,7 +179,7 @@ export class CalculatorComponent implements AfterViewInit, OnDestroy {
     }
 
     this.history.unshift(
-      `${this.previous} ${this.operator} ${this.current} = ${result}`
+      `${this.previous} ${this.operator} ${this.current} = ${result}`,
     );
     this.display = result.toString();
     this.topDisplay = '';

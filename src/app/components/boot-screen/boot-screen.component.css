@@ -47,6 +47,10 @@
   margin: 0;
 }
 
+.boot-line-error {
+  color: #ff5a5a;
+}
+
 .boot-hud {
   display: flex;
   flex-direction: column;

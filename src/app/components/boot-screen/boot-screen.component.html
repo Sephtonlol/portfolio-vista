@@ -3,7 +3,12 @@
     <div class="boot-terminal" aria-label="Boot log">
       <div class="boot-log" role="log" aria-live="polite">
         @for (line of renderedLines; track line.id) {
-          <div class="boot-line">{{ line.text }}</div>
+          <div
+            class="boot-line"
+            [class.boot-line-error]="isErrorLine(line.text)"
+          >
+            {{ line.text }}
+          </div>
         }
       </div>
 
