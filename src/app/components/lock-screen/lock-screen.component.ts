@@ -64,7 +64,6 @@ export class LockScreenComponent implements OnInit, OnDestroy {
   passwordHidden = false;
   password = '';
   settings: AppSettings | null = null;
-  public width = window.innerWidth;
 
   @ViewChild('passwordInput')
   private passwordInput?: ElementRef<HTMLInputElement>;
