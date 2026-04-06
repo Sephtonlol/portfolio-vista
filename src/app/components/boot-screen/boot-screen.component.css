@@ -33,7 +33,10 @@
 
 .boot-log {
   flex: 1;
-  overflow: hidden;
+  min-height: 0;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
@@ -62,4 +65,15 @@
 .boot-progress,
 .boot-spinner {
   font-weight: normal;
+}
+
+@media (max-width: 600px) {
+  .boot-terminal {
+    padding: 1.25rem 1rem;
+  }
+
+  .boot-log,
+  .boot-hud {
+    font-size: 0.85rem;
+  }
 }

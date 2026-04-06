@@ -1,7 +1,7 @@
 <div class="boot-screen" [class.exiting]="exiting">
   @if (contentVisible) {
     <div class="boot-terminal" aria-label="Boot log">
-      <div class="boot-log" role="log" aria-live="polite">
+      <div class="boot-log" #bootLog role="log" aria-live="polite">
         @for (line of renderedLines; track line.id) {
           <div
             class="boot-line"

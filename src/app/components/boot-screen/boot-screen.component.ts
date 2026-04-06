@@ -1,10 +1,12 @@
 import {
   Component,
+  ElementRef,
   EventEmitter,
   Input,
   OnDestroy,
   OnInit,
   Output,
+  ViewChild,
 } from '@angular/core';
 
 type BootLine = {
@@ -48,6 +50,8 @@ export class BootScreenComponent implements OnInit, OnDestroy {
   statusText = 'Starting system...';
 
   contentVisible = false;
+
+  @ViewChild('bootLog') private bootLogRef?: ElementRef<HTMLElement>;
 
   private readonly spinnerFrames = ['-', '\\', '|', '/'];
   private readonly maxLines = 22;
@@ -200,7 +204,7 @@ export class BootScreenComponent implements OnInit, OnDestroy {
         } else {
           this.pushLine('Starting GNOME Display Manager...');
           this.pushLine('[ OK ] Started GNOME Display Manager');
-          this.pushLine('Portfolio Vista login:');
+          this.pushLine('Portfolio login:');
         }
 
         const extraTail = this.extraTailHoldForErrors(errorLinesShown);
@@ -252,6 +256,17 @@ export class BootScreenComponent implements OnInit, OnDestroy {
     if (this.renderedLines.length > this.maxLines) {
       this.renderedLines.splice(0, this.renderedLines.length - this.maxLines);
     }
+    this.scrollBootLogToBottom();
+  }
+
+  private scrollBootLogToBottom(): void {
+    const el = this.bootLogRef?.nativeElement;
+    if (!el) return;
+
+    // Ensure we scroll after Angular has rendered the new line.
+    window.requestAnimationFrame(() => {
+      el.scrollTop = el.scrollHeight;
+    });
   }
 
   private setProgress(pct: number): void {
