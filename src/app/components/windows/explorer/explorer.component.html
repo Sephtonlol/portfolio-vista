@@ -18,9 +18,9 @@
   <input type="text" [(ngModel)]="searchTerm" placeholder="Search..." />
   <i
     class="bi"
-    [class.bi-justify]="!viewList"
-    [class.bi-grid]="viewList"
-    (click)="viewList = !viewList"
+    [class.bi-justify]="isListMode"
+    [class.bi-grid]="isTilesMode"
+    (click)="cycleViewMode()"
   ></i>
 </div>
 
@@ -35,20 +35,30 @@
 @if (windowWidth < 992) {
   <div
     class="explorer-list"
-    [class.explorer-list-tiles]="!viewList"
+    [class.explorer-list-tiles]="isTilesMode"
+    [class.explorer-list-large]="viewMode === 'listLarge'"
+    [class.explorer-list-tiles-large]="viewMode === 'tilesLarge'"
     (contextmenu)="onBackgroundContextMenu($event)"
     (click)="onListClick($event)"
   >
     @if (inlineCreateKind) {
       <div
         class="explorer-item explorer-inline-create"
-        [class.explorer-item-tiles]="!viewList"
+        [class.explorer-item-tiles]="isTilesMode"
+        [class.explorer-item-list-large]="viewMode === 'listLarge'"
+        [class.explorer-item-tiles-large]="viewMode === 'tilesLarge'"
       >
-        <i
-          class="bi"
-          [class.bi-folder]="inlineCreateKind === 'directory'"
-          [class.bi-file-earmark-text]="inlineCreateKind === 'md'"
-        ></i>
+        <div
+          class="explorer-icon"
+          [class.explorer-icon-list-large]="viewMode === 'listLarge'"
+          [class.explorer-icon-tiles-large]="viewMode === 'tilesLarge'"
+        >
+          <i
+            class="bi explorer-main-icon"
+            [class.bi-folder]="inlineCreateKind === 'directory'"
+            [class.bi-file-earmark-text]="inlineCreateKind === 'md'"
+          ></i>
+        </div>
         <input
           #inlineCreateInput
           class="explorer-inline-input"
@@ -73,18 +83,42 @@
     @for (file of filteredChildren; track file) {
       <div
         class="explorer-item"
-        [class.explorer-item-tiles]="!viewList"
+        [class.explorer-item-tiles]="isTilesMode"
+        [class.explorer-item-list-large]="viewMode === 'listLarge'"
+        [class.explorer-item-tiles-large]="viewMode === 'tilesLarge'"
         [class.explorer-item-cut]="isCut(file)"
         (click)="onOpenItem(file)"
         (contextmenu)="onItemContextMenu(file, $event)"
       >
-        @if (file.type === "shortcut") {
-          <i
-            class="bi bi-arrow-up-right-square-fill shortcut"
-            [class.shortcut-list-tiles]="!viewList"
-          ></i>
-        }
-        <i class="bi {{ getFileIcon(file.type) }}"></i>
+        <div
+          class="explorer-icon"
+          [class.explorer-icon-list-large]="viewMode === 'listLarge'"
+          [class.explorer-icon-tiles-large]="viewMode === 'tilesLarge'"
+        >
+          @if (getThumbnail(file); as thumb) {
+            @if (thumb.kind === "image") {
+              <img class="explorer-thumb" [src]="thumb.src" alt="" />
+            } @else {
+              <video
+                class="explorer-thumb"
+                [src]="thumb.src"
+                muted
+                playsinline
+                preload="metadata"
+              ></video>
+            }
+          } @else {
+            <i [class]="'bi explorer-main-icon ' + getItemIcon(file)"></i>
+          }
+          @if (file.type === "shortcut") {
+            <i
+              class="bi bi-arrow-up-right-square-fill explorer-shortcut-overlay"
+              [class.explorer-shortcut-overlay-renaming]="
+                !!file._id && renamingId === file._id
+              "
+            ></i>
+          }
+        </div>
 
         @if (file._id && renamingId === file._id) {
           <input
@@ -97,7 +131,7 @@
             (blur)="confirmRename()"
           />
         } @else {
-          <p>
+          <p class="explorer-name">
             {{ displayName(file) }}
           </p>
         }
@@ -107,20 +141,30 @@
 } @else {
   <div
     class="explorer-list"
-    [class.explorer-list-tiles]="!viewList"
+    [class.explorer-list-tiles]="isTilesMode"
+    [class.explorer-list-large]="viewMode === 'listLarge'"
+    [class.explorer-list-tiles-large]="viewMode === 'tilesLarge'"
     (contextmenu)="onBackgroundContextMenu($event)"
     (click)="onListClick($event)"
   >
     @if (inlineCreateKind) {
       <div
         class="explorer-item explorer-inline-create"
-        [class.explorer-item-tiles]="!viewList"
+        [class.explorer-item-tiles]="isTilesMode"
+        [class.explorer-item-list-large]="viewMode === 'listLarge'"
+        [class.explorer-item-tiles-large]="viewMode === 'tilesLarge'"
       >
-        <i
-          class="bi"
-          [class.bi-folder]="inlineCreateKind === 'directory'"
-          [class.bi-file-earmark-text]="inlineCreateKind === 'md'"
-        ></i>
+        <div
+          class="explorer-icon"
+          [class.explorer-icon-list-large]="viewMode === 'listLarge'"
+          [class.explorer-icon-tiles-large]="viewMode === 'tilesLarge'"
+        >
+          <i
+            class="bi explorer-main-icon"
+            [class.bi-folder]="inlineCreateKind === 'directory'"
+            [class.bi-file-earmark-text]="inlineCreateKind === 'md'"
+          ></i>
+        </div>
         <input
           #inlineCreateInput
           class="explorer-inline-input"
@@ -145,18 +189,42 @@
     @for (file of filteredChildren; track file) {
       <div
         class="explorer-item"
-        [class.explorer-item-tiles]="!viewList"
+        [class.explorer-item-tiles]="isTilesMode"
+        [class.explorer-item-list-large]="viewMode === 'listLarge'"
+        [class.explorer-item-tiles-large]="viewMode === 'tilesLarge'"
         [class.explorer-item-cut]="isCut(file)"
         (dblclick)="onOpenItem(file)"
         (contextmenu)="onItemContextMenu(file, $event)"
       >
-        @if (file.type === "shortcut") {
-          <i
-            class="bi bi-arrow-up-right-square-fill shortcut"
-            [class.shortcut-list-tiles]="!viewList"
-          ></i>
-        }
-        <i class="bi {{ getFileIcon(file.type) }}"></i>
+        <div
+          class="explorer-icon"
+          [class.explorer-icon-list-large]="viewMode === 'listLarge'"
+          [class.explorer-icon-tiles-large]="viewMode === 'tilesLarge'"
+        >
+          @if (getThumbnail(file); as thumb) {
+            @if (thumb.kind === "image") {
+              <img class="explorer-thumb" [src]="thumb.src" alt="" />
+            } @else {
+              <video
+                class="explorer-thumb"
+                [src]="thumb.src"
+                muted
+                playsinline
+                preload="metadata"
+              ></video>
+            }
+          } @else {
+            <i [class]="'bi explorer-main-icon ' + getItemIcon(file)"></i>
+          }
+          @if (file.type === "shortcut") {
+            <i
+              class="bi bi-arrow-up-right-square-fill explorer-shortcut-overlay"
+              [class.explorer-shortcut-overlay-renaming]="
+                !!file._id && renamingId === file._id
+              "
+            ></i>
+          }
+        </div>
 
         @if (file._id && renamingId === file._id) {
           <input
@@ -169,7 +237,7 @@
             (blur)="confirmRename()"
           />
         } @else {
-          <p>
+          <p class="explorer-name">
             {{ displayName(file) }}
           </p>
         }

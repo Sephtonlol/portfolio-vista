@@ -50,7 +50,7 @@ export class ExplorerComponent implements OnInit, OnDestroy {
   pathInput: string = '';
   windowWidth = window.innerWidth;
 
-  viewList = true;
+  viewMode: 'listLarge' | 'tilesLarge' = 'listLarge';
 
   pathHistory: string[] = ['/'];
   historyIndex: number = 0;
@@ -74,6 +74,61 @@ export class ExplorerComponent implements OnInit, OnDestroy {
     public contextMenu: ContextMenuService,
     private clipboard: ExplorerClipboardService,
   ) {}
+
+  get isTilesMode(): boolean {
+    return this.viewMode === 'tilesLarge';
+  }
+
+  get isListMode(): boolean {
+    return !this.isTilesMode;
+  }
+
+  cycleViewMode(): void {
+    this.viewMode = this.viewMode === 'listLarge' ? 'tilesLarge' : 'listLarge';
+  }
+
+  private resolveEffectiveNode(file: FileNode): FileNode {
+    if (file.type !== 'shortcut') return file;
+
+    const visited = new Set<string>();
+    let current: FileNode = file;
+
+    for (let depth = 0; depth < 25; depth++) {
+      if (current.type !== 'shortcut') return current;
+
+      const target = current.shortcutTo ?? current.content;
+      if (!target) return current;
+
+      // Path shortcuts ("/foo/bar") behave like directories for icon purposes.
+      if (target.startsWith('/')) {
+        return { name: current.name, type: 'directory' } as FileNode;
+      }
+
+      if (visited.has(target)) return current;
+      visited.add(target);
+
+      const resolved = this.filesStore.getById(target);
+      if (!resolved || !resolved._id) return current;
+      if (current._id && resolved._id === current._id) return current;
+
+      current = resolved;
+    }
+
+    return current;
+  }
+
+  getThumbnail(
+    file: FileNode,
+  ): { kind: 'image' | 'video'; src: string } | null {
+    const node = this.resolveEffectiveNode(file);
+    const src = node.url ?? node.content ?? '';
+    if (!src) return null;
+
+    if (node.type === 'png') return { kind: 'image', src };
+    if (node.type === 'mp4') return { kind: 'video', src };
+
+    return null;
+  }
 
   ngOnDestroy(): void {
     this.childrenSub?.unsubscribe();
@@ -584,10 +639,14 @@ export class ExplorerComponent implements OnInit, OnDestroy {
       });
   }
 
-  getFileIcon(type: string): string {
+  getItemIcon(file: FileNode): string {
+    const node = this.resolveEffectiveNode(file);
+    return this.getFileIconByType(node.type);
+  }
+
+  private getFileIconByType(type: FileNodeType): string {
     switch (type) {
       case 'directory':
-      case 'shortcut':
         return 'bi-folder';
       case 'md':
         return 'bi-file-earmark-text';
@@ -599,6 +658,9 @@ export class ExplorerComponent implements OnInit, OnDestroy {
         return 'bi-film';
       case 'url':
         return 'bi-link-45deg';
+      case 'shortcut':
+        // Fallback icon when the shortcut target can't be resolved yet.
+        return 'bi-folder';
       default:
         return 'bi-file-earmark';
     }

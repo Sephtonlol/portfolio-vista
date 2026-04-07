@@ -175,14 +175,31 @@ export class DesktopApplicationComponent implements AfterViewInit {
   }
 
   private getEffectiveNode(): FileNode {
-    if (this.application.type !== 'shortcut') return this.application;
+    const visited = new Set<string>();
+    let current: FileNode = this.application;
 
-    const target = this.application.shortcutTo ?? this.application.content;
-    if (!target) return this.application;
-    if (target.startsWith('/')) return this.application;
+    for (let depth = 0; depth < 25; depth++) {
+      if (current.type !== 'shortcut') return current;
 
-    const resolved = this.filesStore.getById(target);
-    return resolved ?? this.application;
+      const target = current.shortcutTo ?? current.content;
+      if (!target) return current;
+
+      // Path shortcuts open in Explorer; treat as a directory for display.
+      if (target.startsWith('/')) {
+        return { name: current.name, type: 'directory', content: target };
+      }
+
+      if (visited.has(target)) return current;
+      visited.add(target);
+
+      const resolved = this.filesStore.getById(target);
+      if (!resolved || !resolved._id) return current;
+      if (current._id && resolved._id === current._id) return current;
+
+      current = resolved;
+    }
+
+    return current;
   }
 
   openApplication(): void {

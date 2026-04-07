@@ -64,8 +64,28 @@ export class DesktopComponent implements OnInit, OnDestroy {
   }
 
   desktopPosition(index: number): { x: number; y: number } {
-    // Keep y=0/1 reserved for the pinned social shortcuts.
-    return { x: 0, y: index + 2 };
+    // Windows-style layout: fill top-to-bottom, then next column.
+    // Keep (0,0) and (0,1) reserved for the pinned social shortcuts.
+    const gridSize = 100;
+
+    const reservedRowsInFirstColumn = 2;
+    const taskbarHeight = 56;
+    const availableHeight = Math.max(0, window.innerHeight - taskbarHeight);
+    const maxRows = Math.max(1, Math.floor(availableHeight / gridSize));
+
+    const firstColumnCapacity = Math.max(
+      0,
+      maxRows - reservedRowsInFirstColumn,
+    );
+
+    if (index < firstColumnCapacity) {
+      return { x: 0, y: index + reservedRowsInFirstColumn };
+    }
+
+    const remaining = index - firstColumnCapacity;
+    const x = 1 + Math.floor(remaining / maxRows);
+    const y = remaining % maxRows;
+    return { x, y };
   }
 
   private async initDesktopItems(): Promise<void> {
