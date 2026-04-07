@@ -565,12 +565,7 @@ export class ExplorerComponent implements OnInit, OnDestroy {
 
     // Prefer folderId if provided; otherwise resolve a path string.
     if (this.data?.folderId !== undefined) {
-      this.currentFolderId = this.data.folderId;
-      this.folderIdStack = [null];
-      if (this.currentFolderId) this.folderIdStack.push(this.currentFolderId);
-      this.currentPath = [];
-      this.pathInput = '/';
-      void this.loadChildren();
+      void this.initFromFolderId(this.data.folderId);
       return;
     }
 
@@ -581,6 +576,70 @@ export class ExplorerComponent implements OnInit, OnDestroy {
         : '/' + initialPath
       : '/';
     void this.goToTypedPath();
+  }
+
+  private async initFromFolderId(folderId: string | null): Promise<void> {
+    this.currentFolderId = folderId;
+    this.searchTerm = '';
+
+    if (!folderId) {
+      this.currentPath = [];
+      this.folderIdStack = [null];
+      this.pathInput = '/';
+      this.pathHistory = [this.pathInput];
+      this.historyIndex = 0;
+      await this.loadChildren();
+      return;
+    }
+
+    // 1) Best case: rebuild the full path from the local cache.
+    const cached = this.resolveCachedDirectoryPath(folderId);
+    if (cached) {
+      this.currentPath = cached.pathNames;
+      this.folderIdStack = cached.idStack;
+      this.pathInput = '/' + this.currentPath.join('/');
+      this.pathHistory = [this.pathInput];
+      this.historyIndex = 0;
+      await this.loadChildren();
+      return;
+    }
+
+    // 2) Desktop launch fallback: try to infer "/Desktop/<name>".
+    // This makes path + Up navigation work even if the full ancestor chain
+    // hasn't been cached yet.
+    try {
+      const rootChildren = await this.filesStore.list(null);
+      const desktop = rootChildren.find(
+        (c) => c.type === 'directory' && c.name.toLowerCase() === 'desktop',
+      );
+
+      if (desktop?._id) {
+        const desktopChildren = await this.filesStore.list(desktop._id);
+        const node = desktopChildren.find((c) => c._id === folderId);
+
+        if (node) {
+          this.currentPath = ['Desktop', node.name];
+          this.folderIdStack = [null, desktop._id, folderId];
+          this.pathInput = '/' + this.currentPath.join('/');
+          this.pathHistory = [this.pathInput];
+          this.historyIndex = 0;
+          await this.loadChildren();
+          return;
+        }
+      }
+    } catch {
+      // Ignore and fall back.
+    }
+
+    // 3) Last resort: show a best-effort single-segment path.
+    // (Still allows listing and basic back/forward history.)
+    const bestEffort = this.filesStore.getById(folderId);
+    this.currentPath = bestEffort?.name ? [bestEffort.name] : [];
+    this.folderIdStack = [null, folderId];
+    this.pathInput = this.currentPath.length ? '/' + this.currentPath[0] : '/';
+    this.pathHistory = [this.pathInput];
+    this.historyIndex = 0;
+    await this.loadChildren();
   }
 
   async goUp() {
