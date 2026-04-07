@@ -2,7 +2,7 @@
   width: 100%;
   min-height: 100%;
   height: fit-content;
-  background-color: var(--tertiary-color);
+  background-color: var(--terminal-bg, var(--tertiary-color));
   display: flex;
   flex-direction: column;
   text-wrap: wrap;

@@ -8,9 +8,8 @@ describe('TerminalComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TerminalComponent]
-    })
-    .compileComponents();
+      imports: [TerminalComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(TerminalComponent);
     component = fixture.componentInstance;
@@ -19,5 +18,11 @@ describe('TerminalComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('help includes color command', () => {
+    component.output = [];
+    component.showHelp();
+    expect(component.output.some((l) => l.startsWith('- color'))).toBeTrue();
   });
 });

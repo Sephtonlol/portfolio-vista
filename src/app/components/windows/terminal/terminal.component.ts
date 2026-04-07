@@ -3,6 +3,7 @@ import {
   Component,
   ElementRef,
   EventEmitter,
+  HostBinding,
   Input,
   OnDestroy,
   OnInit,
@@ -35,6 +36,16 @@ export class TerminalComponent implements OnInit, AfterViewInit, OnDestroy {
   @Output() requestScrollToBottom = new EventEmitter<void>();
   @Input() id!: string | undefined;
   @Input() data!: Data | undefined;
+
+  // Windows CMD-like colors via CSS variables.
+  // When null, the terminal falls back to theme defaults.
+  @HostBinding('style.--terminal-color') terminalForegroundCss: string | null =
+    null;
+  @HostBinding('style.--terminal-bg') terminalBackgroundCss: string | null =
+    null;
+
+  private terminalForegroundCode: string | null = null;
+  private terminalBackgroundCode: string | null = null;
 
   @ViewChild('uploadInput') uploadInput?: ElementRef<HTMLInputElement>;
   @ViewChild('commandInput') commandInput?: ElementRef<HTMLInputElement>;
@@ -167,6 +178,9 @@ export class TerminalComponent implements OnInit, AfterViewInit, OnDestroy {
         case 'help':
         case '--help':
           this.showHelp();
+          break;
+        case 'color':
+          this.handleColor(args);
           break;
         case 'clear':
           this.output = [];
@@ -783,9 +797,122 @@ export class TerminalComponent implements OnInit, AfterViewInit, OnDestroy {
     this.output.push('- mv <src> <dest>: Rename or move an item');
     this.output.push('- rm <name>: Delete a file or folder');
     this.output.push('- upload: Upload image/video/audio into current folder');
+    this.output.push('- color <bg><fg>: Set terminal background/foreground');
     this.output.push('- help: Show this help');
     this.output.push('- clear: Clear terminal output');
     this.output.push('- exit: Close terminal session');
+  }
+
+  private handleColor(args: string[]) {
+    const attr = (args[0] ?? '').trim();
+
+    if (!attr || attr === '/?') {
+      this.output.push('Sets the default terminal foreground and background.');
+      this.output.push('');
+      this.output.push('COLOR [attr]');
+      this.output.push('');
+      this.output.push(
+        'attr  Two hex digits: first = background, second = foreground.',
+      );
+      this.output.push('');
+      this.output.push('0 = Black        8 = Gray');
+      this.output.push('1 = Blue         9 = Light Blue');
+      this.output.push('2 = Green        A = Light Green');
+      this.output.push('3 = Aqua         B = Light Aqua');
+      this.output.push('4 = Red          C = Light Red');
+      this.output.push('5 = Purple       D = Light Purple');
+      this.output.push('6 = Yellow       E = Light Yellow');
+      this.output.push('7 = White        F = Bright White');
+      this.output.push('');
+      this.output.push(
+        `Current: bg=${this.terminalBackgroundCode ?? 'default'} fg=${this.terminalForegroundCode ?? 'default'}`,
+      );
+      return;
+    }
+
+    if (args.length > 1) {
+      this.output.push('color: usage: color <bg><fg>');
+      return;
+    }
+
+    const hex = attr.toUpperCase();
+    if (!/^[0-9A-F]{1,2}$/.test(hex)) {
+      this.output.push('color: invalid color specification');
+      this.output.push('Try: color /?');
+      return;
+    }
+
+    // Windows CMD expects two digits; we also accept a single digit as
+    // "foreground only" to keep this command ergonomic.
+    const bgCode = hex.length === 2 ? hex[0] : null;
+    const fgCode = hex.length === 2 ? hex[1] : hex[0];
+
+    if (bgCode && bgCode === fgCode) {
+      this.output.push('color: invalid color specification (bg == fg)');
+      return;
+    }
+
+    const fg = this.mapWindowsConsoleColor(fgCode);
+    if (!fg) {
+      this.output.push('color: invalid foreground color');
+      return;
+    }
+
+    let bg: string | null = null;
+    if (bgCode) {
+      bg = this.mapWindowsConsoleColor(bgCode);
+      if (!bg) {
+        this.output.push('color: invalid background color');
+        return;
+      }
+    }
+
+    this.terminalForegroundCss = fg;
+    this.terminalForegroundCode = fgCode;
+
+    if (bgCode) {
+      this.terminalBackgroundCss = bg;
+      this.terminalBackgroundCode = bgCode;
+    }
+  }
+
+  private mapWindowsConsoleColor(code: string): string | null {
+    switch (code.toUpperCase()) {
+      case '0':
+        return '#000000';
+      case '1':
+        return '#000080';
+      case '2':
+        return '#008000';
+      case '3':
+        return '#008080';
+      case '4':
+        return '#800000';
+      case '5':
+        return '#800080';
+      case '6':
+        return '#808000';
+      case '7':
+        return '#c0c0c0';
+      case '8':
+        return '#808080';
+      case '9':
+        return '#0000ff';
+      case 'A':
+        return '#00ff00';
+      case 'B':
+        return '#00ffff';
+      case 'C':
+        return '#ff0000';
+      case 'D':
+        return '#ff00ff';
+      case 'E':
+        return '#ffff00';
+      case 'F':
+        return '#ffffff';
+      default:
+        return null;
+    }
   }
 
   handleKey(event: KeyboardEvent) {
