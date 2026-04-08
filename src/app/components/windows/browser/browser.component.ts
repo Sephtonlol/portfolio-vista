@@ -97,11 +97,13 @@ export class BrowserComponent implements AfterViewInit {
   ) {
     this.addTab(); // start with 1 tab
 
-    this.focusSub = this.windowManagerService.focus$.subscribe((evt) => {
-      if (!evt || !this.id) return;
-      if (evt.id !== this.id) return;
-      this.focusSearch();
-    });
+    this.focusSub = this.windowManagerService.focusedWindow$.subscribe(
+      (win) => {
+        if (!win || !this.id) return;
+        if (win.id !== this.id) return;
+        this.focusSearch();
+      },
+    );
   }
 
   ngAfterViewInit(): void {
@@ -121,7 +123,8 @@ export class BrowserComponent implements AfterViewInit {
     setTimeout(() => {
       const input = this.searchInput?.nativeElement;
       if (!input) return;
-      input.focus();
+      if (document.activeElement === input) return;
+      input.focus({ preventScroll: true });
       try {
         input.setSelectionRange(input.value.length, input.value.length);
       } catch {

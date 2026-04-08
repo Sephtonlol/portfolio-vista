@@ -107,11 +107,13 @@ export class NotepadComponent
   ngOnInit(): void {
     this.preview = !!this.contentValue;
 
-    this.focusSub = this.windowManagerService.focus$.subscribe((evt) => {
-      if (!evt || !this.id) return;
-      if (evt.id !== this.id) return;
-      this.focusEditor();
-    });
+    this.focusSub = this.windowManagerService.focusedWindow$.subscribe(
+      (win) => {
+        if (!win || !this.id) return;
+        if (win.id !== this.id) return;
+        this.focusEditor();
+      },
+    );
   }
 
   ngAfterViewInit(): void {
@@ -134,7 +136,8 @@ export class NotepadComponent
           'textarea',
         ) as HTMLTextAreaElement | null);
       if (!textarea) return;
-      textarea.focus();
+      if (document.activeElement === textarea) return;
+      textarea.focus({ preventScroll: true });
       try {
         textarea.setSelectionRange(
           textarea.value.length,

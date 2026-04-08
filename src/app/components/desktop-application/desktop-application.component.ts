@@ -5,10 +5,12 @@ import { WindowManagerService } from '../../services/window-manager.service';
 import { ContextMenuService } from '../../services/context-menu.service';
 import { FilesStoreService } from '../../services/files-store.service';
 import { fileDisplayName } from '../../utils/file-utils';
+import { ErrorDialogComponent } from '../error-dialog/error-dialog.component';
 
 @Component({
   selector: 'app-desktop-application',
-  imports: [],
+  standalone: true,
+  imports: [ErrorDialogComponent],
   templateUrl: './desktop-application.component.html',
   styleUrl: './desktop-application.component.css',
 })
@@ -21,6 +23,10 @@ export class DesktopApplicationComponent implements AfterViewInit {
   private gridSize = 100;
 
   deleted = false;
+
+  missingShortcutDialogOpen = false;
+  private missingShortcutId: string | null = null;
+  missingShortcutMessage = '';
 
   constructor(
     private elRef: ElementRef,
@@ -145,6 +151,33 @@ export class DesktopApplicationComponent implements AfterViewInit {
     return fileDisplayName(this.application);
   }
 
+  private openMissingShortcutDialog(node: FileNode): void {
+    if (!node._id) return;
+    this.missingShortcutId = node._id;
+    const display = fileDisplayName(node);
+    this.missingShortcutMessage = `Can't open "${display}" because its target no longer exists.\n\nDelete this shortcut?`;
+    this.missingShortcutDialogOpen = true;
+  }
+
+  closeMissingShortcutDialog(): void {
+    this.missingShortcutDialogOpen = false;
+    this.missingShortcutId = null;
+    this.missingShortcutMessage = '';
+  }
+
+  async deleteMissingShortcut(): Promise<void> {
+    const id = this.missingShortcutId;
+    this.closeMissingShortcutDialog();
+    if (!id) return;
+    this.deleted = true;
+    try {
+      await this.filesStore.delete(id);
+    } catch {
+      // Best-effort: if deletion fails, restore icon so the user can retry.
+      this.deleted = false;
+    }
+  }
+
   iconClass(): string {
     const node = this.getEffectiveNode();
 
@@ -243,17 +276,7 @@ export class DesktopApplicationComponent implements AfterViewInit {
         return;
       }
 
-      // Best effort: treat as a folder id.
-      this.windowManagerService.addWindow({
-        application: 'Explorer',
-        icon: 'bi-folder',
-        data: {
-          title: node.name,
-          content: '',
-          type: 'directory',
-          folderId: target,
-        },
-      });
+      this.openMissingShortcutDialog(node);
       return;
     }
 

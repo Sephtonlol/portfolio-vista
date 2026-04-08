@@ -26,10 +26,11 @@ import {
   readFileAsDataUrl,
   stripExtension,
 } from '../../../utils/file-utils';
+import { ErrorDialogComponent } from '../../error-dialog/error-dialog.component';
 
 @Component({
   selector: 'app-explorer',
-  imports: [FormsModule],
+  imports: [FormsModule, ErrorDialogComponent],
   templateUrl: './explorer.component.html',
   styleUrl: './explorer.component.css',
 })
@@ -61,6 +62,10 @@ export class ExplorerComponent implements OnInit, OnDestroy {
 
   renamingId: string | null = null;
   renameValue = '';
+
+  missingShortcutDialogOpen = false;
+  private missingShortcutId: string | null = null;
+  missingShortcutMessage = '';
 
   private inlineCreateTimer: number | null = null;
 
@@ -117,6 +122,51 @@ export class ExplorerComponent implements OnInit, OnDestroy {
     return current;
   }
 
+  private resolveShortcutPointer(file: FileNode): {
+    shortcutTo?: string;
+    content?: string;
+  } {
+    // Non-shortcuts can only be referenced by id.
+    if (file.type !== 'shortcut') {
+      return file._id ? { shortcutTo: file._id } : {};
+    }
+
+    const visited = new Set<string>();
+    if (file._id) visited.add(file._id);
+
+    let target = file.shortcutTo ?? file.content;
+    if (!target) return {};
+
+    for (let depth = 0; depth < 25; depth++) {
+      if (target.startsWith('/')) {
+        return { content: target };
+      }
+
+      if (visited.has(target)) return { shortcutTo: target };
+      visited.add(target);
+
+      const resolved = this.filesStore.getById(target);
+      if (!resolved) return { shortcutTo: target };
+
+      // If the target is not itself a shortcut, we're done.
+      if (resolved.type !== 'shortcut') {
+        return resolved._id
+          ? { shortcutTo: resolved._id }
+          : { shortcutTo: target };
+      }
+
+      // Continue following the chain.
+      const next = resolved.shortcutTo ?? resolved.content;
+      if (!next) return { shortcutTo: target };
+      target = next;
+    }
+
+    // Defensive fallback: keep last known target.
+    return target.startsWith('/')
+      ? { content: target }
+      : { shortcutTo: target };
+  }
+
   getThumbnail(
     file: FileNode,
   ): { kind: 'image' | 'video'; src: string } | null {
@@ -145,6 +195,33 @@ export class ExplorerComponent implements OnInit, OnDestroy {
     this.contextMenu.close();
     this.cancelInlineCreate();
     this.cancelRename();
+    this.closeMissingShortcutDialog();
+  }
+
+  private openMissingShortcutDialog(file: FileNode): void {
+    if (!file._id) return;
+    this.missingShortcutId = file._id;
+    const display = this.displayName(file);
+    this.missingShortcutMessage = `Can't open "${display}" because its target no longer exists.\n\nDelete this shortcut?`;
+    this.missingShortcutDialogOpen = true;
+  }
+
+  closeMissingShortcutDialog(): void {
+    this.missingShortcutDialogOpen = false;
+    this.missingShortcutId = null;
+    this.missingShortcutMessage = '';
+  }
+
+  async deleteMissingShortcut(): Promise<void> {
+    const id = this.missingShortcutId;
+    this.closeMissingShortcutDialog();
+    if (!id) return;
+    try {
+      await this.filesStore.delete(id);
+      await this.loadChildren();
+    } catch (err) {
+      this.handleAuthError(err);
+    }
   }
 
   @HostListener('document:click', ['$event'])
@@ -254,14 +331,22 @@ export class ExplorerComponent implements OnInit, OnDestroy {
         existing.map((c) => this.displayName(c)),
       );
 
-      const base = `${this.displayName(file)} - Shortcut`;
+      // If the user creates a shortcut from an existing shortcut,
+      // target the original file (not the shortcut itself).
+      const pointer = this.resolveShortcutPointer(file);
+
+      // Name the shortcut after the original target to avoid
+      // "Foo - Shortcut - Shortcut".
+      const baseNode = this.resolveEffectiveNode(file);
+      const base = `${this.displayName(baseNode)} - Shortcut`;
       const name = this.nextShortcutName(base, usedDisplayNames);
 
       await this.filesStore.create({
         name,
         type: 'shortcut',
         parentId: this.currentFolderId,
-        shortcutTo: file._id,
+        shortcutTo: pointer.shortcutTo,
+        content: pointer.content,
       });
     } catch (err) {
       this.handleAuthError(err);
@@ -453,7 +538,7 @@ export class ExplorerComponent implements OnInit, OnDestroy {
       // Wait one more tick so Angular renders the input & ViewChild resolves.
       window.setTimeout(() => {
         const el = this.inlineCreateInput?.nativeElement;
-        el?.focus();
+        el?.focus({ preventScroll: true });
         el?.select();
       }, 0);
     }, 0);
@@ -523,7 +608,7 @@ export class ExplorerComponent implements OnInit, OnDestroy {
     this.renameValue = file.name;
 
     window.setTimeout(() => {
-      this.renameInput?.nativeElement.focus();
+      this.renameInput?.nativeElement.focus({ preventScroll: true });
       this.renameInput?.nativeElement.select();
     }, 0);
   }
@@ -803,13 +888,9 @@ export class ExplorerComponent implements OnInit, OnDestroy {
         return;
       }
 
-      // If the backend stores shortcutTo as an id, we can navigate to that folder id,
-      // but we cannot reconstruct the full path without extra endpoints.
-      this.currentFolderId = shortcutTarget;
-      this.folderIdStack = [null, shortcutTarget];
-      this.currentPath = [];
-      this.pathInput = '/';
-      void this.loadChildren();
+      // The shortcut target can't be resolved from cache (typically because it was deleted).
+      // Show an error and offer to delete the shortcut.
+      this.openMissingShortcutDialog(file);
       return;
     }
 

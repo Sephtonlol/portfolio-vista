@@ -31,11 +31,13 @@ export class CalculatorComponent implements AfterViewInit, OnDestroy {
   private operator = '';
 
   constructor(private windowManagerService: WindowManagerService) {
-    this.focusSub = this.windowManagerService.focus$.subscribe((evt) => {
-      if (!evt || !this.id) return;
-      if (evt.id !== this.id) return;
-      this.focusKeyboard();
-    });
+    this.focusSub = this.windowManagerService.focusedWindow$.subscribe(
+      (win) => {
+        if (!win || !this.id) return;
+        if (win.id !== this.id) return;
+        this.focusKeyboard();
+      },
+    );
   }
 
   ngAfterViewInit(): void {
@@ -49,7 +51,10 @@ export class CalculatorComponent implements AfterViewInit, OnDestroy {
   private focusKeyboard(): void {
     if (window.innerWidth < 922) return;
     setTimeout(() => {
-      this.keyboardInput?.nativeElement?.focus();
+      const input = this.keyboardInput?.nativeElement;
+      if (!input) return;
+      if (document.activeElement === input) return;
+      input.focus({ preventScroll: true });
     }, 0);
   }
 

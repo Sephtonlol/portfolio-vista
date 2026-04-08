@@ -1,0 +1,32 @@
+@if (open) {
+  <div class="error-dialog-backdrop" (click)="onBackdropClick()">
+    <div
+      #dialog
+      class="error-dialog"
+      tabindex="-1"
+      role="dialog"
+      aria-modal="true"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="error-dialog-header">
+        <i class="bi" [class]="'bi ' + iconClass"></i>
+        <span class="error-dialog-title">{{ title }}</span>
+      </div>
+
+      <div class="error-dialog-body">
+        <p class="error-dialog-message">{{ message }}</p>
+      </div>
+
+      <div class="error-dialog-actions">
+        @if (secondaryLabel) {
+          <button type="button" (click)="onSecondaryClick()">
+            {{ secondaryLabel }}
+          </button>
+        }
+        <button type="button" class="primary" (click)="onPrimaryClick()">
+          {{ primaryLabel }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -202,8 +202,6 @@ export class WindowComponent implements AfterViewInit, OnInit {
     );
 
     this.windowEl.addEventListener('mousedown', (event: MouseEvent) => {
-      if (this.windowData.id)
-        this.windowManagerService.focusWindow(this.windowData.id);
       const header = this.windowEl.querySelector('.window-header');
       const controls = this.windowEl.querySelector('.window-controls');
       const isHeader = header?.contains(event.target as Node) ?? false;

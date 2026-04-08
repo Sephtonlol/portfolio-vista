@@ -88,11 +88,13 @@ export class TerminalComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.mobile = window.innerWidth < 922;
 
-    this.focusSub = this.windowManagerService.focus$.subscribe((evt) => {
-      if (!evt || !this.id) return;
-      if (evt.id !== this.id) return;
-      this.focusMainInput();
-    });
+    this.focusSub = this.windowManagerService.focusedWindow$.subscribe(
+      (win) => {
+        if (!win || !this.id) return;
+        if (win.id !== this.id) return;
+        this.focusMainInput();
+      },
+    );
   }
 
   ngAfterViewInit(): void {
@@ -109,7 +111,8 @@ export class TerminalComponent implements OnInit, AfterViewInit, OnDestroy {
     setTimeout(() => {
       const input = this.commandInput?.nativeElement;
       if (!input) return;
-      input.focus();
+      if (document.activeElement === input) return;
+      input.focus({ preventScroll: true });
       // keep typing at the end
       try {
         input.setSelectionRange(input.value.length, input.value.length);

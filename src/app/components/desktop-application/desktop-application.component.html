@@ -26,3 +26,14 @@
     <span class="name">{{ displayName() }}</span>
   </div>
 }
+
+<app-error-dialog
+  [open]="missingShortcutDialogOpen"
+  [message]="missingShortcutMessage"
+  iconClass="bi-exclamation-triangle-fill"
+  primaryLabel="Delete shortcut"
+  secondaryLabel="Cancel"
+  (primary)="deleteMissingShortcut()"
+  (secondary)="closeMissingShortcutDialog()"
+  (dismiss)="closeMissingShortcutDialog()"
+></app-error-dialog>
