@@ -20,7 +20,7 @@
 }
 
 .preview-shell {
-  height: 100%;
+  height: calc(100% - 40px);
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -39,7 +39,7 @@ textarea,
 }
 
 textarea {
-  height: 100%;
+  height: calc(100% - 40px);
   width: 100%;
 }
 

@@ -66,6 +66,18 @@ export class NotepadComponent
   attachmentFolders: { id: string; name: string }[] = [];
   attachmentFiles: FileNode[] = [];
 
+  /**
+   * Local Markdown file references.
+   *
+   * This allows syntax like:
+   * ![image](original_plan.png)
+   * ![image](./new_plan.png)
+   * [Technisch ontwerp](./technisch_ontwerp.docx)
+   *
+   * Files are resolved relative to the current note's parent folder.
+   */
+  private markdownReferenceFiles = new Map<string, FileNode>();
+
   md: MarkdownIt;
 
   constructor(
@@ -94,39 +106,57 @@ export class NotepadComponent
       },
     });
 
-    this.md.renderer.rules['heading_open'] = (tokens, idx) => {
-      const token = tokens[idx];
-      const level = Number(token.tag.slice(1));
-
-      const newTag = level === 1 ? 'h5' : level === 2 ? 'h6' : token.tag;
-      return `<${newTag}>`;
-    };
-
-    this.md.renderer.rules['heading_close'] = (tokens, idx) => {
-      const token = tokens[idx];
-      const level = Number(token.tag.slice(1));
-
-      const newTag = level === 1 ? 'h5' : level === 2 ? 'h6' : token.tag;
-      return `</${newTag}>`;
-    };
-
+    /**
+     * Images:
+     *
+     * Default:
+     * ![image](original_plan.png)
+     *
+     * Also supported:
+     * ![image](./original_plan.png)
+     * ![image](attachment://fileId)
+     */
     this.md.renderer.rules.image = (tokens, idx, options, env, self) => {
       const token = tokens[idx];
       const srcIndex = token.attrIndex('src');
 
       if (srcIndex >= 0 && token.attrs) {
-        token.attrs[srcIndex][1] = this.resolveAttachmentSource(
+        token.attrs[srcIndex][1] = this.resolveMarkdownImageSource(
           token.attrs[srcIndex][1],
         );
       }
 
       const imageStyle =
-        'display: block; max-width: 600px; width: 100%; height: auto; object-fit: contain;';
+        'display: block; max-width: 600px; width: 100%; height: auto; object-fit: contain; margin: 1rem 0;';
       const existingStyle = token.attrGet('style');
+
       token.attrSet(
         'style',
         existingStyle ? `${existingStyle}; ${imageStyle}` : imageStyle,
       );
+
+      return self.renderToken(tokens, idx, options);
+    };
+
+    /**
+     * Links:
+     *
+     * Default:
+     * [Technisch ontwerp](./technisch_ontwerp.docx)
+     *
+     * If the link points to a file in the same folder as the note,
+     * it gets converted internally to attachment://fileId so your
+     * existing click/open system can handle it.
+     */
+    this.md.renderer.rules['link_open'] = (tokens, idx, options, env, self) => {
+      const token = tokens[idx];
+      const hrefIndex = token.attrIndex('href');
+
+      if (hrefIndex >= 0 && token.attrs) {
+        token.attrs[hrefIndex][1] = this.resolveMarkdownLinkHref(
+          token.attrs[hrefIndex][1],
+        );
+      }
 
       return self.renderToken(tokens, idx, options);
     };
@@ -163,9 +193,12 @@ export class NotepadComponent
         (this.elementRef.nativeElement.querySelector(
           'textarea',
         ) as HTMLTextAreaElement | null);
+
       if (!textarea) return;
       if (document.activeElement === textarea) return;
+
       textarea.focus({ preventScroll: true });
+
       try {
         textarea.setSelectionRange(
           textarea.value.length,
@@ -183,7 +216,7 @@ export class NotepadComponent
       this.itemId = this.data.itemId;
       this.parentId = this.data.parentId ?? null;
       this.currentName = this.data.title ?? '';
-      this.updateMarkdown();
+      void this.refreshMarkdownPreview();
     }
 
     if (changes['data'] && this.data && !this.data.content) {
@@ -191,7 +224,54 @@ export class NotepadComponent
       this.itemId = this.data.itemId;
       this.parentId = this.data.parentId ?? null;
       this.currentName = this.data.title ?? '';
-      this.updateMarkdown();
+      void this.refreshMarkdownPreview();
+    }
+  }
+
+  private async refreshMarkdownPreview(): Promise<void> {
+    await this.loadMarkdownReferenceFiles();
+    this.updateMarkdown();
+  }
+
+  private async loadMarkdownReferenceFiles(): Promise<void> {
+    this.markdownReferenceFiles.clear();
+
+    try {
+      const children = await this.filesStore.list(this.parentId);
+
+      for (const child of children) {
+        if (child.type === 'directory') continue;
+
+        this.registerMarkdownReferenceFile(child);
+      }
+    } catch (err) {
+      this.handleAuthError(err);
+    }
+  }
+
+  private registerMarkdownReferenceFile(file: FileNode): void {
+    const aliases = new Set<string>();
+
+    const rawName = file.name;
+    const displayName = fileDisplayName(file);
+    const fileType = file.type?.toLowerCase();
+
+    aliases.add(rawName);
+    aliases.add(displayName);
+
+    if (fileType && !rawName.toLowerCase().endsWith(`.${fileType}`)) {
+      aliases.add(`${rawName}.${fileType}`);
+    }
+
+    if (fileType && !displayName.toLowerCase().endsWith(`.${fileType}`)) {
+      aliases.add(`${displayName}.${fileType}`);
+    }
+
+    for (const alias of aliases) {
+      const normalized = this.normalizeMarkdownPath(alias);
+
+      this.markdownReferenceFiles.set(normalized, file);
+      this.markdownReferenceFiles.set(`./${normalized}`, file);
     }
   }
 
@@ -224,9 +304,13 @@ export class NotepadComponent
     this.saveFolderNames = [];
     this.saveFolderIdStack = [null];
 
-    // If we have a known parent folder id, start there (path can't be reconstructed).
     if (this.parentId) {
       this.saveFolderIdStack.push(this.parentId);
+
+      const parentFolder = this.filesStore.getById(this.parentId);
+      if (parentFolder) {
+        this.saveFolderNames.push(parentFolder.name);
+      }
     }
 
     await this.loadSaveFolders();
@@ -247,6 +331,11 @@ export class NotepadComponent
 
     if (this.parentId) {
       this.attachmentFolderIdStack.push(this.parentId);
+
+      const parentFolder = this.filesStore.getById(this.parentId);
+      if (parentFolder) {
+        this.attachmentFolderNames.push(parentFolder.name);
+      }
     }
 
     await this.loadAttachmentFolders();
@@ -266,10 +355,12 @@ export class NotepadComponent
   async loadAttachmentFolders() {
     try {
       const children = await this.filesStore.list(this.attachmentFolderId);
+
       this.attachmentFolders = children
         .filter((c) => c.type === 'directory' && !!c._id)
         .map((c) => ({ id: c._id!, name: c.name }))
         .sort((a, b) => a.name.localeCompare(b.name));
+
       this.attachmentFiles = children
         .filter((c) => c.type !== 'directory')
         .sort((a, b) => a.name.localeCompare(b.name));
@@ -288,13 +379,14 @@ export class NotepadComponent
 
   async upAttachmentFolder() {
     if (this.attachmentFolderIdStack.length <= 1) return;
+
     this.attachmentFolderIdStack.pop();
     this.attachmentFolderNames.pop();
+
     await this.loadAttachmentFolders();
   }
 
   chooseAttachmentFile(file: FileNode) {
-    if (!file._id) return;
     this.insertAttachmentReference(file);
     this.closeAttachmentDialog();
   }
@@ -333,6 +425,7 @@ export class NotepadComponent
   async loadSaveFolders() {
     try {
       const children = await this.filesStore.list(this.saveFolderId);
+
       this.saveFolders = children
         .filter((c) => c.type === 'directory' && !!c._id)
         .map((c) => ({ id: c._id!, name: c.name }))
@@ -346,13 +439,16 @@ export class NotepadComponent
   async enterSaveFolder(folder: { id: string; name: string }) {
     this.saveFolderIdStack.push(folder.id);
     this.saveFolderNames.push(folder.name);
+
     await this.loadSaveFolders();
   }
 
   async upSaveFolder() {
     if (this.saveFolderIdStack.length <= 1) return;
+
     this.saveFolderIdStack.pop();
     this.saveFolderNames.pop();
+
     await this.loadSaveFolders();
   }
 
@@ -376,13 +472,18 @@ export class NotepadComponent
         this.itemId = created._id;
         this.parentId = created.parentId ?? targetParentId;
         this.currentName = created.name;
-        if (this.data) this.data.title = created.name;
+
+        if (this.data) {
+          this.data.title = created.name;
+          this.data.parentId = this.parentId;
+          this.data.itemId = this.itemId;
+        }
 
         this.showSaveDialog = false;
+        await this.refreshMarkdownPreview();
         return;
       }
 
-      // Existing item: save content, and apply rename/move based on picker.
       await this.filesStore.update(this.itemId, {
         name: name !== this.currentName ? name : undefined,
         content: this.contentValue,
@@ -394,6 +495,7 @@ export class NotepadComponent
       }
 
       this.currentName = name;
+
       if (this.data) {
         this.data.title = name;
         this.data.parentId = this.parentId;
@@ -401,6 +503,7 @@ export class NotepadComponent
       }
 
       this.showSaveDialog = false;
+      await this.refreshMarkdownPreview();
     } catch (err) {
       this.handleAuthError(err);
     }
@@ -415,6 +518,7 @@ export class NotepadComponent
     if (!href.startsWith('attachment://')) return;
 
     event.preventDefault();
+
     const attachmentId = href.slice('attachment://'.length);
     const node = this.resolveAttachmentNodeById(attachmentId);
     if (!node) return;
@@ -422,15 +526,27 @@ export class NotepadComponent
     this.openFileNode(node);
   }
 
+  /**
+   * Insert references using normal Markdown relative-path syntax by default.
+   *
+   * Images:
+   * ![image](original_plan.png)
+   *
+   * Files:
+   * [Technisch ontwerp](technisch_ontwerp.docx)
+   */
   private insertAttachmentReference(file: FileNode): void {
     const displayName = fileDisplayName(file);
+    const fileName = fileDisplayName(file);
+
     const reference =
       file.type === 'png'
-        ? `![${displayName}](attachment://${file._id})`
-        : `[${displayName}](attachment://${file._id})`;
+        ? `![${displayName}](${fileName})`
+        : `[${displayName}](${fileName})`;
 
     const prefix =
       this.contentValue && !this.contentValue.endsWith('\n') ? '\n\n' : '';
+
     this.insertTextAtCursor(`${prefix}${reference}`);
   }
 
@@ -446,22 +562,103 @@ export class NotepadComponent
 
     const start = textarea.selectionStart ?? currentValue.length;
     const end = textarea.selectionEnd ?? currentValue.length;
+
     this.contentValue = `${currentValue.slice(0, start)}${text}${currentValue.slice(end)}`;
     this.updateMarkdown();
 
     window.setTimeout(() => {
       textarea.focus({ preventScroll: true });
+
       const caret = start + text.length;
       textarea.setSelectionRange(caret, caret);
     }, 0);
   }
 
-  private resolveAttachmentSource(src: string): string {
-    if (!src.startsWith('attachment://')) return src;
+  /**
+   * Resolves Markdown image sources.
+   *
+   * Main supported syntax:
+   * ![image](original_plan.png)
+   * ![image](./original_plan.png)
+   *
+   * Backwards-compatible syntax:
+   * ![image](attachment://fileId)
+   */
+  private resolveMarkdownImageSource(src: string): string {
+    if (this.isExternalOrSpecialHref(src)) return src;
 
-    const attachmentId = src.slice('attachment://'.length);
-    const node = this.resolveAttachmentNodeById(attachmentId);
-    return node?.url ?? node?.content ?? src;
+    if (src.startsWith('attachment://')) {
+      const attachmentId = src.slice('attachment://'.length);
+      const node = this.resolveAttachmentNodeById(attachmentId);
+      return node?.url ?? node?.content ?? src;
+    }
+
+    const file = this.resolveMarkdownFileReference(src);
+    if (!file) return src;
+
+    const resolved = this.resolveAttachmentNode(file);
+
+    return resolved.url ?? resolved.content ?? src;
+  }
+
+  /**
+   * Resolves Markdown links.
+   *
+   * Main supported syntax:
+   * [Technisch ontwerp](technisch_ontwerp.docx)
+   * [Technisch ontwerp](./technisch_ontwerp.docx)
+   *
+   * These are internally converted to attachment://fileId so onPreviewClick()
+   * can open the file with your existing window system.
+   */
+  private resolveMarkdownLinkHref(href: string): string {
+    if (href.startsWith('attachment://')) return href;
+    if (this.isExternalOrSpecialHref(href)) return href;
+
+    const file = this.resolveMarkdownFileReference(href);
+    if (!file?._id) return href;
+
+    return `attachment://${file._id}`;
+  }
+
+  private resolveMarkdownFileReference(path: string): FileNode | null {
+    const normalizedPath = this.normalizeMarkdownPath(path);
+
+    return (
+      this.markdownReferenceFiles.get(normalizedPath) ??
+      this.markdownReferenceFiles.get(`./${normalizedPath}`) ??
+      null
+    );
+  }
+
+  private normalizeMarkdownPath(path: string): string {
+    let normalized = path.trim();
+
+    try {
+      normalized = decodeURIComponent(normalized);
+    } catch {
+      // Keep original if decoding fails.
+    }
+
+    normalized = normalized.replace(/\\/g, '/');
+
+    while (normalized.startsWith('./')) {
+      normalized = normalized.slice(2);
+    }
+
+    return normalized;
+  }
+
+  private isExternalOrSpecialHref(href: string): boolean {
+    return (
+      href.startsWith('http://') ||
+      href.startsWith('https://') ||
+      href.startsWith('mailto:') ||
+      href.startsWith('tel:') ||
+      href.startsWith('#') ||
+      href.startsWith('data:') ||
+      href.startsWith('blob:')
+    );
   }
 
   private resolveAttachmentNodeById(id: string): FileNode | null {
@@ -489,6 +686,7 @@ export class NotepadComponent
       visited.add(target);
 
       const resolved = this.filesStore.getById(target);
+
       if (!resolved || !resolved._id) return current;
       if (current._id && resolved._id === current._id) return current;
 
@@ -504,6 +702,7 @@ export class NotepadComponent
     switch (resolved.type) {
       case 'directory':
         if (!resolved._id) return;
+
         this.windowManagerService.addWindow({
           application: 'Explorer',
           icon: 'bi-folder2-open',
@@ -515,6 +714,7 @@ export class NotepadComponent
           },
         });
         return;
+
       case 'png':
         this.windowManagerService.addWindow({
           application: 'Photos',
@@ -529,6 +729,7 @@ export class NotepadComponent
           },
         });
         return;
+
       case 'mp4':
       case 'mp3':
         this.windowManagerService.addWindow({
@@ -544,9 +745,11 @@ export class NotepadComponent
           },
         });
         return;
+
       case 'url':
         window.open(resolved.url ?? resolved.content ?? '', '_blank');
         return;
+
       default:
         this.windowManagerService.addWindow({
           application: 'Notepad',

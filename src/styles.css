@@ -90,6 +90,10 @@ small {
   color: var(--text-color);
 }
 
+h3 {
+  font-size: calc(1rem + 0.6vw);
+}
+
 small {
   font-weight: lighter;
 }
