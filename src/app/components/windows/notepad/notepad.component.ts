@@ -6,14 +6,15 @@ import {
   OnChanges,
   OnDestroy,
   OnInit,
-  SimpleChanges,
   ViewChild,
+  SimpleChanges,
 } from '@angular/core';
 import { Data } from '../../../interfaces/window.interface';
 import { FormsModule } from '@angular/forms';
 import MarkdownIt from 'markdown-it';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Subscription } from 'rxjs';
+import { FileNode } from '../../../interfaces/file.interface';
 
 import hljs from 'highlight.js';
 import csharp from 'highlight.js/lib/languages/csharp';
@@ -25,7 +26,7 @@ import css from 'highlight.js/lib/languages/css';
 import html from 'highlight.js/lib/languages/xml';
 import { FilesStoreService } from '../../../services/files-store.service';
 import { AuthenticationService } from '../../../services/api/authentication/authentication.service';
-import { logoutOn401 } from '../../../utils/file-utils';
+import { fileDisplayName, logoutOn401 } from '../../../utils/file-utils';
 import { WindowManagerService } from '../../../services/window-manager.service';
 
 @Component({
@@ -58,6 +59,12 @@ export class NotepadComponent
   private saveFolderIdStack: (string | null)[] = [null];
   saveFolders: { id: string; name: string }[] = [];
   saveFileName = '';
+
+  showAttachmentDialog = false;
+  attachmentFolderNames: string[] = [];
+  private attachmentFolderIdStack: (string | null)[] = [null];
+  attachmentFolders: { id: string; name: string }[] = [];
+  attachmentFiles: FileNode[] = [];
 
   md: MarkdownIt;
 
@@ -101,6 +108,27 @@ export class NotepadComponent
 
       const newTag = level === 1 ? 'h5' : level === 2 ? 'h6' : token.tag;
       return `</${newTag}>`;
+    };
+
+    this.md.renderer.rules.image = (tokens, idx, options, env, self) => {
+      const token = tokens[idx];
+      const srcIndex = token.attrIndex('src');
+
+      if (srcIndex >= 0 && token.attrs) {
+        token.attrs[srcIndex][1] = this.resolveAttachmentSource(
+          token.attrs[srcIndex][1],
+        );
+      }
+
+      const imageStyle =
+        'display: block; max-width: 600px; width: 100%; height: auto; object-fit: contain;';
+      const existingStyle = token.attrGet('style');
+      token.attrSet(
+        'style',
+        existingStyle ? `${existingStyle}; ${imageStyle}` : imageStyle,
+      );
+
+      return self.renderToken(tokens, idx, options);
     };
   }
 
@@ -208,6 +236,100 @@ export class NotepadComponent
     this.showSaveDialog = false;
   }
 
+  openAttachmentPicker() {
+    void this.openAttachmentDialog();
+  }
+
+  async openAttachmentDialog() {
+    this.showAttachmentDialog = true;
+    this.attachmentFolderNames = [];
+    this.attachmentFolderIdStack = [null];
+
+    if (this.parentId) {
+      this.attachmentFolderIdStack.push(this.parentId);
+    }
+
+    await this.loadAttachmentFolders();
+  }
+
+  closeAttachmentDialog() {
+    this.showAttachmentDialog = false;
+  }
+
+  private get attachmentFolderId(): string | null {
+    return (
+      this.attachmentFolderIdStack[this.attachmentFolderIdStack.length - 1] ??
+      null
+    );
+  }
+
+  async loadAttachmentFolders() {
+    try {
+      const children = await this.filesStore.list(this.attachmentFolderId);
+      this.attachmentFolders = children
+        .filter((c) => c.type === 'directory' && !!c._id)
+        .map((c) => ({ id: c._id!, name: c.name }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+      this.attachmentFiles = children
+        .filter((c) => c.type !== 'directory')
+        .sort((a, b) => a.name.localeCompare(b.name));
+    } catch (err) {
+      this.attachmentFolders = [];
+      this.attachmentFiles = [];
+      this.handleAuthError(err);
+    }
+  }
+
+  async enterAttachmentFolder(folder: { id: string; name: string }) {
+    this.attachmentFolderIdStack.push(folder.id);
+    this.attachmentFolderNames.push(folder.name);
+    await this.loadAttachmentFolders();
+  }
+
+  async upAttachmentFolder() {
+    if (this.attachmentFolderIdStack.length <= 1) return;
+    this.attachmentFolderIdStack.pop();
+    this.attachmentFolderNames.pop();
+    await this.loadAttachmentFolders();
+  }
+
+  chooseAttachmentFile(file: FileNode) {
+    if (!file._id) return;
+    this.insertAttachmentReference(file);
+    this.closeAttachmentDialog();
+  }
+
+  attachmentDisplayName(file: FileNode): string {
+    return fileDisplayName(file);
+  }
+
+  isAttachmentPreviewable(file: FileNode): boolean {
+    return file.type === 'png' || file.type === 'mp4';
+  }
+
+  attachmentThumbnail(file: FileNode): string {
+    return file.url ?? file.content ?? '';
+  }
+
+  attachmentGlyph(file: FileNode): string {
+    switch (file.type) {
+      case 'png':
+        return 'bi-image';
+      case 'mp4':
+        return 'bi-film';
+      case 'mp3':
+        return 'bi-music-note';
+      case 'md':
+        return 'bi-file-earmark-text';
+      case 'shortcut':
+        return 'bi-arrow-up-right-square-fill';
+      case 'url':
+        return 'bi-link-45deg';
+      default:
+        return 'bi-file-earmark';
+    }
+  }
+
   async loadSaveFolders() {
     try {
       const children = await this.filesStore.list(this.saveFolderId);
@@ -281,6 +403,162 @@ export class NotepadComponent
       this.showSaveDialog = false;
     } catch (err) {
       this.handleAuthError(err);
+    }
+  }
+
+  onPreviewClick(event: MouseEvent) {
+    const target = event.target as HTMLElement | null;
+    const anchor = target?.closest('a') as HTMLAnchorElement | null;
+    if (!anchor) return;
+
+    const href = anchor.getAttribute('href') ?? '';
+    if (!href.startsWith('attachment://')) return;
+
+    event.preventDefault();
+    const attachmentId = href.slice('attachment://'.length);
+    const node = this.resolveAttachmentNodeById(attachmentId);
+    if (!node) return;
+
+    this.openFileNode(node);
+  }
+
+  private insertAttachmentReference(file: FileNode): void {
+    const displayName = fileDisplayName(file);
+    const reference =
+      file.type === 'png'
+        ? `![${displayName}](attachment://${file._id})`
+        : `[${displayName}](attachment://${file._id})`;
+
+    const prefix =
+      this.contentValue && !this.contentValue.endsWith('\n') ? '\n\n' : '';
+    this.insertTextAtCursor(`${prefix}${reference}`);
+  }
+
+  private insertTextAtCursor(text: string): void {
+    const textarea = this.editorTextarea?.nativeElement;
+    const currentValue = this.contentValue ?? '';
+
+    if (!textarea) {
+      this.contentValue = `${currentValue}${text}`;
+      this.updateMarkdown();
+      return;
+    }
+
+    const start = textarea.selectionStart ?? currentValue.length;
+    const end = textarea.selectionEnd ?? currentValue.length;
+    this.contentValue = `${currentValue.slice(0, start)}${text}${currentValue.slice(end)}`;
+    this.updateMarkdown();
+
+    window.setTimeout(() => {
+      textarea.focus({ preventScroll: true });
+      const caret = start + text.length;
+      textarea.setSelectionRange(caret, caret);
+    }, 0);
+  }
+
+  private resolveAttachmentSource(src: string): string {
+    if (!src.startsWith('attachment://')) return src;
+
+    const attachmentId = src.slice('attachment://'.length);
+    const node = this.resolveAttachmentNodeById(attachmentId);
+    return node?.url ?? node?.content ?? src;
+  }
+
+  private resolveAttachmentNodeById(id: string): FileNode | null {
+    const node = this.filesStore.getById(id);
+    return node ? this.resolveAttachmentNode(node) : null;
+  }
+
+  resolveAttachmentNode(file: FileNode): FileNode {
+    if (file.type !== 'shortcut') return file;
+
+    const visited = new Set<string>();
+    let current: FileNode = file;
+
+    for (let depth = 0; depth < 25; depth++) {
+      if (current.type !== 'shortcut') return current;
+
+      const target = current.shortcutTo ?? current.content;
+      if (!target) return current;
+
+      if (target.startsWith('/')) {
+        return { name: current.name, type: 'directory' } as FileNode;
+      }
+
+      if (visited.has(target)) return current;
+      visited.add(target);
+
+      const resolved = this.filesStore.getById(target);
+      if (!resolved || !resolved._id) return current;
+      if (current._id && resolved._id === current._id) return current;
+
+      current = resolved;
+    }
+
+    return current;
+  }
+
+  private openFileNode(file: FileNode): void {
+    const resolved = this.resolveAttachmentNode(file);
+
+    switch (resolved.type) {
+      case 'directory':
+        if (!resolved._id) return;
+        this.windowManagerService.addWindow({
+          application: 'Explorer',
+          icon: 'bi-folder2-open',
+          data: {
+            title: resolved.name,
+            content: '',
+            type: 'directory',
+            folderId: resolved._id,
+          },
+        });
+        return;
+      case 'png':
+        this.windowManagerService.addWindow({
+          application: 'Photos',
+          icon: 'bi-image',
+          data: {
+            title: resolved.name,
+            content: resolved.url ?? resolved.content ?? '',
+            type: 'image',
+            folderId: resolved.parentId ?? null,
+            selectedId: resolved._id,
+            url: resolved.url,
+          },
+        });
+        return;
+      case 'mp4':
+      case 'mp3':
+        this.windowManagerService.addWindow({
+          application: 'Media player',
+          icon: 'bi-play-circle',
+          data: {
+            title: resolved.name,
+            content: resolved.url ?? resolved.content ?? '',
+            type: 'media',
+            folderId: resolved.parentId ?? null,
+            selectedId: resolved._id,
+            url: resolved.url,
+          },
+        });
+        return;
+      case 'url':
+        window.open(resolved.url ?? resolved.content ?? '', '_blank');
+        return;
+      default:
+        this.windowManagerService.addWindow({
+          application: 'Notepad',
+          icon: 'bi-file-earmark-text',
+          data: {
+            title: resolved.name,
+            content: resolved.content || '',
+            type: 'text',
+            itemId: resolved._id,
+            parentId: resolved.parentId ?? null,
+          },
+        });
     }
   }
 

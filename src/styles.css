@@ -82,11 +82,16 @@ p,
 input,
 textarea,
 select,
-button {
+button,
+small {
   margin: 0.2rem;
   font-family: font;
   font-weight: bold;
   color: var(--text-color);
+}
+
+small {
+  font-weight: lighter;
 }
 
 button {

@@ -1,6 +1,12 @@
 <div class="main" [class.main-textarea]="!preview">
   @if (preview) {
-    <div [innerHTML]="sanitizedHtml" class="preview"></div>
+    <div class="preview-shell">
+      <div
+        [innerHTML]="sanitizedHtml"
+        class="preview"
+        (click)="onPreviewClick($event)"
+      ></div>
+    </div>
   } @else {
     <textarea
       #editorTextarea
@@ -23,6 +29,14 @@
   </div>
 
   <div class="footer-right">
+    <button
+      type="button"
+      class="btn btn-sm btn-secondary"
+      (click)="openAttachmentPicker()"
+    >
+      Attachment
+    </button>
+
     @if (canSave) {
       <button type="button" class="btn btn-sm btn-secondary" (click)="save()">
         Save
@@ -33,11 +47,117 @@
   </div>
 </div>
 
+@if (showAttachmentDialog) {
+  <div class="notepad-dialog-backdrop" (click)="closeAttachmentDialog()">
+    <div class="notepad-dialog" (click)="$event.stopPropagation()">
+      <div class="notepad-dialog-header">
+        <div>
+          <h6 class="m-0">Add attachment</h6>
+        </div>
+        <div class="notepad-dialog-location">
+          <i class="bi bi-folder2-open"></i>
+          <span>/{{ attachmentFolderNames.join("/") || "" }}</span>
+        </div>
+      </div>
+
+      <div class="notepad-dialog-path">
+        <button
+          type="button"
+          class="btn btn-sm btn-secondary"
+          (click)="upAttachmentFolder()"
+        >
+          Up
+        </button>
+        <span>/{{ attachmentFolderNames.join("/") }}</span>
+      </div>
+
+      <div class="notepad-dialog-list">
+        @if (attachmentFolders.length) {
+          @for (folder of attachmentFolders; track folder.id) {
+            <button
+              type="button"
+              class="notepad-folder"
+              (dblclick)="enterAttachmentFolder(folder)"
+            >
+              <div class="notepad-folder-icon">
+                <i class="bi bi-folder-fill"></i>
+              </div>
+              <div class="notepad-folder-meta">
+                <span>{{ folder.name }}</span>
+                <small>Folder</small>
+              </div>
+              <i class="bi bi-chevron-right notepad-folder-arrow"></i>
+            </button>
+          }
+        }
+
+        @if (attachmentFiles.length) {
+          @for (file of attachmentFiles; track file._id ?? file.name) {
+            <button
+              type="button"
+              class="notepad-folder"
+              (click)="chooseAttachmentFile(file)"
+            >
+              <div class="notepad-folder-icon">
+                @if (isAttachmentPreviewable(file)) {
+                  @if (file.type === "png") {
+                    <img
+                      class="notepad-folder-thumb"
+                      [src]="attachmentThumbnail(file)"
+                      alt=""
+                    />
+                  } @else {
+                    <video
+                      class="notepad-folder-thumb"
+                      [src]="attachmentThumbnail(file)"
+                      muted
+                      playsinline
+                      preload="metadata"
+                    ></video>
+                  }
+                } @else {
+                  <i [class]="'bi ' + attachmentGlyph(file)"></i>
+                }
+              </div>
+              <div class="notepad-folder-meta">
+                <span>{{ attachmentDisplayName(file) }}</span>
+              </div>
+            </button>
+          }
+        }
+
+        @if (!attachmentFolders.length && !attachmentFiles.length) {
+          <div class="notepad-empty-state">
+            <i class="bi bi-folder"></i>
+            <span>No files in this folder.</span>
+          </div>
+        }
+      </div>
+
+      <div class="notepad-dialog-actions">
+        <button
+          type="button"
+          class="btn btn-sm btn-secondary"
+          (click)="closeAttachmentDialog()"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
 @if (showSaveDialog) {
   <div class="notepad-dialog-backdrop" (click)="closeSaveDialog()">
     <div class="notepad-dialog" (click)="$event.stopPropagation()">
       <div class="notepad-dialog-header">
-        <h6 class="m-1">Save file</h6>
+        <div>
+          <h6 class="m-0">Save file</h6>
+        </div>
+        <div class="notepad-dialog-location">
+          <i class="bi bi-folder2-open"></i>
+          <span>/{{ saveFolderNames.join("/") || "" }}</span>
+        </div>
       </div>
 
       <div class="notepad-dialog-path">
@@ -52,16 +172,32 @@
       </div>
 
       <div class="notepad-dialog-list">
-        @for (folder of saveFolders; track folder.id) {
-          <div class="notepad-folder" (dblclick)="enterSaveFolder(folder)">
+        @if (saveFolders.length) {
+          @for (folder of saveFolders; track folder.id) {
+            <button
+              type="button"
+              class="notepad-folder"
+              (dblclick)="enterSaveFolder(folder)"
+            >
+              <div class="notepad-folder-icon">
+                <i class="bi bi-folder-fill"></i>
+              </div>
+              <div class="notepad-folder-meta">
+                <span>{{ folder.name }}</span>
+                <small>Folder</small>
+              </div>
+              <i class="bi bi-chevron-right notepad-folder-arrow"></i>
+            </button>
+          }
+        } @else {
+          <div class="notepad-empty-state">
             <i class="bi bi-folder"></i>
-            <span>{{ folder.name }}</span>
+            <span>No folders here yet.</span>
           </div>
         }
       </div>
 
       <div class="notepad-dialog-field">
-        <label>File name</label>
         <input [(ngModel)]="saveFileName" spellcheck="false" />
       </div>
 
