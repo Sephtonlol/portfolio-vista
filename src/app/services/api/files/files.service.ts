@@ -17,6 +17,11 @@ export class FilesService extends ApiBaseService {
     return this.http.get<FileNode[]>(`${this.baseUrl}/items`, { params });
   }
 
+  // GET /items/:id
+  getById(id: string) {
+    return this.http.get<FileNode>(`${this.baseUrl}/items/${id}`);
+  }
+
   // POST /items (auth)
   create(input: {
     name: string;

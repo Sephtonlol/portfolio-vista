@@ -154,6 +154,26 @@ export class FilesStoreService {
     return this.getEffectiveById(id);
   }
 
+  async resolveById(id: string): Promise<FileNode | null> {
+    const existing = this.getEffectiveById(id);
+    if (existing) return existing;
+
+    if (isLocalId(id)) return null;
+
+    try {
+      const item = await firstValueFrom(this.filesApi.getById(id));
+      if (item && item._id) {
+        this.knownServerById.set(item._id, item);
+      }
+
+      // Recompute watched folders since this item may now unlock shortcut resolution.
+      this.emitAllWatched();
+      return item ?? null;
+    } catch {
+      return null;
+    }
+  }
+
   async list(parentId: ParentId): Promise<FileNode[]> {
     await this.refresh(parentId);
     return this.snapshot(parentId);

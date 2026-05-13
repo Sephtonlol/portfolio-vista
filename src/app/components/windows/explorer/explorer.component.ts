@@ -830,7 +830,7 @@ export class ExplorerComponent implements OnInit, OnDestroy {
     return file._id === clip.itemId;
   }
 
-  openItem(file: FileNode) {
+  async openItem(file: FileNode) {
     if (file.type === 'directory') {
       if (!file._id) return;
       this.currentPath.push(file.name);
@@ -857,7 +857,9 @@ export class ExplorerComponent implements OnInit, OnDestroy {
 
       // Prefer resolving the shortcut to an existing item by id.
       // This allows shortcuts to open files (not just folders) when the id is known.
-      const resolved = this.filesStore.getById(shortcutTarget);
+      const resolved =
+        this.filesStore.getById(shortcutTarget) ??
+        (await this.filesStore.resolveById(shortcutTarget));
       if (resolved && resolved._id && resolved._id !== file._id) {
         if (resolved.type === 'directory') {
           this.currentFolderId = resolved._id;
@@ -884,7 +886,7 @@ export class ExplorerComponent implements OnInit, OnDestroy {
         }
 
         // Open the target file directly.
-        this.openItem(resolved);
+        await this.openItem(resolved);
         return;
       }
 

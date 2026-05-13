@@ -235,7 +235,7 @@ export class DesktopApplicationComponent implements AfterViewInit {
     return current;
   }
 
-  openApplication(): void {
+  async openApplication(): Promise<void> {
     const node = this.application;
 
     if (node.type === 'directory') {
@@ -270,7 +270,9 @@ export class DesktopApplicationComponent implements AfterViewInit {
         return;
       }
 
-      const resolved = this.filesStore.getById(target);
+      const resolved =
+        this.filesStore.getById(target) ??
+        (await this.filesStore.resolveById(target));
       if (resolved && resolved._id && resolved._id !== node._id) {
         this.openResolvedNode(resolved);
         return;
@@ -384,7 +386,7 @@ export class DesktopApplicationComponent implements AfterViewInit {
     if (this.deletable) {
       entries.push({
         label: 'Delete',
-        action: () => void this.deleteApplication(),
+        action: () => this.deleteApplication(),
       });
     }
 
