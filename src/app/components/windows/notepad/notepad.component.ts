@@ -119,15 +119,20 @@ export class NotepadComponent
     this.md.renderer.rules.image = (tokens, idx, options, env, self) => {
       const token = tokens[idx];
       const srcIndex = token.attrIndex('src');
+      const originalSrc =
+        srcIndex >= 0 && token.attrs ? token.attrs[srcIndex][1] : '';
 
       if (srcIndex >= 0 && token.attrs) {
-        token.attrs[srcIndex][1] = this.resolveMarkdownImageSource(
-          token.attrs[srcIndex][1],
-        );
+        token.attrs[srcIndex][1] = this.resolveMarkdownImageSource(originalSrc);
+      }
+
+      const resolvedImage = this.resolveMarkdownImageNode(originalSrc);
+      if (resolvedImage?._id) {
+        token.attrSet('data-file-id', resolvedImage._id);
       }
 
       const imageStyle =
-        'display: block; max-width: 600px; width: 100%; height: auto; object-fit: contain; margin: 1rem 0;';
+        'display: block; max-width: 600px; width: 100%; height: auto; object-fit: contain; margin: 1rem 0; cursor: pointer;';
       const existingStyle = token.attrGet('style');
 
       token.attrSet(
@@ -511,6 +516,29 @@ export class NotepadComponent
 
   onPreviewClick(event: MouseEvent) {
     const target = event.target as HTMLElement | null;
+    const image = target?.closest('img') as HTMLImageElement | null;
+    if (image) {
+      const fileId = image.getAttribute('data-file-id');
+      if (fileId) {
+        const node = this.resolveAttachmentNodeById(fileId);
+        if (node?.type === 'png') {
+          event.preventDefault();
+          this.openPhotosWindow(node.name, node.url ?? node.content ?? '', {
+            folderId: node.parentId ?? null,
+            selectedId: node._id,
+          });
+          return;
+        }
+      }
+
+      const src = image.getAttribute('src') ?? image.src ?? '';
+      if (src) {
+        event.preventDefault();
+        this.openPhotosWindow(image.getAttribute('alt') || 'image', src);
+        return;
+      }
+    }
+
     const anchor = target?.closest('a') as HTMLAnchorElement | null;
     if (!anchor) return;
 
@@ -524,6 +552,27 @@ export class NotepadComponent
     if (!node) return;
 
     this.openFileNode(node);
+  }
+
+  private openPhotosWindow(
+    title: string,
+    source: string,
+    options?: { folderId?: string | null; selectedId?: string },
+  ): void {
+    if (!source) return;
+
+    this.windowManagerService.addWindow({
+      application: 'Photos',
+      icon: 'bi-image',
+      data: {
+        title,
+        content: source,
+        type: 'image',
+        folderId: options?.folderId ?? null,
+        selectedId: options?.selectedId,
+        url: source,
+      },
+    });
   }
 
   /**
@@ -585,20 +634,22 @@ export class NotepadComponent
    * ![image](attachment://fileId)
    */
   private resolveMarkdownImageSource(src: string): string {
-    if (this.isExternalOrSpecialHref(src)) return src;
+    const node = this.resolveMarkdownImageNode(src);
+    return node?.url ?? node?.content ?? src;
+  }
+
+  private resolveMarkdownImageNode(src: string): FileNode | null {
+    if (this.isExternalOrSpecialHref(src)) return null;
 
     if (src.startsWith('attachment://')) {
       const attachmentId = src.slice('attachment://'.length);
-      const node = this.resolveAttachmentNodeById(attachmentId);
-      return node?.url ?? node?.content ?? src;
+      return this.resolveAttachmentNodeById(attachmentId);
     }
 
     const file = this.resolveMarkdownFileReference(src);
-    if (!file) return src;
+    if (!file) return null;
 
-    const resolved = this.resolveAttachmentNode(file);
-
-    return resolved.url ?? resolved.content ?? src;
+    return this.resolveAttachmentNode(file);
   }
 
   /**
@@ -623,12 +674,27 @@ export class NotepadComponent
 
   private resolveMarkdownFileReference(path: string): FileNode | null {
     const normalizedPath = this.normalizeMarkdownPath(path);
-
-    return (
+    // Try exact match first (with and without leading ./)
+    let file =
       this.markdownReferenceFiles.get(normalizedPath) ??
-      this.markdownReferenceFiles.get(`./${normalizedPath}`) ??
-      null
-    );
+      this.markdownReferenceFiles.get(`./${normalizedPath}`);
+
+    if (file) return file;
+
+    // Fallback: if the link included an extension (e.g. présentation.pptx),
+    // try matching the basename without extension so links like
+    // `[Presentatie](./presentatie.pptx)` still resolve when the stored
+    // reference was registered without the extension (`presentatie`).
+    const lastDot = normalizedPath.lastIndexOf('.');
+    if (lastDot > 0) {
+      const base = normalizedPath.slice(0, lastDot);
+      file =
+        this.markdownReferenceFiles.get(base) ??
+        this.markdownReferenceFiles.get(`./${base}`);
+      if (file) return file;
+    }
+
+    return null;
   }
 
   private normalizeMarkdownPath(path: string): string {
@@ -645,6 +711,12 @@ export class NotepadComponent
     while (normalized.startsWith('./')) {
       normalized = normalized.slice(2);
     }
+
+    // If the path contains directories, strip them so links like
+    // `sub/dir/file.docx` or `folder\\file.pptx` match the registered
+    // filenames. We keep only the basename.
+    const parts = normalized.split('/');
+    normalized = parts[parts.length - 1] ?? normalized;
 
     return normalized;
   }
@@ -716,18 +788,14 @@ export class NotepadComponent
         return;
 
       case 'png':
-        this.windowManagerService.addWindow({
-          application: 'Photos',
-          icon: 'bi-image',
-          data: {
-            title: resolved.name,
-            content: resolved.url ?? resolved.content ?? '',
-            type: 'image',
+        this.openPhotosWindow(
+          resolved.name,
+          resolved.url ?? resolved.content ?? '',
+          {
             folderId: resolved.parentId ?? null,
             selectedId: resolved._id,
-            url: resolved.url,
           },
-        });
+        );
         return;
 
       case 'mp4':

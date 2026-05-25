@@ -71,7 +71,11 @@
                   <i class="bi bi-arrow-up-right-square-fill shortcut"></i>
                 }
                 <i class="bi {{ getFileIcon(file.type) }}"></i>
-                @if (file.type !== "directory" && file.type !== "shortcut") {
+                @if (
+                  file.type !== "directory" &&
+                  file.type !== "shortcut" &&
+                  file.type !== "url"
+                ) {
                   <div class="application-inner">
                     <p>{{ file.name }}.{{ file.type }}</p>
                     <span> {{ file.path }}.{{ file.type }} </span>
