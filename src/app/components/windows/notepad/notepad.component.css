@@ -55,6 +55,43 @@ textarea:focus {
   overflow-wrap: anywhere;
 }
 
+/*
+  Markdown preview content is injected via [innerHTML].
+  With Angular's emulated view encapsulation, generated nodes (table/tr/td...)
+  won't get the _ngcontent attribute, so we must pierce styling with ::ng-deep.
+*/
+:host ::ng-deep .preview table {
+  width: 100%;
+  max-width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  margin: 0.75rem 0;
+}
+
+:host ::ng-deep .preview th,
+:host ::ng-deep .preview td {
+  border: 1px solid var(--text-color);
+  padding: 0.35rem 0.5rem;
+  vertical-align: top;
+}
+
+:host ::ng-deep .preview thead th {
+  background: color-mix(
+    in srgb,
+    var(--text-color) 14%,
+    var(--background-color)
+  );
+  font-weight: 600;
+}
+
+:host ::ng-deep .preview tbody tr:nth-child(even) td {
+  background: color-mix(
+    in srgb,
+    var(--secondary-color) 94%,
+    var(--secondary-color)
+  );
+}
+
 .attachment-panel {
   display: flex;
   flex-direction: column;
